@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-NTHREADS = 2
+NTHREADS = 1
 NTEST    = 10
 
 import _pysrp
@@ -9,16 +9,23 @@ Verifier = _pysrp.Verifier
 gen_sv   = _pysrp.gen_sv
 
 import _ctsrp
-#User     = _ctsrp.User
-#Verifier = _ctsrp.Verifier
-#gen_sv   = _ctsrp.gen_sv
-    
-import _srp
-#User     = _srp.User
-#Verifier = _srp.Verifier
-#gen_sv   = _srp.gen_sv
+User     = _ctsrp.User
+Verifier = _ctsrp.Verifier
+gen_sv   = _ctsrp.gen_sv
+
+try:
+    import _srp
+    #User     = _srp.User
+    #Verifier = _srp.Verifier
+    #gen_sv   = _srp.gen_sv
+except:
+    print 'C-module not available'
+    pass
 
 import srp
+
+HASH = _pysrp.SHA1
+NG   = _pysrp.NG_1024
 #User     = srp.User
 #Verifier = srp.Verifier
 #gen_sv   = srp.gen_sv
@@ -26,14 +33,14 @@ import srp
 username = 'testuser'
 password = 'testpassword'
 
-_s, _v = gen_sv( username, password )
+_s, _v = gen_sv( username, password, hash_alg=HASH, ng_type=NG )
     
 def test_one():
-    usr      = User( username, password )
+    usr      = User( username, password, hash_alg=HASH, ng_type=NG )
     uname, A = usr.start_authentication()
     
     # username, A => server
-    svr      = Verifier( uname, _s, _v, A )
+    svr      = Verifier( uname, _s, _v, A, hash_alg=HASH, ng_type=NG )
     s,B      = svr.get_challenge()
     
     # s,B => client

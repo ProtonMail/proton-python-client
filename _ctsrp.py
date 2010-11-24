@@ -18,15 +18,75 @@ import sys
 import hashlib
 import random
 import ctypes
-import atexit
 import time
 
 
-SHA256_DIGEST_LENGTH = 32
 
-N_HEX  = "AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF6095179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B9078717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB3786160279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73"
-G_HEX  = "2"
-HNxorg = None
+SHA1   = 0
+SHA224 = 1
+SHA256 = 3
+SHA384 = 4
+SHA512 = 5
+
+NG_1024   = 0
+NG_2048   = 1
+NG_4096   = 2
+NG_CUSTOM = 3
+
+_hash_map = { SHA1   : hashlib.sha1,
+              SHA224 : hashlib.sha224,
+              SHA256 : hashlib.sha256,
+              SHA384 : hashlib.sha384,
+              SHA512 : hashlib.sha512 }
+              
+              
+_ng_const = (
+# 1024-bit
+('''\
+EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C9C256576D674DF7496\
+EA81D3383B4813D692C6E0E0D5D8E250B98BE48E495C1D6089DAD15DC7D7B46154D6B6CE8E\
+F4AD69B15D4982559B297BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA\
+9AFD5138FE8376435B9FC61D2FC0EB06E3''',
+"2"),
+# 2048
+('''\
+AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4\
+A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF60\
+95179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF\
+747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B907\
+8717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB37861\
+60279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DB\
+FBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73''',
+"2"),
+# 4096
+('''\
+FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08\
+8A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B\
+302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9\
+A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE6\
+49286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8\
+FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D\
+670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C\
+180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF695581718\
+3995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D\
+04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7D\
+B3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D226\
+1AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200C\
+BBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFC\
+E0FD108E4B82D120A92108011A723C12A787E6D788719A10BDBA5B26\
+99C327186AF4E23C1A946834B6150BDA2583E9CA2AD44CE8DBBBC2DB\
+04DE8EF92E8EFC141FBECAA6287C59474E6BC05D99B2964FA090C3A2\
+233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127\
+D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199\
+FFFFFFFFFFFFFFFF''',
+"5")
+)
+
+
+
+#N_HEX  = "AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF6095179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B9078717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB3786160279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73"
+#G_HEX  = "2"
+#HNxorg = None
 
 dlls = list()
 
@@ -126,21 +186,21 @@ def bytes_to_bn( dest_bn, bytes ):
     BN_bin2bn(bytes, len(bytes), dest_bn)
     
  
-def H_str( dest_bn, s ):
-    d = hashlib.sha256(s).digest()
+def H_str( hash_class, dest_bn, s ):
+    d = hash_class(s).digest()
     buff = ctypes.create_string_buffer( s )
     BN_bin2bn(d, len(d), dest)
 
 
-def H_bn( dest, n ):
+def H_bn( hash_class, dest, n ):
     bin = ctypes.create_string_buffer( BN_num_bytes(n) )
     BN_bn2bin(n, bin)
-    d = hashlib.sha256( bin.raw ).digest()
+    d = hash_class( bin.raw ).digest()
     BN_bin2bn(d, len(d), dest)
     
     
-def H_bn_bn( dest, n1, n2 ):
-    h    = hashlib.sha256()
+def H_bn_bn( hash_class, dest, n1, n2 ):
+    h    = hash_class()
     bin1 = ctypes.create_string_buffer( BN_num_bytes(n1) )
     bin2 = ctypes.create_string_buffer( BN_num_bytes(n2) )
     BN_bn2bin(n1, bin1)
@@ -151,8 +211,8 @@ def H_bn_bn( dest, n1, n2 ):
     BN_bin2bn(d, len(d), dest)
     
     
-def H_bn_str( dest, n, s ):
-    h   = hashlib.sha256()
+def H_bn_str( hash_class, dest, n, s ):
+    h   = hash_class()
     bin = ctypes.create_string_buffer( BN_num_bytes(n) )
     BN_bn2bin(n, bin)
     h.update( bin.raw )
@@ -161,9 +221,9 @@ def H_bn_str( dest, n, s ):
     BN_bin2bn(d, len(d), dest)
  
     
-def calculate_x( dest, salt, username, password ):
-    up = hashlib.sha256('%s:%s' % (username, password )).digest()
-    H_bn_str( dest, salt, up )
+def calculate_x( hash_class, dest, salt, username, password ):
+    up = hash_class('%s:%s' % (username, password )).digest()
+    H_bn_str( hash_class, dest, salt, up )
     
     
 def update_hash( ctx, n ):
@@ -172,10 +232,10 @@ def update_hash( ctx, n ):
     ctx.update( buff.raw )
 
     
-def calculate_M( I, s, A, B, K ):
-    h = hashlib.sha256()
-    h.update( HNxorg )
-    h.update( hashlib.sha256(I).digest() )
+def calculate_M( hash_class, N, g, I, s, A, B, K ):
+    h = hash_class()
+    h.update( HNxorg( hash_class, N, g ) )
+    h.update( hash_class(I).digest() )
     update_hash( h, s )
     update_hash( h, A )
     update_hash( h, B )
@@ -183,38 +243,55 @@ def calculate_M( I, s, A, B, K ):
     return h.digest()
     
 
-def calculate_H_AMK( A, M, K ):
-    h = hashlib.sha256()
+def calculate_H_AMK( hash_class, A, M, K ):
+    h = hash_class()
     update_hash( h, A )
     h.update( M )
     h.update( K )
     return h.digest()
 
     
-def calculate_HN_xor_Hg():
-    global HNxorg
-    
+def HNxorg( hash_class, N, g ):    
     bN = ctypes.create_string_buffer( BN_num_bytes(N) )
     bg = ctypes.create_string_buffer( BN_num_bytes(g) )
     
     BN_bn2bin(N, bN)
     BN_bn2bin(g, bg)
     
-    hN = hashlib.sha256( bN.raw ).digest()
-    hg = hashlib.sha256( bg.raw ).digest()
+    hN = hash_class( bN.raw ).digest()
+    hg = hash_class( bg.raw ).digest()
     
-    HNxorg  = ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
+    return ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
+
+
+
+def get_ngk( hash_class, ng_type, n_hex, g_hex ):
+    if ng_type < NG_CUSTOM:
+        n_hex, g_hex = _ng_const[ ng_type ]
+    N = BN_new()
+    g = BN_new()
+    k = BN_new()
+    
+    BN_hex2bn( N, n_hex )
+    BN_hex2bn( g, g_hex )
+    H_bn_bn(hash_class, k, N, g)
+
+    return N, g, k
+
     
   
-def gen_sv( username, password ):
+def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
     s    = BN_new()
     v    = BN_new()
     x    = BN_new()
     ctx  = BN_CTX_new()
+    
+    hash_class = _hash_map[ hash_alg ]
+    N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
 
     BN_rand(s, 32, -1, 0);
         
-    calculate_x(x, s, username, password )
+    calculate_x( hash_class, x, s, username, password )
         
     BN_mod_exp(v, g, x, N, ctx)
     
@@ -224,6 +301,9 @@ def gen_sv( username, password ):
     BN_free(s)
     BN_free(v)
     BN_free(x)
+    BN_free(N)
+    BN_free(g)
+    BN_free(k)
     BN_CTX_free(ctx)
     
     return salt, verifier
@@ -231,7 +311,7 @@ def gen_sv( username, password ):
   
 
 class Verifier (object):
-    def __init__(self,  username, bytes_s, bytes_v, bytes_A):
+    def __init__(self,  username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
         self.A     = BN_new()
         self.B     = BN_new()
         self.K     = None
@@ -250,6 +330,14 @@ class Verifier (object):
         
         self.safety_failed = False
         
+        hash_class = _hash_map[ hash_alg ]
+        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+        
+        self.hash_class = hash_class
+        self.N          = N
+        self.g          = g
+        self.k          = k
+        
         bytes_to_bn( self.s, bytes_s )
         bytes_to_bn( self.v, bytes_v )        
         bytes_to_bn( self.A, bytes_A )
@@ -267,17 +355,17 @@ class Verifier (object):
             BN_mod_exp(self.tmp2, g, self.b, N, self.ctx)
             BN_add(self.B, self.tmp1, self.tmp2)
             
-            H_bn_bn(self.u, self.A, self.B)
+            H_bn_bn(hash_class, self.u, self.A, self.B)
             
             # S = (A *(v^u)) ^ b
             BN_mod_exp(self.tmp1, self.v, self.u, N, self.ctx)
             BN_mul(self.tmp2, self.A, self.tmp1, self.ctx)
             BN_mod_exp(self.S, self.tmp2, self.b, N, self.ctx)
             
-            self.K = hashlib.sha256( bn_to_bytes(self.S) ).digest()
+            self.K = hash_class( bn_to_bytes(self.S) ).digest()
             
-            self.M     = calculate_M( self.I, self.s, self.A, self.B, self.K )
-            self.H_AMK = calculate_H_AMK( self.A, self.M, self.K )
+            self.M     = calculate_M( hash_class, N, g, self.I, self.s, self.A, self.B, self.K )
+            self.H_AMK = calculate_H_AMK( hash_class, self.A, self.M, self.K )
         
         
     def __del__(self):
@@ -288,6 +376,9 @@ class Verifier (object):
         BN_free(self.b)
         BN_free(self.s)
         BN_free(self.v)
+        BN_free(self.N)
+        BN_free(self.g)
+        BN_free(self.k)
         BN_free(self.tmp1)
         BN_free(self.tmp2)
         BN_CTX_free(self.ctx)
@@ -322,7 +413,7 @@ class Verifier (object):
         
     
 class User (object):
-    def __init__(self, username, password):
+    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
         self.username = username
         self.password = password
         self.a     = BN_new()
@@ -342,6 +433,14 @@ class User (object):
         self.H_AMK = None
         self._authenticated = False
         
+        hash_class = _hash_map[ hash_alg ]
+        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+        
+        self.hash_class = hash_class
+        self.N          = N
+        self.g          = g
+        self.k          = k
+        
         BN_rand(self.a, 256, -1, 0)
         
         BN_mod_exp(self.A, g, self.a, N, self.ctx)
@@ -356,6 +455,9 @@ class User (object):
         BN_free(self.u)
         BN_free(self.x)
         BN_free(self.v)
+        BN_free(self.N)
+        BN_free(self.g)
+        BN_free(self.k)
         BN_free(self.tmp1)
         BN_free(self.tmp2)
         BN_free(self.tmp3)
@@ -380,6 +482,11 @@ class User (object):
         
     # Returns M or None if SRP-6a safety check is violated
     def process_challenge(self, bytes_s, bytes_B):
+
+        hash_class = self.hash_class
+        N = self.N
+        g = self.g
+        k = self.k
         
         bytes_to_bn( self.s, bytes_s )
         bytes_to_bn( self.B, bytes_B )
@@ -388,13 +495,13 @@ class User (object):
         if BN_is_zero(self.B):
             return None
             
-        H_bn_bn(self.u, self.A, self.B)
+        H_bn_bn(hash_class, self.u, self.A, self.B)
         
         # SRP-6a safety check
         if BN_is_zero(self.u):
             return None
         
-        calculate_x( self.x, self.s, self.username, self.password )
+        calculate_x( hash_class, self.x, self.s, self.username, self.password )
         
         BN_mod_exp(self.v, g, self.x, N, self.ctx)
         
@@ -407,9 +514,9 @@ class User (object):
         BN_sub(self.tmp1, self.B, self.tmp3)            # tmp1 = (B - K*(g^x))
         BN_mod_exp(self.S, self.tmp1, self.tmp2, N, self.ctx)
 
-        self.K     = hashlib.sha256( bn_to_bytes(self.S) ).digest()
-        self.M     = calculate_M( self.username, self.s, self.A, self.B, self.K )
-        self.H_AMK = calculate_H_AMK( self.A, self.M, self.K )
+        self.K     = hash_class( bn_to_bytes(self.S) ).digest()
+        self.M     = calculate_M( hash_class, N, g, self.username, self.s, self.A, self.B, self.K )
+        self.H_AMK = calculate_H_AMK( hash_class, self.A, self.M, self.K )
 
         return self.M
         
@@ -417,26 +524,11 @@ class User (object):
     def verify_session(self, host_HAMK):
         if self.H_AMK == host_HAMK:
             self._authenticated = True
-        
+
+            
+
 #---------------------------------------------------------
 # Init
 #
-N      = BN_new()
-g      = BN_new()
-k      = BN_new()
-HNxorg = None
-
-BN_hex2bn( N, N_HEX )
-BN_hex2bn( g, G_HEX )
-H_bn_bn(k, N, g)
-
-calculate_HN_xor_Hg()
-
 RAND_seed( os.urandom(32), 32 )
 
-def cleanup():
-    BN_free( N )
-    BN_free( g )
-    BN_free( k )
-    
-atexit.register( cleanup )

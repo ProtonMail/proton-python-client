@@ -17,6 +17,71 @@ import hashlib
 import os
 import binascii
 
+SHA1   = 0
+SHA224 = 1
+SHA256 = 3
+SHA384 = 4
+SHA512 = 5
+
+NG_1024   = 0
+NG_2048   = 1
+NG_4096   = 2
+NG_CUSTOM = 3
+
+_hash_map = { SHA1   : hashlib.sha1,
+              SHA224 : hashlib.sha224,
+              SHA256 : hashlib.sha256,
+              SHA384 : hashlib.sha384,
+              SHA512 : hashlib.sha512 }
+              
+              
+_ng_const = (
+# 1024-bit
+('''\
+EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C9C256576D674DF7496\
+EA81D3383B4813D692C6E0E0D5D8E250B98BE48E495C1D6089DAD15DC7D7B46154D6B6CE8E\
+F4AD69B15D4982559B297BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA\
+9AFD5138FE8376435B9FC61D2FC0EB06E3''',
+"2"),
+# 2048
+('''\
+AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4\
+A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF60\
+95179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF\
+747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B907\
+8717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB37861\
+60279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DB\
+FBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73''',
+"2"),
+# 4096
+('''\
+FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08\
+8A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B\
+302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9\
+A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE6\
+49286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8\
+FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D\
+670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C\
+180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF695581718\
+3995497CEA956AE515D2261898FA051015728E5A8AAAC42DAD33170D\
+04507A33A85521ABDF1CBA64ECFB850458DBEF0A8AEA71575D060C7D\
+B3970F85A6E1E4C7ABF5AE8CDB0933D71E8C94E04A25619DCEE3D226\
+1AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200C\
+BBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFC\
+E0FD108E4B82D120A92108011A723C12A787E6D788719A10BDBA5B26\
+99C327186AF4E23C1A946834B6150BDA2583E9CA2AD44CE8DBBBC2DB\
+04DE8EF92E8EFC141FBECAA6287C59474E6BC05D99B2964FA090C3A2\
+233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127\
+D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199\
+FFFFFFFFFFFFFFFF''',
+"5")
+)
+
+def get_ng( ng_type, n_hex, g_hex ):
+    if ng_type < NG_CUSTOM:
+        n_hex, g_hex = _ng_const[ ng_type ]
+    return int(n_hex,16), int(g_hex,16)
+              
 
 def bytes_to_long(s):
     n = ord(s[0])
@@ -42,7 +107,7 @@ def get_random( nbytes ):
     return bytes_to_long( os.urandom( nbytes ) )
 
     
-def old_H( s1, s2 = '', s3=''):
+def old_H( hash_class, s1, s2 = '', s3=''):
     if isinstance(s1, (long, int)):
         s1 = long_to_bytes(s1)
     if s2 and isinstance(s2, (long, int)):
@@ -50,11 +115,11 @@ def old_H( s1, s2 = '', s3=''):
     if s3 and isinstance(s3, (long, int)):
         s3 = long_to_bytes(s3)
     s = s1 + s2 + s3
-    return long(hashlib.sha256(s).hexdigest(), 16)
+    return long(hash_class(s).hexdigest(), 16)
     
     
-def H( *args, **kwargs ):
-    h = hashlib.sha256()
+def H( hash_class, *args, **kwargs ):
+    h = hash_class()
     
     for s in args:
         if s is not None:
@@ -64,35 +129,38 @@ def H( *args, **kwargs ):
 
 
 
-N = 0xAC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF6095179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B9078717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB3786160279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73;
-g = 2;    
-k = H(N,g)  
+#N = 0xAC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC3192943DB56050A37329CBB4A099ED8193E0757767A13DD52312AB4B03310DCD7F48A9DA04FD50E8083969EDB767B0CF6095179A163AB3661A05FBD5FAAAE82918A9962F0B93B855F97993EC975EEAA80D740ADBF4FF747359D041D5C33EA71D281E446B14773BCA97B43A23FB801676BD207A436C6481F1D2B9078717461A5B9D32E688F87748544523B524B0D57D5EA77A2775D2ECFA032CFBDBF52FB3786160279004E57AE6AF874E7303CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73;
+#g = 2;    
+#k = H(N,g)  
 
-hN = hashlib.sha256( long_to_bytes(N) ).digest()
-hg = hashlib.sha256( long_to_bytes(g) ).digest()
+def HNxorg( hash_class, N, g ):
+    hN = hash_class( long_to_bytes(N) ).digest()
+    hg = hash_class( long_to_bytes(g) ).digest()
 
-HNxorg  = ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
+    return ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
     
     
     
-def gen_x( salt, username, password ):
-    return H( salt, H( username + ':' + password ) )
+def gen_x( hash_class, salt, username, password ):
+    return H( hash_class, salt, H( hash_class, username + ':' + password ) )
     
     
     
     
-def gen_sv( username, password ):
+def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
+    hash_class = _hash_map[ hash_alg ]
+    N,g = get_ng( ng_type, n_hex, g_hex )
     _s = long_to_bytes( get_random( 4 ) )
-    _v = long_to_bytes( pow(g,  gen_x( _s, username, password ), N) )
+    _v = long_to_bytes( pow(g,  gen_x( hash_class, _s, username, password ), N) )
     
     return _s, _v
     
 
     
-def calculate_M( I, s, A, B, K ):
-    h = hashlib.sha256()
-    h.update( HNxorg )
-    h.update( hashlib.sha256(I).digest() )
+def calculate_M( hash_class, N, g, I, s, A, B, K ):
+    h = hash_class()
+    h.update( HNxorg( hash_class, N, g ) )
+    h.update( hash_class(I).digest() )
     h.update( long_to_bytes(s) )
     h.update( long_to_bytes(A) )
     h.update( long_to_bytes(B) )
@@ -100,8 +168,8 @@ def calculate_M( I, s, A, B, K ):
     return h.digest()
 
 
-def calculate_H_AMK( A, M, K ):
-    h = hashlib.sha256()
+def calculate_H_AMK( hash_class, A, M, K ):
+    h = hash_class()
     h.update( long_to_bytes(A) )
     h.update( M )
     h.update( K )
@@ -112,12 +180,21 @@ def calculate_H_AMK( A, M, K ):
   
 class Verifier (object):
   
-    def __init__(self, username, bytes_s, bytes_v, bytes_A):
+    def __init__(self, username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
         self.s = bytes_to_long(bytes_s)
         self.v = bytes_to_long(bytes_v)
         self.I = username
         self.K = None
         self._authenticated = False
+        
+        N,g        = get_ng( ng_type, n_hex, g_hex )
+        hash_class = _hash_map[ hash_alg ]
+        k          = H( hash_class, N, g )
+        
+        self.hash_class = hash_class
+        self.N          = N
+        self.g          = g
+        self.k          = k
         
         self.A = bytes_to_long(bytes_A)
         
@@ -128,11 +205,11 @@ class Verifier (object):
             
             self.b = get_random( 32 )
             self.B = (k*self.v + pow(g, self.b, N)) % N
-            self.u = H(self.A, self.B)
+            self.u = H(hash_class, self.A, self.B)
             self.S = pow(self.A*pow(self.v, self.u, N ), self.b, N)
-            self.K = hashlib.sha256( long_to_bytes(self.S) ).digest()
-            self.M = calculate_M( self.I, self.s, self.A, self.B, self.K )
-            self.H_AMK = calculate_H_AMK(self.A, self.M, self.K)
+            self.K = hash_class( long_to_bytes(self.S) ).digest()
+            self.M = calculate_M( hash_class, N, g, self.I, self.s, self.A, self.B, self.K )
+            self.H_AMK = calculate_H_AMK( hash_class, self.A, self.M, self.K )
         
         
     def authenticated(self):
@@ -163,7 +240,12 @@ class Verifier (object):
         
         
 class User (object):
-    def __init__(self, username, password):
+    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
+        
+        N,g        = get_ng( ng_type, n_hex, g_hex )
+        hash_class = _hash_map[ hash_alg ]
+        k          = H( hash_class, N, g )
+        
         self.I     = username
         self.p     = password
         self.a     = get_random( 32 )
@@ -173,6 +255,11 @@ class User (object):
         self.K     = None
         self.H_AMK = None
         self._authenticated = False
+        
+        self.hash_class = hash_class
+        self.N          = N
+        self.g          = g
+        self.k          = k
         
     
     def authenticated(self):
@@ -197,25 +284,31 @@ class User (object):
         self.s = bytes_to_long( bytes_s )
         self.B = bytes_to_long( bytes_B )
         
+        N = self.N
+        g = self.g
+        k = self.k
+        
+        hash_class = self.hash_class
+        
         # SRP-6a safety check
         if (self.B % N) == 0:
             return None
         
-        self.u = H( self.A, self.B )
+        self.u = H( hash_class, self.A, self.B )
         
         # SRP-6a safety check
         if self.u == 0:
             return None
         
-        self.x = gen_x( self.s, self.I, self.p )
+        self.x = gen_x( hash_class, self.s, self.I, self.p )
         
         self.v = pow(g, self.x, N)
         
         self.S = pow((self.B - k*self.v), (self.a + self.u*self.x), N)
         
-        self.K     = hashlib.sha256( long_to_bytes(self.S) ).digest()        
-        self.M     = calculate_M( self.I, self.s, self.A, self.B, self.K )
-        self.H_AMK = calculate_H_AMK(self.A, self.M, self.K)
+        self.K     = hash_class( long_to_bytes(self.S) ).digest()        
+        self.M     = calculate_M( hash_class, N, g, self.I, self.s, self.A, self.B, self.K )
+        self.H_AMK = calculate_H_AMK(hash_class, self.A, self.M, self.K)
         
         return self.M
         
