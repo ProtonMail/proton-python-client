@@ -10,14 +10,14 @@
 
 
 This module provides an implementation of the Secure Remote Password
-Protocol. It may be used for secure authentication across an unsecured
+Protocol. It is used for secure authentication across an unsecured
 network connection and verifies that both sides, the user and server,
 have knowledge of the user's password. Unlike other commonly used
-authentication protocols such as Kerberos and certificate-based SSL,
+authentication protocols, such as Kerberos and certificate-based SSL,
 SRP does not require a trusted third party. With SRP, the user's password
 is never sent over the network and a successful authentication results
-in a cryptographically secure shared key that may be used for symmetric
-key encryption.
+in a cryptographically secure shared key that may be used for subsequent
+symmetric key encryption.
 
 SRP authentication requires the server to store a salted verification
 key that is computed from user's password. While care should be taken
@@ -36,12 +36,45 @@ second is an issue, using a small pool of threads to perform the
 authentication steps on multi-core systems will yield a substantial
 performance increase.
 
+The User & Verifier construtors, as well as the gen_sv() function,
+take optional hashing algorithm and prime number arguments. Generally
+speaking, more bits means more computation time and more security. The
+hashing and prime number parameters passed to the User and Verifier
+constructors must match those used to create the verification key.
+
 See http://srp.stanford.edu/ for a full description of the SRP protocol.
+
+Constants
+---------
+==============  ==============
+Hash Algorithm  Number of Bits
+==============  ==============
+SHA1            160
+SHA224          224
+SHA256          256
+SHA384          384
+SHA512          512
+==============  ==============
+
+=================
+Prime Number Size
+=================
+NG_1024  
+NG_2048   
+NG_4096   
+NG_CUSTOM 
+=================
+
+If NG_CUSTOM is used, the 'n_hex' and 'g_hex' parameters are required.
+These parameters must be ASCII text containing hexidecimal notation of the
+prime number 'n_hex' and the corresponding generator number 'g_hex'. Appendix
+A of RFC 5054 contains several large prime number, generator pairs that may
+be used with NG_CUSTOM.
 
 Functions
 ---------
 
-.. function:: gen_sv ( username, password )
+.. function:: gen_sv ( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
     Generates a salt and verifier for the given username and password.
     Returns (salt_bytes, verifier_bytes)
@@ -58,7 +91,7 @@ user.
   The standard SRP 6 protocol allows only one password attempt per 
   connection.
 
-.. class:: Verifier( username, bytes_s, bytes_v, bytes_A )
+.. class:: Verifier( username, bytes_s, bytes_v, bytes_A[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
   *username* Name of the remote user being authenticated.
   
@@ -105,7 +138,7 @@ that the :class:`User` be provided with a valid username/password but
 also that the remote :class:`Verifier` have a salt & verifier for that 
 username/password pair.
 
-.. class:: User( username, password )
+.. class:: User( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
   *username* Name of the user being authenticated.
   

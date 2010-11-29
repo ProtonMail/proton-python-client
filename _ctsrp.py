@@ -24,9 +24,9 @@ import time
 
 SHA1   = 0
 SHA224 = 1
-SHA256 = 3
-SHA384 = 4
-SHA512 = 5
+SHA256 = 2
+SHA384 = 3
+SHA512 = 4
 
 NG_1024   = 0
 NG_2048   = 1

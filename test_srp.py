@@ -1,34 +1,39 @@
 #!/usr/bin/python
 
+import sys
+sys.path.append( 'build/lib.linux-i686-2.6/' )
+
 NTHREADS = 1
 NTEST    = 10
 
 import _pysrp
-User     = _pysrp.User
-Verifier = _pysrp.Verifier
-gen_sv   = _pysrp.gen_sv
+u_mod = _pysrp
+v_mod = _pysrp
+g_mod = _pysrp
 
 import _ctsrp
-User     = _ctsrp.User
-Verifier = _ctsrp.Verifier
-gen_sv   = _ctsrp.gen_sv
+u_mod = _ctsrp
+#v_mod = _ctsrp
+#g_mod = _ctsrp
 
 try:
     import _srp
-    #User     = _srp.User
-    #Verifier = _srp.Verifier
-    #gen_sv   = _srp.gen_sv
+    u_mod = _srp
+    v_mod = _srp
+    g_mod = _srp
 except:
     print 'C-module not available'
     pass
 
 import srp
 
-HASH = _pysrp.SHA1
-NG   = _pysrp.NG_1024
-#User     = srp.User
-#Verifier = srp.Verifier
-#gen_sv   = srp.gen_sv
+User     = u_mod.User
+Verifier = v_mod.Verifier
+gen_sv   = g_mod.gen_sv
+
+HASH = srp.SHA256
+NG   = srp.NG_2048
+
 
 username = 'testuser'
 password = 'testpassword'

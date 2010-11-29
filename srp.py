@@ -1,30 +1,38 @@
 
-User     = None
-Verifier = None
-gen_sv   = None
+_mod     = None
 
 try:
     import _srp
-    User     = _srp.User
-    Verifier = _srp.Verifier
-    gen_sv   = _srp.gen_sv
+    _mod = _srp
 except ImportError:
     pass
 
-if not User:
+if not _mod:
     try:
         import _ctsrp
-        User     = _ctsrp.User
-        Verifier = _ctsrp.Verifier
-        gen_sv   = _ctsrp.gen_sv
+        _mod = _ctsrp
     except ImportError:
         pass
     
-if not User:
+if not _mod:
     import _pysrp
-    User     = _pysrp.User
-    Verifier = _pysrp.Verifier
-    gen_sv   = _pysrp.gen_sv
+    _mod = _pysrp
+
+    
+User      = _mod.User
+Verifier  = _mod.Verifier
+gen_sv    = _mod.gen_sv
+
+SHA1      = _mod.SHA1
+SHA224    = _mod.SHA224
+SHA256    = _mod.SHA256
+SHA384    = _mod.SHA384
+SHA512    = _mod.SHA512
+
+NG_1024   = _mod.NG_1024
+NG_2048   = _mod.NG_2048
+NG_4096   = _mod.NG_4096
+NG_CUSTOM = _mod.NG_CUSTOM
 
         
         

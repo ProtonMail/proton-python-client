@@ -19,9 +19,9 @@ import binascii
 
 SHA1   = 0
 SHA224 = 1
-SHA256 = 3
-SHA384 = 4
-SHA512 = 5
+SHA256 = 2
+SHA384 = 3
+SHA512 = 4
 
 NG_1024   = 0
 NG_2048   = 1
@@ -34,7 +34,7 @@ _hash_map = { SHA1   : hashlib.sha1,
               SHA384 : hashlib.sha384,
               SHA512 : hashlib.sha512 }
               
-              
+
 _ng_const = (
 # 1024-bit
 ('''\
