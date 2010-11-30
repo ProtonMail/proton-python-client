@@ -148,6 +148,8 @@ def gen_x( hash_class, salt, username, password ):
     
     
 def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
+    if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+        raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     hash_class = _hash_map[ hash_alg ]
     N,g = get_ng( ng_type, n_hex, g_hex )
     _s = long_to_bytes( get_random( 4 ) )
@@ -181,6 +183,8 @@ def calculate_H_AMK( hash_class, A, M, K ):
 class Verifier (object):
   
     def __init__(self, username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
+        if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+            raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         self.s = bytes_to_long(bytes_s)
         self.v = bytes_to_long(bytes_v)
         self.I = username
@@ -241,7 +245,8 @@ class Verifier (object):
         
 class User (object):
     def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
-        
+        if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+            raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         N,g        = get_ng( ng_type, n_hex, g_hex )
         hash_class = _hash_map[ hash_alg ]
         k          = H( hash_class, N, g )

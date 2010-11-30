@@ -929,9 +929,26 @@ static int ver_init( PyVerifier *self, PyObject *args, PyObject *kwds )
         return -1;
     }
     
-    /* The srp_verifier_new command is computationally intensive... ~15ms on a
-     * 3Ghz x86 CPU. Allowing multiple, simultaneous calls here may speed 
-     * things up for multi-cpu machines
+    if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
+        return -1;
+    }
+    
+    if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
+        return -1;
+    }
+    
+    if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
+    {
+        PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
+        return -1;
+    }
+    
+    /* The srp_verifier_new command is computationally intensive. Allowing multiple,
+     *  simultaneous calls here will speed things up for multi-cpu machines
      */
     Py_BEGIN_ALLOW_THREADS
         self->ver = srp_verifier_new( (SRP_HashAlgorithm) hash_alg, 
@@ -988,6 +1005,24 @@ static int usr_init( PyUser *self, PyObject *args, PyObject *kwds )
                                        &n_hex,
                                        &g_hex) )
     {
+        return -1;
+    }
+    
+    if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
+        return -1;
+    }
+    
+    if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
+        return -1;
+    }
+    
+    if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
+    {
+        PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
         return -1;
     }
     
@@ -1167,9 +1202,9 @@ static PyObject * usr_process_challenge( PyUser * self, PyObject * args )
         return NULL;
     }
     
-    /* The srp_user_process_challenge command is computationally intensive... 
-     * ~20ms on a 2Ghz x86 CPU. Allowing multiple, simultaneous calls here will
-     * speed things up for multi-cpu machines.
+    /* The srp_user_process_challenge command is computationally intensive.
+     * Allowing multiple, simultaneous calls here will speed things up on
+     * multi-cpu machines.
      */
     Py_BEGIN_ALLOW_THREADS
     srp_user_process_challenge( self->usr, bytes_s, len_s, bytes_B, len_B, 
@@ -1228,6 +1263,24 @@ static PyObject * py_gen_sv( PyObject *self, PyObject *args, PyObject *kwds )
                                        &g_hex) )
         return NULL;
     
+    
+    if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
+        return NULL;
+    }
+    
+    if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
+        return NULL;
+    }
+    
+    if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
+    {
+        PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
+        return NULL;
+    }
 
     srp_gen_sv( (SRP_HashAlgorithm) hash_alg, 
                 (SRP_NGType) ng_type,

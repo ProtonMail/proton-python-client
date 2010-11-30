@@ -281,6 +281,8 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
     
   
 def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
+    if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+        raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     s    = BN_new()
     v    = BN_new()
     x    = BN_new()
@@ -312,6 +314,8 @@ def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_he
 
 class Verifier (object):
     def __init__(self,  username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
+        if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+            raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         self.A     = BN_new()
         self.B     = BN_new()
         self.K     = None
@@ -369,6 +373,8 @@ class Verifier (object):
         
         
     def __del__(self):
+        if not hasattr(self, 'A'):
+            return # __init__ threw exception. no clean up required
         BN_free(self.A)
         BN_free(self.B)
         BN_free(self.S)
@@ -414,6 +420,8 @@ class Verifier (object):
     
 class User (object):
     def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None):
+        if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
+            raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         self.username = username
         self.password = password
         self.a     = BN_new()
@@ -447,6 +455,8 @@ class User (object):
         
         
     def __del__(self):
+        if not hasattr(self, 'a'):
+            return # __init__ threw exception. no clean up required
         BN_free(self.a)
         BN_free(self.A)
         BN_free(self.B)
