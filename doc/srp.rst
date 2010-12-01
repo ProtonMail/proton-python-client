@@ -46,24 +46,31 @@ See http://srp.stanford.edu/ for a full description of the SRP protocol.
 
 Constants
 ---------
-==============  ==============
-Hash Algorithm  Number of Bits
-==============  ==============
-SHA1            160
-SHA224          224
-SHA256          256
-SHA384          384
-SHA512          512
-==============  ==============
 
-=================
-Prime Number Size
-=================
-NG_1024  
-NG_2048   
-NG_4096   
-NG_CUSTOM 
-=================
+.. table:: Hashing Algorithm Constants
+
+  ==============  ==============
+  Hash Algorithm  Number of Bits
+  ==============  ==============
+  SHA1            160
+  SHA224          224
+  SHA256          256
+  SHA384          384
+  SHA512          512
+  ==============  ==============
+
+Larger hashing algorithms will result in larger session keys.
+
+.. table:: Prime Number Constants
+
+  ================= ==============
+  Prime Number Size Number of Bits
+  ================= ==============
+  NG_1024           1024
+  NG_2048           2048
+  NG_4096           4096
+  NG_CUSTOM         User Supplied
+  ================= ==============
 
 If NG_CUSTOM is used, the 'n_hex' and 'g_hex' parameters are required.
 These parameters must be ASCII text containing hexidecimal notation of the
