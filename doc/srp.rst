@@ -10,39 +10,43 @@
 
 
 This module provides an implementation of the Secure Remote Password
-Protocol. It is used for secure authentication across an unsecured
-network connection and verifies that both sides, the user and server,
-have knowledge of the user's password. Unlike other commonly used
-authentication protocols, such as Kerberos and certificate-based SSL,
-SRP does not require a trusted third party. With SRP, the user's password
-is never sent over the network and a successful authentication results
-in a cryptographically secure shared key that may be used for subsequent
-symmetric key encryption.
+Protocol (SRP). SRP is a secure, password-based authentication
+and key-exhange protocol. It solves the problem of securely
+authenticating clients to servers that store a salted verification
+key derived from the user's password. Successful authentication proves
+that the client knows user's password and that the server knows the 
+verification key.
 
-SRP authentication requires the server to store a salted verification
-key that is computed from user's password. While care should be taken
-to protect the verification key from disclosure, the protocol remains
-reasonably secure even in the event that an attacker obtains it. The
-verification key cannot be used to directly impersonate the user and 
-it would require a computationally infeasible brute-force dictionary
-attack to derive the users password from the verification key.
+The SRP protocol has a number of advantageous properties
 
-This implementation of SRP consists of both a pure-python module and
-a C-based implementation that is approximately 10x faster. By default, 
-the C-implementation will be used if it is available. An additional
-benefit of the C implementation is that it can take advantage of
-of multiple CPUs. For cases in which the number of connections per
-second is an issue, using a small pool of threads to perform the
-authentication steps on multi-core systems will yield a substantial
-performance increase.
+* It provides strong authentication
+* Successful authentication results in a cryptographically strong shared key
+  that may be used for subsequent symmetric-key encryption.
+* It does not require a trusted third party (unlike Kerberos & SSL)
+* It is resists both passive and active network attacks
+* Compromised verification keys do not allow the attacker to impersonate the
+  client.
+
+See http://srp.stanford.edu/ for a full description of the SRP protocol.
+
+Usage
+-----
+
+Use of SRP begins by using the gen_sv() function to create a salted 
+verification key from the user's password. The salt and key are stored
+on the server and will be used during the authentication process. 
+
+TODO: Lay out the steps of the protocol
+
 
 The User & Verifier construtors, as well as the gen_sv() function,
 take optional hashing algorithm and prime number arguments. Generally
-speaking, more bits means more computation time and more security. The
-hashing and prime number parameters passed to the User and Verifier
-constructors must match those used to create the verification key.
+speaking, more bits means more security but comes at the cost of 
+increased computation time. The hashing and prime number parameters passed 
+to the User and Verifier constructors must match those used to create the 
+verification key.
 
-See http://srp.stanford.edu/ for a full description of the SRP protocol.
+
 
 Constants
 ---------
@@ -225,4 +229,16 @@ Simple Usage Example::
     
     assert usr.authenticated()
     assert svr.authenticated()
-    
+
+
+
+Implementation Notes
+--------------------
+This implementation of SRP consists of both a pure-python module and
+a C-based implementation that is approximately 10x faster. By default, 
+the C-implementation will be used if it is available. An additional
+benefit of the C implementation is that it can take advantage of
+of multiple CPUs. For cases in which the number of connections per
+second is an issue, using a small pool of threads to perform the
+authentication steps on multi-core systems will yield a substantial
+performance increase.

@@ -15,3 +15,4 @@ Installation:
 Documentation:
    cd doc
    sphinx-build -b html . <desired output directory>
+   
