@@ -10,24 +10,38 @@
 
 
 This module provides an implementation of the Secure Remote Password
-Protocol (SRP). SRP is a secure, password-based authentication
-and key-exhange protocol. It solves the problem of securely
-authenticating clients to servers that store a salted verification
-key derived from the user's password. Successful authentication proves
-that the client knows user's password and that the server knows the 
-verification key.
+Protocol (SRP). SRP is a simple and secure protocol for password-based, mutual
+authentication. Successful SRP authentication proves that the client knows
+the user's password and proves that the server knows the verification key
+that was derived from the user's password at the time it was set. An 
+additional benefit of SRP is that successful authentication results in a
+cryptographically strong shared key that can be used for symmetric key 
+encryption.
 
-The SRP protocol has a number of advantageous properties
+Unlike Kerberos & SSL, SRP does not require a trusted third party. The
+server simply needs to store a salted verification key that is derived
+from the user's password. This verification key should be protected as it's
+compromise would allow an attacker to impersonate the server. 
 
-* It provides strong authentication
+An advantage of the SRP protocol is that, even in the event that the 
+verification key is compromised, the protocol remains reasonably secure. While
+an attacker would be able to impersonate the server side of a connection, he or
+she would not be able to directly impersonate a user or discover the user's
+password. It would require a computationally infeasible dictionary attack to 
+obtain the user's password from the verification key.
+
+
+Briefly stated, the advantages of SRP are:
+
+* It does not require a trusted third party (unlike Kerberos & SSL)
+* It provides strong, mutual authentication
 * Successful authentication results in a cryptographically strong shared key
   that may be used for subsequent symmetric-key encryption.
-* It does not require a trusted third party (unlike Kerberos & SSL)
 * It is resists both passive and active network attacks
 * Compromised verification keys do not allow the attacker to impersonate the
   client.
 
-See http://srp.stanford.edu/ for a full description of the SRP protocol.
+
 
 Usage
 -----
@@ -220,8 +234,13 @@ Simple Usage Example::
     
     # Client => Server: M
     HAMK     = svr.verify_session( M )
-    
-    
+
+    # SRP 6a requies the server to abort authentication and to specifically
+    # NOT send the HAMK message to the client if detects failed authentication
+    # at this point:
+    if not svr.authenticated():
+        raise Exception("authentication failed!")
+        
     # Server => Client: HAMK
     usr.verify_session( HAMK )
     
@@ -242,3 +261,76 @@ of multiple CPUs. For cases in which the number of connections per
 second is an issue, using a small pool of threads to perform the
 authentication steps on multi-core systems will yield a substantial
 performance increase.
+
+
+
+SRP 6a Protocol Description
+---------------------------
+
+For the original, authoritative definition of SRP-6a please 
+refer to http://srp.stanford.edu. RFC 5054 also contains SRP related 
+information and is the source of the predefined N and g constants used
+in this implementation.
+
+The following is a complete description of the SRP-6a protocol as implemented
+by this library. Note that the ^ symbol indicates exponentiaion and the | 
+symbol indicates concatenation.
+
+========= =================================================================
+Variables Description
+========= =================================================================
+N         A large, safe prime (N = 2q+1, where q is a Sophie Germain prime)
+          All arithmetic is performed in the field of integers modulo N
+g         A generator modulo N
+s         Small salt for the verification key
+I         Username
+p         Cleartext password
+H()       One-way hash function
+a,b       Secret, random values
+K         Session key
+========= =================================================================
+
+============================           ====================================
+Derived Values                         Description
+============================           ====================================
+k = H(N,g)                             Multiplier Parameter       
+A = g^a                                Public ephemeral value
+B = kv + g^b                           Public ephemeral value
+x = H( s, H( I | ':' | p ) )           Private key (as defined by RFC 5054)
+v = g^x                                Password verifier
+u = H(A,B)                             Random scrambling parameter
+M = H(H(N) xor H(g), H(I), s, A, B, K) Session key verifier
+====================================== ====================================
+
+The server stores the password verifier *v*. Authentication begins with a 
+message from the client::
+
+    client -> server: I, A = g^a
+    
+The server replies with the verifier salt and challenge::
+
+    server -> client: s, B = kv + g^b
+
+At this point, both the client and server calculate the shared session key::
+
+     client & server: u = H(A,B)
+     
+::   
+
+              server: K = H( (Av^u) ^ b )
+::
+
+              client: x = H( s, H( I + ':' + p ) )            
+              client: K = H( (B - kg^x) ^ (a + ux) )
+
+Now both parties have a shared, strong session key *K*. To complete 
+authentication they need to prove to each other that their keys match::
+
+    client -> server: M = H(H(N) xor H(g), H(I), s, A, B, K)
+    server -> client: H(A, M, K)
+    
+SRP 6a requires the two parties to use the following safeguards:
+1) The client will abort if it recieves B == 0 (mod N) or u == 0
+1) The server will abort if it detects A == 0 (mod N)
+1) The client must show its proof of K first. If the server detects that this
+   proof is incorrect it must abort without showing its own proof of K
