@@ -290,17 +290,19 @@ a,b       Secret, random values
 K         Session key
 ========= =================================================================
 
-============================           ====================================
-Derived Values                         Description
-============================           ====================================
-k = H(N,g)                             Multiplier Parameter       
-A = g^a                                Public ephemeral value
-B = kv + g^b                           Public ephemeral value
-x = H( s, H( I | ':' | p ) )           Private key (as defined by RFC 5054)
-v = g^x                                Password verifier
-u = H(A,B)                             Random scrambling parameter
-M = H(H(N) xor H(g), H(I), s, A, B, K) Session key verifier
-====================================== ====================================
+
+======================================  =====================================
+Derived Values                          Description
+======================================  =====================================
+k = H(N,g)                              Multiplier Parameter       
+A = g^a                                 Public ephemeral value
+B = kv + g^b                            Public ephemeral value
+x = H( s, H( I | ':' | p ) )            Private key (as defined by RFC 5054)
+v = g^x                                 Password verifier
+u = H(A,B)                              Random scrambling parameter
+M = H(H(N) xor H(g), H(I), s, A, B, K)  Session key verifier
+======================================  =====================================
+
 
 The server stores the password verifier *v*. Authentication begins with a 
 message from the client::
@@ -318,6 +320,7 @@ At this point, both the client and server calculate the shared session key::
 ::   
 
               server: K = H( (Av^u) ^ b )
+              
 ::
 
               client: x = H( s, H( I + ':' + p ) )            
@@ -333,4 +336,4 @@ SRP 6a requires the two parties to use the following safeguards:
 1) The client will abort if it recieves B == 0 (mod N) or u == 0
 1) The server will abort if it detects A == 0 (mod N)
 1) The client must show its proof of K first. If the server detects that this
-   proof is incorrect it must abort without showing its own proof of K
+proof is incorrect it must abort without showing its own proof of K
