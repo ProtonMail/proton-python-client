@@ -276,33 +276,39 @@ The following is a complete description of the SRP-6a protocol as implemented
 by this library. Note that the ^ symbol indicates exponentiaion and the | 
 symbol indicates concatenation.
 
+.. rubric:: Primary Variables used in SRP 6a
+
 ========= =================================================================
 Variables Description
 ========= =================================================================
 N         A large, safe prime (N = 2q+1, where q is a Sophie Germain prime)
           All arithmetic is performed in the field of integers modulo N
 g         A generator modulo N
-s         Small salt for the verification key
+s         Small salt for the verification key 
 I         Username
 p         Cleartext password
 H()       One-way hash function
 a,b       Secret, random values
 K         Session key
 ========= =================================================================
+   
 
+.. rubric:: Derived Values used in SRP 6a
 
-======================================  =====================================
+======================================  ====================================
 Derived Values                          Description
-======================================  =====================================
+======================================  ====================================
 k = H(N,g)                              Multiplier Parameter       
 A = g^a                                 Public ephemeral value
 B = kv + g^b                            Public ephemeral value
-x = H( s, H( I | ':' | p ) )            Private key (as defined by RFC 5054)
+x = H(s, H( I | ':' | p ))              Private key (as defined by RFC 5054)
 v = g^x                                 Password verifier
 u = H(A,B)                              Random scrambling parameter
 M = H(H(N) xor H(g), H(I), s, A, B, K)  Session key verifier
-======================================  =====================================
+======================================  ====================================
 
+
+.. rubric:: Protocol Description
 
 The server stores the password verifier *v*. Authentication begins with a 
 message from the client::
@@ -333,7 +339,9 @@ authentication they need to prove to each other that their keys match::
     server -> client: H(A, M, K)
     
 SRP 6a requires the two parties to use the following safeguards:
-1) The client will abort if it recieves B == 0 (mod N) or u == 0
-1) The server will abort if it detects A == 0 (mod N)
-1) The client must show its proof of K first. If the server detects that this
-proof is incorrect it must abort without showing its own proof of K
+
+1. The client will abort if it recieves B == 0 (mod N) or u == 0
+2. The server will abort if it detects A == 0 (mod N)
+3. The client must show its proof of K first. If the server detects that this
+   proof is incorrect it must abort without showing its own proof of K
+
