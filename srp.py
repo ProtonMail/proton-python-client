@@ -19,9 +19,9 @@ if not _mod:
     _mod = _pysrp
 
     
-User      = _mod.User
-Verifier  = _mod.Verifier
-gen_sv    = _mod.gen_sv
+User                           = _mod.User
+Verifier                       = _mod.Verifier
+create_salted_verification_key = _mod.create_salted_verification_key
 
 SHA1      = _mod.SHA1
 SHA224    = _mod.SHA224

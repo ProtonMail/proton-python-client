@@ -63,11 +63,11 @@ void srp_random_seed( const unsigned char * random_data, int data_length );
  * The n_hex and g_hex parameters should be 0 unless SRP_NG_CUSTOM is used for ng_type.
  * If provided, they must contain ASCII text of the hexidecimal notation.
  */
-void srp_gen_sv( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
-                 const unsigned char * password, int len_password,
-                 const unsigned char ** bytes_s, int * len_s, 
-                 const unsigned char ** bytes_v, int * len_v,
-                 const char * n_hex, const char * g_hex );
+void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
+                                         const unsigned char * password, int len_password,
+                                         const unsigned char ** bytes_s, int * len_s, 
+                                         const unsigned char ** bytes_v, int * len_v,
+                                         const char * n_hex, const char * g_hex );
 
 
 /* Out: bytes_B, len_B.
@@ -471,11 +471,11 @@ void srp_random_seed( const unsigned char * random_data, int data_length )
 }
 
 
-void srp_gen_sv( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
-                 const unsigned char * password, int len_password,
-                 const unsigned char ** bytes_s, int * len_s, 
-                 const unsigned char ** bytes_v, int * len_v,
-                 const char * n_hex, const char * g_hex )
+void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
+                                         const unsigned char * password, int len_password,
+                                         const unsigned char ** bytes_s, int * len_s, 
+                                         const unsigned char ** bytes_v, int * len_v,
+                                         const char * n_hex, const char * g_hex )
 {
     BIGNUM     * s   = BN_new();
     BIGNUM     * v   = BN_new();
@@ -1240,7 +1240,7 @@ static PyObject * usr_verify_session( PyUser * self, PyObject * args )
 }
 
 
-static PyObject * py_gen_sv( PyObject *self, PyObject *args, PyObject *kwds )
+static PyObject * py_create_salted_verification_key( PyObject *self, PyObject *args, PyObject *kwds )
 {
     PyObject            *ret;
     const char          *username;
@@ -1282,12 +1282,12 @@ static PyObject * py_gen_sv( PyObject *self, PyObject *args, PyObject *kwds )
         return NULL;
     }
 
-    srp_gen_sv( (SRP_HashAlgorithm) hash_alg, 
-                (SRP_NGType) ng_type,
-                username, bytes_password, len_password, &bytes_s, &len_s, 
-                &bytes_v, &len_v,
-                n_hex,
-                g_hex );
+    srp_create_salted_verification_key( (SRP_HashAlgorithm) hash_alg, 
+                                        (SRP_NGType) ng_type,
+                                        username, bytes_password, len_password, &bytes_s, &len_s, 
+                                        &bytes_v, &len_v,
+                                        n_hex,
+                                        g_hex );
     
     ret = Py_BuildValue("s#s#", bytes_s, len_s, bytes_v, len_v);
     
@@ -1354,8 +1354,8 @@ static PyMethodDef PyUser_methods[] = {
 
 
 static PyMethodDef srp_module_methods[] = {
-    {"gen_sv", (PyCFunction) py_gen_sv, METH_VARARGS | METH_KEYWORDS,
-            PyDoc_STR("Returns (s,v): Generates a salt + verifier for the "
+    {"create_salted_verification_key", (PyCFunction) py_create_salted_verification_key, METH_VARARGS | METH_KEYWORDS,
+            PyDoc_STR("Returns (s,v): Generates a salt & verifier for the "
                       "given username and password")
     },
     {NULL} /* Sentinel */

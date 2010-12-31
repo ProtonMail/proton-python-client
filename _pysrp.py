@@ -147,7 +147,7 @@ def gen_x( hash_class, salt, username, password ):
     
     
     
-def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
+def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
     if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
         raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     hash_class = _hash_map[ hash_alg ]

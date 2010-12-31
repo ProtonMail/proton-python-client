@@ -280,7 +280,7 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
 
     
   
-def gen_sv( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
+def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None ):
     if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
         raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     s    = BN_new()

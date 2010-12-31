@@ -27,9 +27,9 @@ except:
 
 import srp
 
-User     = u_mod.User
-Verifier = v_mod.Verifier
-gen_sv   = g_mod.gen_sv
+User                           = u_mod.User
+Verifier                       = v_mod.Verifier
+create_salted_verification_key = g_mod.create_salted_verification_key
 
 HASH = srp.SHA256
 NG   = srp.NG_CUSTOM
@@ -54,7 +54,7 @@ FBB694B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F9E4AFF73'''
     
 
 
-_s, _v = gen_sv( username, password, hash_alg=HASH, ng_type=NG, n_hex=n_hex, g_hex=g_hex )
+_s, _v = create_salted_verification_key( username, password, hash_alg=HASH, ng_type=NG, n_hex=n_hex, g_hex=g_hex )
     
 def test_one():
     usr      = User( username, password, hash_alg=HASH, ng_type=NG, n_hex=n_hex, g_hex=g_hex )
