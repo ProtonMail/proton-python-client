@@ -9,58 +9,49 @@
 .. sectionauthor:: Tom Cocagne <tom.cocagne@gmail.com>
 
 
-This module provides an implementation of the Secure Remote Password
-Protocol (SRP). SRP is a simple and secure protocol for password-based, mutual
-authentication. Successful SRP authentication proves that the client knows
-the user's password and proves that the server knows the verification key
-that was derived from the user's password at the time it was set. An 
-additional benefit of SRP is that successful authentication results in a
-cryptographically strong shared key that can be used for symmetric key 
-encryption.
+The Secure Remote Password Protocol (SRP) is a simple and secure protocol for
+password-based, mutual authentication over an insecure network
+connection. Successful SRP authentication proves to the server that the client
+has the user's password and proves to the client that the server has the
+verification key associated with the user's password. Additionally, successful
+SRP authentication results in a cryptographically strong shared key that can be
+used to protect network traffic via symmetric key encryption.
 
-Unlike Kerberos & SSL, SRP does not require a trusted third party. The
-server simply needs to store a salted verification key that is derived
-from the user's password. This verification key should be protected as it's
-compromise would allow an attacker to impersonate the server. 
+Unlike many other commonly used authentication protocols such as Kerberos & SSL,
+SRP does not require a trusted third party. Instead, SRP server applications
+store small, salted verification keys that are derived from each user's
+password. These keys are then used during the authentication process to verify
+the correctness of the remote user's password.
 
-An advantage of the SRP protocol is that, even in the event that the 
-verification key is compromised, the protocol remains reasonably secure. While
-an attacker would be able to impersonate the server side of a connection, he or
-she would not be able to directly impersonate a user or discover the user's
-password. It would require a computationally infeasible dictionary attack to 
-obtain the user's password from the verification key.
-
-
-Briefly stated, the advantages of SRP are:
-
-* It does not require a trusted third party (unlike Kerberos & SSL)
-* It provides strong, mutual authentication
-* Successful authentication results in a cryptographically strong shared key
-  that may be used for subsequent symmetric-key encryption.
-* It is resists both passive and active network attacks
-* Compromised verification keys do not allow the attacker to impersonate the
-  client.
+An advantage of the SRP protocol is that even if the verification keys are
+compromized, they are of little value to a potential attacker. Possesion of a
+verification key does not allow an attacker to impersonate the user and cannot
+be used to obtai the users password except by way of a computationally
+infeasible dictionary attack. A compromized key would, however, allow an
+attacker to impersonate the server side of an SRP authenticated
+connection. Consequently, care should be taken to prevent unauthorized access to
+verification keys for applications in which the client side requires assurance
+of the server's identity.
 
 
 
 Usage
 -----
 
-Use of SRP begins by using the create_salted_verification_key() function to 
-create a salted verification key from the user's password. The salt and key 
-are stored on the server and will be used during the authentication process. 
+Use of SRP begins by using the create_salted_verification_key() function to
+create a salted verification key from the user's password. The salt and key are
+stored on the server and will be used during the authentication process.
 
-The rest of the authentication process occurs as an exchange of
-messages between the clent and the server. The :ref:`example` below provides 
-a simple demonstration of the protocol. A comprehensive description of the SRP
-protocol is contained in the :ref:`protocol-description` section.
+The rest of the authentication process occurs as an exchange of messages between
+the clent and the server. The :ref:`example` below provides a simple
+demonstration of the protocol. A comprehensive description of the SRP protocol
+is contained in the :ref:`protocol-description` section.
 
 The User & Verifier construtors, as well as the create_salted_verification_key()
 function, take optional hashing algorithm and prime number arguments. Generally
-speaking, more bits means more security but comes at the cost of 
-increased computation time. The hashing and prime number parameters passed 
-to the User and Verifier constructors must match those used to create the 
-verification key.
+speaking, more bits means more security but comes at the cost of increased
+computation time. The hashing and prime number parameters passed to the User and
+Verifier constructors must match those used to create the verification key.
 
 
 
@@ -159,11 +150,10 @@ user.
 :class:`User` Objects
 -------------------------
 
-A :class:`User` object is used to perform mutual authentication with a
-remote :class:`Verifier`. Successful authentication requires not only
-that the :class:`User` be provided with a valid username/password but
-also that the remote :class:`Verifier` have a salt & verifier for that 
-username/password pair.
+A :class:`User` object is used to perform mutual authentication with a remote
+:class:`Verifier`. Successful authentication requires not only that the
+:class:`User` be provided with a valid username/password but also that the
+remote :class:`Verifier` have a salt & verifier for that username/password pair.
 
 .. class:: User( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
@@ -230,10 +220,8 @@ Simple Usage Example::
     svr      = srp.Verifier( uname, salt, verifier, A )
     s,B      = svr.get_challenge()
     
-    
     # Server => Client: s, B
     M        = usr.process_challenge( s, B )
-    
     
     # Client => Server: M
     HAMK     = svr.verify_session( M )
@@ -256,14 +244,14 @@ Simple Usage Example::
 
 Implementation Notes
 --------------------
-This implementation of SRP consists of both a pure-python module and
-a C-based implementation that is approximately 10x faster. By default, 
-the C-implementation will be used if it is available. An additional
-benefit of the C implementation is that it can take advantage of
-of multiple CPUs. For cases in which the number of connections per
-second is an issue, using a small pool of threads to perform the
-authentication steps on multi-core systems will yield a substantial
-performance increase.
+
+This implementation of SRP consists of both a pure-python module and a C-based
+implementation that is approximately 10x faster. By default, the
+C-implementation will be used if it is available. An additional benefit of the C
+implementation is that it can take advantage of of multiple CPUs. For cases in
+which the number of connections per second is an issue, using a small pool of
+threads to perform the authentication steps on multi-core systems will yield a
+substantial performance increase.
 
 
 .. _protocol-description:
@@ -271,14 +259,13 @@ performance increase.
 SRP 6a Protocol Description
 ---------------------------
 
-For the original, authoritative definition of SRP-6a please 
-refer to http://srp.stanford.edu. RFC 5054 also contains SRP related 
-information and is the source of the predefined N and g constants used
-in this implementation.
+For the original, authoritative definition of SRP-6a please refer to
+http://srp.stanford.edu. RFC 5054 also contains SRP related information and is
+the source of the predefined N and g constants used in this implementation.
 
-The following is a complete description of the SRP-6a protocol as implemented
-by this library. Note that the ^ symbol indicates exponentiaion and the | 
-symbol indicates concatenation.
+The following is a complete description of the SRP-6a protocol as implemented by
+this library. Note that the ^ symbol indicates exponentiaion and the | symbol
+indicates concatenation.
 
 .. rubric:: Primary Variables used in SRP 6a
 
