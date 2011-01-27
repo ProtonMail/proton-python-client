@@ -11,49 +11,55 @@
 
 The Secure Remote Password Protocol (SRP) is a simple and secure protocol for
 password-based, mutual authentication over an insecure network
-connection. Successful SRP authentication proves to the server that the client
-has the user's password and proves to the client that the server has the
-verification key associated with the user's password. Additionally, successful
-SRP authentication results in a cryptographically strong shared key that can be
-used to protect network traffic via symmetric key encryption.
+connection. Successful SRP authentication proves that both sides of the
+connection have knowledge of the user's password. The client side must know the
+raw user's password and the server side must have a verification key that is
+derived from the user's password. Additionally, successful SRP authentication
+results in a cryptographically strong shared key that can be used to protect
+network traffic via symmetric key encryption.
 
-Unlike many other commonly used authentication protocols such as Kerberos & SSL,
-SRP does not require a trusted third party. Instead, SRP server applications
-store small, salted verification keys that are derived from each user's
-password. These keys are then used during the authentication process to verify
-the correctness of the remote user's password.
+An advantage of SRP over other authentication protocols such as Kerberos and
+SSL is that SRP does not require a trusted third party. Instead, SRP server
+applications store small, salted verification keys that are derived from each
+user's password. These keys are then used during the authentication process to
+verify the correctness of the remote user's password.
 
-An advantage of the SRP protocol is that even if the verification keys are
-compromized, they are of little value to a potential attacker. Possesion of a
-verification key does not allow an attacker to impersonate the user and cannot
-be used to obtai the users password except by way of a computationally
+A favorable aspect of the SRP protocol is that even if the verification keys
+are compromized, they are of little value to a potential attacker. Possesion of
+a verification key does not allow an attacker to impersonate the user and
+cannot be used to obtain the users password except by way of a computationally
 infeasible dictionary attack. A compromized key would, however, allow an
 attacker to impersonate the server side of an SRP authenticated
-connection. Consequently, care should be taken to prevent unauthorized access to
-verification keys for applications in which the client side requires assurance
-of the server's identity.
+connection. Consequently, care should be taken to prevent unauthorized access
+to verification keys for applications in which the client side requires
+assurance of the server's identity.
 
 
 
 Usage
 -----
 
-Use of SRP begins by using the create_salted_verification_key() function to
-create a salted verification key from the user's password. The salt and key are
-stored on the server and will be used during the authentication process.
+Use of SRP begins by using the *create_salted_verification_key()* function to
+create a salted verification key from the user's password. The resulting salt
+and key are then stored on the server and will be used during the
+authentication process.
 
-The rest of the authentication process occurs as an exchange of messages between
-the clent and the server. The :ref:`example` below provides a simple
-demonstration of the protocol. A comprehensive description of the SRP protocol
-is contained in the :ref:`protocol-description` section.
+The authentication process occurs as an exchange of messages between the clent
+and the server. The :ref:`example` below provides a simple demonstration of the
+protocol. A comprehensive description of the SRP protocol is contained in the
+:ref:`protocol-description` section.
 
-The User & Verifier construtors, as well as the create_salted_verification_key()
-function, take optional hashing algorithm and prime number arguments. Generally
-speaking, more bits means more security but comes at the cost of increased
-computation time. The hashing and prime number parameters passed to the User and
-Verifier constructors must match those used to create the verification key.
+The *User* & *Verifier* constructors, as well as the *create_salted_verification_key()*
+function, accept optional arguments to specify which hashing algorithm and 
+prime number arguments should be used during the authentication process. These
+options may be used to tune the security/performance tradeoff for an application.
+Generally speaking, specifying arguments with a higher number of bits will result
+in a greater level of security. However, it will come at the cost of increased
+computation time. The parameters passed to the *User* and *Verifier* constructors
+must exactly match those passed to *create_salted_verification_key()*
 
 
+.. _constants:
 
 Constants
 ---------
@@ -70,7 +76,9 @@ Constants
   SHA512          512
   ==============  ==============
 
-Larger hashing algorithms will result in larger session keys.
+.. note::
+
+  Larger hashing algorithms will result in larger session keys.
 
 .. table:: Prime Number Constants
 
@@ -83,19 +91,27 @@ Larger hashing algorithms will result in larger session keys.
   NG_CUSTOM         User Supplied
   ================= ==============
 
-If NG_CUSTOM is used, the 'n_hex' and 'g_hex' parameters are required.
-These parameters must be ASCII text containing hexidecimal notation of the
-prime number 'n_hex' and the corresponding generator number 'g_hex'. Appendix
-A of RFC 5054 contains several large prime number, generator pairs that may
-be used with NG_CUSTOM.
+.. note::
+
+  If NG_CUSTOM is used, the 'n_hex' and 'g_hex' parameters are required.
+  These parameters must be ASCII text containing hexidecimal notation of the
+  prime number 'n_hex' and the corresponding generator number 'g_hex'. Appendix
+  A of RFC 5054 contains several large prime number, generator pairs that may
+  be used with NG_CUSTOM.
 
 Functions
 ---------
 
 .. function:: create_salted_verification_key ( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
-    Generates a salt and verifier for the given username and password.
-    Returns (salt_bytes, verifier_bytes)
+    *username* Name of the user
+
+    *password* Plaintext user password
+
+    *hash_alg*, *ng_type*, *n_hex*, *g_hex* Refer to the :ref:`constants` section.
+
+    Generate a salted verification key for the given username and password and return the tuple:
+    (salt_bytes, verification_key_bytes)
     
     
 :class:`Verifier` Objects
@@ -115,33 +131,35 @@ user.
   
   *bytes_s* Salt generated by :func:`create_salted_verification_key`.
   
-  *bytes_v* Verifier generated by :func:`create_salted_verification_key`.
+  *bytes_v* Verification Key generated by :func:`create_salted_verification_key`.
   
   *bytes_A* Challenge from the remote user. Generated by
   :meth:`User.start_authentication`  
+
+  *hash_alg*, *ng_type*, *n_hex*, *g_hex* Refer to the :ref:`constants` section.
   
   .. method:: Verifier.authenticated()
   
-    Returns True if the authentication succeeded. False
+    Return True if the authentication succeeded. False
     otherwise.
     
   .. method:: Verifier.get_username()
   
-    Returns the name of the user this :class:`Verifier` object is for.
+    Return the name of the user this :class:`Verifier` object is for.
     
   .. method:: Verifier.get_session_key()
   
-    Returns the session key for an authenticated user or None if the
+    Return the session key for an authenticated user or None if the
     authentication failed or has not yet completed.
     
   .. method:: Verifier.get_challenge()
   
-    Returns (bytes_s, bytes_B) on success or (None, None) if
+    Return (bytes_s, bytes_B) on success or (None, None) if
     authentication has failed.
     
   .. method:: Verifier.verify_session( user_M )
   
-    Completes the :class:`Verifier` side of the authentication
+    Complete the :class:`Verifier` side of the authentication
     process. If the authentication succeded the return result,
     bytes_H_AMK should be returned to the remote user. On failure,
     this method returns None.
@@ -150,39 +168,40 @@ user.
 :class:`User` Objects
 -------------------------
 
-A :class:`User` object is used to perform mutual authentication with a remote
-:class:`Verifier`. Successful authentication requires not only that the
-:class:`User` be provided with a valid username/password but also that the
-remote :class:`Verifier` have a salt & verifier for that username/password pair.
+A :class:`User` object is used to prove a user's identity to a remote :class:`Verifier` and
+verifiy that the remote :class:`Verifier` knows the verification key associated with
+the user's password.
 
 .. class:: User( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
 
   *username* Name of the user being authenticated.
   
   *password* Password for the user.
+
+  *hash_alg*, *ng_type*, *n_hex*, *g_hex* Refer to the :ref:`constants` section.
     
   .. method:: User.authenticated()
   
-    Returns True if authentication succeeded. False
+    Return True if authentication succeeded. False
     otherwise.
     
   .. method:: User.get_username()
   
-    Returns the username passed to the constructor.
+    Return the username passed to the constructor.
     
   .. method:: User.get_session_key()
   
-    Returns the session key if authentication succeeded or None if the
+    Return the session key if authentication succeeded or None if the
     authentication failed or has not yet completed.
     
   .. method:: User.start_authentication()
   
-    Returns (username, bytes_A). These should be passed to the
+    Return (username, bytes_A). These should be passed to the
     constructor of the remote :class:`Verifer`
     
   .. method:: User.process_challenge( bytes_s, bytes_B )
   
-    Processes the challenge returned
+    Processe the challenge returned
     by :meth:`Verifier.get_challenge` on success this method
     returns bytes_M that should be sent
     to :meth:`Verifier.verify_session` if authentication failed,
@@ -190,7 +209,7 @@ remote :class:`Verifier` have a salt & verifier for that username/password pair.
     
   .. method:: User.verify_session( bytes_H_AMK )
   
-    Completes the :class:`User` side of the authentication
+    Complete the :class:`User` side of the authentication
     process. If the authentication succeded :meth:`authenticated` will
     return True
     
@@ -205,7 +224,10 @@ Simple Usage Example::
     
     # The salt and verifier returned from srp.create_salted_verification_key() should be
     # stored on the server.
-    salt, verifier = srp.create_salted_verification_key( 'testuser', 'testpassword' )
+    salt, vkey = srp.create_salted_verification_key( 'testuser', 'testpassword' )
+
+    class AuthenticationFailed (Exception):
+        pass
     
     # ~~~ Begin Authentication ~~~
     
@@ -217,20 +239,23 @@ Simple Usage Example::
     # process should be aborted on the first failure.
     
     # Client => Server: username, A
-    svr      = srp.Verifier( uname, salt, verifier, A )
+    svr      = srp.Verifier( uname, salt, vkey, A )
     s,B      = svr.get_challenge()
+
+    if s is None or B is None:
+        raise AuthenticationFailed()
     
     # Server => Client: s, B
     M        = usr.process_challenge( s, B )
+
+    if M is None:
+        raise AuthenticationFailed()
     
     # Client => Server: M
     HAMK     = svr.verify_session( M )
 
-    # SRP 6a requies the server to abort authentication and to specifically
-    # NOT send the HAMK message to the client if detects failed authentication
-    # at this point:
-    if not svr.authenticated():
-        raise Exception("authentication failed!")
+    if HAMK is None:
+        raise AuthenticationFailed()
         
     # Server => Client: HAMK
     usr.verify_session( HAMK )
