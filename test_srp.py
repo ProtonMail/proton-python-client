@@ -14,12 +14,12 @@ g_mod = _pysrp
 import _ctsrp
 u_mod = _ctsrp
 v_mod = _ctsrp
-#g_mod = _ctsrp
+g_mod = _ctsrp
 
 try:
     import _srp
     u_mod = _srp
-#    v_mod = _srp
+    v_mod = _srp
     g_mod = _srp
 except:
     print 'C-module not available'
@@ -32,7 +32,8 @@ Verifier                       = v_mod.Verifier
 create_salted_verification_key = g_mod.create_salted_verification_key
 
 HASH = srp.SHA256
-NG   = srp.NG_CUSTOM
+#NG   = srp.NG_CUSTOM
+NG   = srp.NG_8192
 
 
 username = 'testuser'

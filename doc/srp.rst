@@ -9,13 +9,15 @@
 .. sectionauthor:: Tom Cocagne <tom.cocagne@gmail.com>
 
 
-The Secure Remote Password Protocol (SRP) is a simple and secure protocol for
-password-based, mutual authentication over an insecure network
-connection. Successful SRP authentication proves that both sides of the
-connection have knowledge of the user's password. The client side must know the
-raw user's password and the server side must have a verification key that is
-derived from the user's password. Additionally, successful SRP authentication
-results in a cryptographically strong shared key that can be used to protect
+The Secure Remote Password Protocol (SRP) is a simple and secure
+protocol for password-based, mutual authentication over an insecure
+network connection. Successful SRP authentication can occur only if
+both sides of the connection have knowledge of the user's
+password. The client side of the connection must have the raw user's
+password and the server side must have a verification key that is
+derived from the user's password. An advantageous side-effect of
+successful SRP authentication is that it results in a
+cryptographically strong shared key that can be used to protect
 network traffic via symmetric key encryption.
 
 An advantage of SRP over other authentication protocols such as Kerberos and
@@ -24,15 +26,16 @@ applications store small, salted verification keys that are derived from each
 user's password. These keys are then used during the authentication process to
 verify the correctness of the remote user's password.
 
-A favorable aspect of the SRP protocol is that even if the verification keys
-are compromized, they are of little value to a potential attacker. Possesion of
-a verification key does not allow an attacker to impersonate the user and
-cannot be used to obtain the users password except by way of a computationally
-infeasible dictionary attack. A compromized key would, however, allow an
-attacker to impersonate the server side of an SRP authenticated
-connection. Consequently, care should be taken to prevent unauthorized access
-to verification keys for applications in which the client side requires
-assurance of the server's identity.
+A favorable aspect of the SRP protocol is that even if the
+verification keys are compromized, they are of little value to a
+potential attacker. Possesion of a verification key does not allow an
+attacker to impersonate the user and cannot be used to obtain the
+users password except by way of a computationally infeasible
+dictionary attack. A compromized key would, however, allow an attacker
+to impersonate the server side of an SRP authenticated
+connection. Consequently, care should be taken to prevent unauthorized
+access to verification keys for applications in which the client side
+relies on the server being genuine.
 
 
 
@@ -88,6 +91,7 @@ Constants
   NG_1024           1024
   NG_2048           2048
   NG_4096           4096
+  NG_8192           8192
   NG_CUSTOM         User Supplied
   ================= ==============
 
@@ -102,7 +106,7 @@ Constants
 Functions
 ---------
 
-.. function:: create_salted_verification_key ( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
+.. function:: create_salted_verification_key ( username, password[, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None] )
 
     *username* Name of the user
 
@@ -125,7 +129,7 @@ user.
   The standard SRP 6 protocol allows only one password attempt per 
   connection.
 
-.. class:: Verifier( username, bytes_s, bytes_v, bytes_A[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
+.. class:: Verifier( username, bytes_s, bytes_v, bytes_A[, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None] )
 
   *username* Name of the remote user being authenticated.
   
@@ -172,7 +176,7 @@ A :class:`User` object is used to prove a user's identity to a remote :class:`Ve
 verifiy that the remote :class:`Verifier` knows the verification key associated with
 the user's password.
 
-.. class:: User( username, password[, hash_alg=SHA1, ng_type=NG_1024, n_hex=None, g_hex=None] )
+.. class:: User( username, password[, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None] )
 
   *username* Name of the user being authenticated.
   
