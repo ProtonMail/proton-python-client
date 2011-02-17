@@ -1539,7 +1539,7 @@ init_srp(void)
     }
     
             
-    if (PyType_Ready(&PyVerifier_Type) < 0 || PyType_Ready(&PyUser_Type))
+    if (PyType_Ready(&PyVerifier_Type) < 0 || PyType_Ready(&PyUser_Type) < 0)
         return;
         
     m = Py_InitModule3("_srp", srp_module_methods,"SRP-6a implementation");
