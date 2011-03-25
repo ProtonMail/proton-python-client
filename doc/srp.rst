@@ -9,42 +9,42 @@
 .. sectionauthor:: Tom Cocagne <tom.cocagne@gmail.com>
 
 
-The Secure Remote Password Protocol (SRP) is a simple and secure
-protocol for password-based, mutual authentication over an insecure
-network connection. Successful SRP authentication can occur only if
-both sides of the connection have knowledge of the user's
-password. The client side of the connection must have the raw user's
-password and the server side must have a verification key that is
-derived from the user's password. An advantageous side-effect of
-successful SRP authentication is that it results in a
-cryptographically strong shared key that can be used to protect
-network traffic via symmetric key encryption.
+The Secure Remote Password Protocol (SRP) is a cryptographically
+strong authentication protocol for password-based, mutual
+authentication over an insecure network connection. Successful SRP
+authentication requires both sides of the connection to have knowledge
+of the user's password. In addition to password verification, the SRP
+protocol also performs a secure key exchange during the authentication
+process. This key may be used to protect network traffic via symmetric
+key encryption.
 
-An advantage of SRP over other authentication protocols such as Kerberos and
-SSL is that SRP does not require a trusted third party. Instead, SRP server
-applications store small, salted verification keys that are derived from each
-user's password. These keys are then used during the authentication process to
-verify the correctness of the remote user's password.
+SRP offers security and deployment advantages over other
+challenge-response protocols in that it does not require trusted key
+servers or certificate infrastructures (as do Kerberos and
+SSL). Instead, small verification keys derived from each user's
+password are stored and used by each SRP server
+application. Consequently, SRP provides a near-ideal solution for many
+applications requiring simple and secure password authentication
+that does not rely on a properly configured, external infrastructure.
 
-A favorable aspect of the SRP protocol is that even if the
-verification keys are compromized, they are of little value to a
-potential attacker. Possesion of a verification key does not allow an
-attacker to impersonate the user and cannot be used to obtain the
-users password except by way of a computationally infeasible
-dictionary attack. A compromized key would, however, allow an attacker
-to impersonate the server side of an SRP authenticated
-connection. Consequently, care should be taken to prevent unauthorized
-access to verification keys for applications in which the client side
-relies on the server being genuine.
+Another favorable aspect of the SRP protocol is that compromized
+verification keys are of little value to an attacker. Possesion of a
+verification key does not allow a user to be impersonated
+and it cannot be used to obtain the users password except by way of a
+computationally infeasible dictionary attack. A compromized key would,
+however, allow an attacker to impersonate the server side of an SRP
+authenticated connection. Consequently, care should be taken to
+prevent unauthorized access to verification keys for applications in
+which the client side relies on the server being genuine.
 
 
 
 Usage
 -----
 
-Use of SRP begins by using the *create_salted_verification_key()* function to
-create a salted verification key from the user's password. The resulting salt
-and key are then stored on the server and will be used during the
+SRP usage begins with *create_salted_verification_key()*. This function
+creates a salted verification key from the user's password. The resulting salt
+and key are stored by the server application and will be used during the
 authentication process.
 
 The authentication process occurs as an exchange of messages between the clent
@@ -52,14 +52,19 @@ and the server. The :ref:`example` below provides a simple demonstration of the
 protocol. A comprehensive description of the SRP protocol is contained in the
 :ref:`protocol-description` section.
 
-The *User* & *Verifier* constructors, as well as the *create_salted_verification_key()*
-function, accept optional arguments to specify which hashing algorithm and 
-prime number arguments should be used during the authentication process. These
-options may be used to tune the security/performance tradeoff for an application.
-Generally speaking, specifying arguments with a higher number of bits will result
-in a greater level of security. However, it will come at the cost of increased
-computation time. The parameters passed to the *User* and *Verifier* constructors
-must exactly match those passed to *create_salted_verification_key()*
+The *User* & *Verifier* constructors, as well as the
+*create_salted_verification_key()* function, accept optional arguments
+to specify which hashing algorithm and prime number arguments should
+be used during the authentication process. These options may be used
+to tune the security/performance tradeoff for an application.
+Generally speaking, specifying arguments with a higher number of bits
+will result in a greater level of security. However, it will come at
+the cost of increased computation time. The default values of SHA1
+hashes and 2048 bit prime numbers strike a good balance between
+performance and security. These values should be sufficient for most
+applications. Regardless of which values are used, the parameters
+passed to the *User* and *Verifier* constructors must exactly match
+those passed to *create_salted_verification_key()*
 
 
 .. _constants:
@@ -213,9 +218,10 @@ the user's password.
     
   .. method:: User.verify_session( bytes_H_AMK )
   
-    Complete the :class:`User` side of the authentication
-    process. If the authentication succeded :meth:`authenticated` will
-    return True
+    Complete the :class:`User` side of the authentication process. By
+    verifying the *bytes_H_AMK* value returned by
+    :meth:`Verifier.verify_session`.  If the authentication succeded
+    :meth:`authenticated` will return True
     
 .. _example:
 
@@ -288,9 +294,13 @@ substantial performance increase.
 SRP 6a Protocol Description
 ---------------------------
 
-For the original, authoritative definition of SRP-6a please refer to
-http://srp.stanford.edu. RFC 5054 also contains SRP related information and is
-the source of the predefined N and g constants used in this implementation.
+The original SRP protocol, known as SRP-3, is defined in
+RFC 2945. This implementation, however, uses SRP-6a which is a slight
+improvement over SRP-3.  The authoritative definition for the SRP-6a
+protocol is available at http://srp.stanford.edu. An additional
+resource is RFC 5054 which covers the integration of SRP into
+TLS. This RFC is the source of hashing strategy and the predefined N
+and g constants used in this implementation.
 
 The following is a complete description of the SRP-6a protocol as implemented by
 this library. Note that the ^ symbol indicates exponentiaion and the | symbol
