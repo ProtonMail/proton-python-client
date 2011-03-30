@@ -490,11 +490,8 @@ static void calculate_H_AMK( SRP_HashAlgorithm alg, unsigned char *dest, const B
     hash_final( alg, &ctx, dest );
 }
 
-
-static void init_random()
-{    
-    /* Python module calls random_seed during module initialization */
-}
+/* Python module calls random_seed during module initialization */
+#define init_random()
 
 
 /***********************************************************************************************************
