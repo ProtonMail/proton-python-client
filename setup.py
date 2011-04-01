@@ -18,7 +18,7 @@ applications use verification keys derived from each user's password
 to determine the authenticity of a network connection.
 
 SRP provides mutual-authentication in that successful authentication
-requires that both sides of the connection must have knowledge of the
+requires both sides of the connection to have knowledge of the
 user's password. If the client side lacks the user's password or the
 server side lacks the proper verification key, the authentication will
 fail.
