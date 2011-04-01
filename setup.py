@@ -31,7 +31,7 @@ for symmetric-key encryption.
 For a full description of the pysrp package and the SRP protocol,
 please refer to the `srp module documentation`_.
 
-.. _`srp module documentation`: http://packages.python.org/pysrp
+.. _`srp module documentation`: http://packages.python.org/srp
 
 '''
 
@@ -43,8 +43,9 @@ setup(name             = 'srp',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
       url              = 'http://code.google.com/p/pysrp/',
-      download_url     = 'http://pypi.python.org/pypi/pysrp',
+      download_url     = 'http://pypi.python.org/pypi/srp',
       long_description = long_description,
+      provides         = 'srp',
       packages         = ['srp'],
       package_data     = {'srp' : ['doc/*.rst', 'doc/*.py']},
       ext_modules      = ext_modules,
