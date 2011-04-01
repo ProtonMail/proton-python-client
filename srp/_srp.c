@@ -1402,7 +1402,7 @@ static PyMethodDef srp_module_methods[] = {
 
 static PyTypeObject PyVerifier_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_srp.Verifier",            /*tp_name*/
+    "srp._srp.Verifier",        /*tp_name*/
     sizeof(PyVerifier),         /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     /* methods */
@@ -1447,7 +1447,7 @@ static PyTypeObject PyVerifier_Type = {
 
 static PyTypeObject PyUser_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_srp.User",                /*tp_name*/
+    "srp._srp.User",            /*tp_name*/
     sizeof(PyUser),             /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     /* methods */
@@ -1539,7 +1539,7 @@ init_srp(void)
     if (PyType_Ready(&PyVerifier_Type) < 0 || PyType_Ready(&PyUser_Type) < 0)
         return;
         
-    m = Py_InitModule3("_srp", srp_module_methods,"SRP-6a implementation");
+    m = Py_InitModule3("srp._srp", srp_module_methods,"SRP-6a implementation");
         
     if (m == NULL)
         return;

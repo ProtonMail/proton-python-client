@@ -7,36 +7,34 @@ import sys
 import time
 import thread
 
-
-try:
-    import _srp
-except ImportError:
-    this_dir = os.path.dirname( os.path.abspath(__file__) )
+this_dir = os.path.dirname( os.path.abspath(__file__) )
     
-    build_dir = os.path.join( this_dir, 'build' )
+build_dir = os.path.join( os.path.dirname(this_dir), 'build' )
 
-    if not os.path.exists( build_dir ):
-        print 'Please run "python setup.py build" prior to running tests'
-        sys.exit(1)
+if not os.path.exists( build_dir ):
+    print 'Please run "python setup.py build" prior to running tests'
+    sys.exit(1)
     
-    plat_dirs = [ d for d in os.listdir('build') if d.startswith('lib') ]
+plat_dirs = [ d for d in os.listdir('build') if d.startswith('lib') ]
 
-    if not len(plat_dirs) == 1:
-        print 'Unexpected build result... aborting'
+if not len(plat_dirs) == 1:
+    print 'Unexpected build result... aborting'
 
-    plat_dir = os.path.join( build_dir, plat_dirs[0] )
+plat_dir = os.path.join( build_dir, plat_dirs[0] )
 
-    sys.path.append( os.path.join('build', plat_dir)  )
+sys.path.insert(0, os.path.join('build', plat_dir)  )
+
+
 
     
 import srp
-import _pysrp
-import _ctsrp
+import srp._pysrp as _pysrp
+import srp._ctsrp as _ctsrp
 
 try:
-    import _srp
+    import srp._srp as _srp
 except ImportError:
-    print 'Failed to import _srp. Aborting tests'
+    print 'Failed to import srp._srp. Aborting tests'
     sys.exit(1)
 
 
@@ -183,9 +181,9 @@ def performance_test( mod, hash_alg, ng_type, niter=10, nthreads=1 ):
 
 def get_param_str( mod, hash_alg, ng_type ):
     
-    m = { '_pysrp' : 'Python',
-          '_ctsrp' : 'ctypes',
-          '_srp'   : 'C     ' }
+    m = { 'srp._pysrp' : 'Python',
+          'srp._ctsrp' : 'ctypes',
+          'srp._srp'   : 'C     ' }
     
     cfg = '%s, %s, %d:' % (m[mod.__name__], hash_map[hash_alg], prime_map[ng_type])
 

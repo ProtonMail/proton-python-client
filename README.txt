@@ -25,7 +25,7 @@ Validity & Performance Testing:
    python test_srp.py
    
 Documentation:
-   cd doc
+   cd srp/doc
    sphinx-build -b html . <desired output directory>
    
 

@@ -35,19 +35,21 @@ please refer to the `srp module documentation`_.
 
 '''
 
-py_modules = ['_pysrp', '_ctsrp', 'srp']
-
-ext_modules = [ Extension('_srp', ['_srp.c',], libraries = ['ssl',]), ]
+ext_modules = [ Extension('srp._srp', ['srp/_srp.c',], libraries = ['ssl',]), ]
 
 setup(name             = 'srp',
-	  version          = '1.0',
-	  description      = 'Secure Remote Password',
-	  author           = 'Tom Cocagne',
-	  author_email     = 'tom.cocagne@gmail.com',
+      version          = '1.0',
+      description      = 'Secure Remote Password',
+      author           = 'Tom Cocagne',
+      author_email     = 'tom.cocagne@gmail.com',
       url              = 'http://code.google.com/p/pysrp/',
+      download_url     = 'http://pypi.python.org/pypi/pysrp',
       long_description = long_description,
-	  py_modules       = py_modules,
-	  ext_modules      = ext_modules,
+      packages         = ['srp'],
+      package_data     = {'srp' : ['doc/*.rst', 'doc/*.py']},
+      ext_modules      = ext_modules,
+      license          = "New BSD",
+      platforms        = "OS Independent",
       classifiers      = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

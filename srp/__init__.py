@@ -2,21 +2,21 @@
 _mod     = None
 
 try:
-    import _srp
-    _mod = _srp
+    import srp._srp
+    _mod = srp._srp
 except ImportError:
     pass
 
 if not _mod:
     try:
-        import _ctsrp
-        _mod = _ctsrp
+        import srp._ctsrp
+        _mod = srp._ctsrp
     except ImportError:
         pass
     
 if not _mod:
-    import _pysrp
-    _mod = _pysrp
+    import srp._pysrp
+    _mod = srp._pysrp
 
 User                           = _mod.User
 Verifier                       = _mod.Verifier
