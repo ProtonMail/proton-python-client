@@ -9,7 +9,7 @@
 .. sectionauthor:: Tom Cocagne <tom.cocagne@gmail.com>
 
 
-The Secure Remote Password Protocol (SRP) is a cryptographically
+The Secure Remote Password protocol (SRP) is a cryptographically
 strong authentication protocol for password-based, mutual
 authentication over an insecure network connection. Successful SRP
 authentication requires both sides of the connection to have knowledge
@@ -19,13 +19,13 @@ process. This key may be used to protect network traffic via symmetric
 key encryption.
 
 SRP offers security and deployment advantages over other
-challenge-response protocols in that it does not require trusted key
-servers or certificate infrastructures (as do Kerberos and
-SSL). Instead, small verification keys derived from each user's
-password are stored and used by each SRP server
-application. Consequently, SRP provides a near-ideal solution for many
-applications requiring simple and secure password authentication
-that does not rely on a properly configured, external infrastructure.
+challenge-response protocols, such as Kerberos and SSL, in that it
+does not require trusted key servers or certificate infrastructures.
+Instead, small verification keys derived from each user's password are
+stored and used by each SRP server application. SRP provides a
+near-ideal solution for many applications requiring simple and secure
+password authentication that does not rely on an external
+infrastructure.
 
 Another favorable aspect of the SRP protocol is that compromized
 verification keys are of little value to an attacker. Possesion of a
