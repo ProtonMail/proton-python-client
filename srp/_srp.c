@@ -712,6 +712,8 @@ struct SRPUser * srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const 
     
     memcpy((char *)usr->username, username,       ulen);
     memcpy((char *)usr->password, bytes_password, len_password);
+
+    usr->authenticated = 0;
     
     usr->bytes_A = 0;
     

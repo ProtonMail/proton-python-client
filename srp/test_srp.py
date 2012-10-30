@@ -26,7 +26,6 @@ sys.path.insert(0, os.path.join('build', plat_dir)  )
 
 
 
-    
 import srp
 import srp._pysrp as _pysrp
 import srp._ctsrp as _ctsrp
@@ -121,7 +120,16 @@ class SRPTests( unittest.TestCase ):
     def test_all2(self):
         self.doit( _ctsrp, _pysrp, _srp, hash_alg=srp.SHA224, ng_type=srp.NG_4096 )
 
-    
+    def test_authenticated_on_init(self):
+        usr = _pysrp.User('test', 'test')
+        self.assertTrue(not usr.authenticated())
+
+        usr = _ctsrp.User('test', 'test')
+        self.assertTrue(not usr.authenticated())
+
+        usr = _srp.User('test', 'test')
+        self.assertTrue(not usr.authenticated())
+
 
 #-----------------------------------------------------------------------------------
 # Performance Testing
