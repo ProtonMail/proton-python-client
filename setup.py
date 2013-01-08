@@ -38,7 +38,7 @@ please refer to the `srp module documentation`_.
 ext_modules = [ Extension('srp._srp', ['srp/_srp.c',], libraries = ['ssl',]), ]
 
 setup(name             = 'srp',
-      version          = '1.0',
+      version          = '1.0.2',
       description      = 'Secure Remote Password',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
