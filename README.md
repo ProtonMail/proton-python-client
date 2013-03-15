@@ -107,14 +107,19 @@ combination of hash algorithm and prime number size. This may be of
 use in deciding which pair of parameters to use in the unlikely
 event that the defaults are unacceptable.
 
-Installation:
-   python setup.py install
+Installation from source:
+```
+   $ python setup.py install
+```
 
 Documentation:
-   cd srp/doc
-   sphinx-build -b html . <desired output directory>
+```
+   $ cd srp/doc
+   $ sphinx-build -b html . <desired output directory>
+```
       
 Validity & Performance Testing:
-   python setup.py build
-   python test_srp.py
-   
+```
+   $ python setup.py build
+   $ python test_srp.py
+```   
