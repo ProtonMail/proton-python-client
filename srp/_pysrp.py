@@ -313,7 +313,7 @@ class User (object):
     
     
     def get_username(self):
-        return self.username
+        return self.I
     
     
     def get_session_key(self):
