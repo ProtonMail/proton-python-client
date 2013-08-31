@@ -38,14 +38,14 @@ please refer to the `srp module documentation`_.
 ext_modules = [ Extension('srp._srp', ['srp/_srp.c',], libraries = ['ssl',]), ]
 
 setup(name             = 'srp',
-      version          = '1.0.3',
+      version          = '1.0.4',
       description      = 'Secure Remote Password',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
       url              = 'http://code.google.com/p/pysrp/',
       download_url     = 'http://pypi.python.org/pypi/srp',
       long_description = long_description,
-      provides         = 'srp',
+      provides         = ['srp'],
       packages         = ['srp'],
       package_data     = {'srp' : ['doc/*.rst', 'doc/*.py']},
       ext_modules      = ext_modules,
