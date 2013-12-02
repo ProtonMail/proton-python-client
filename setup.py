@@ -49,7 +49,7 @@ setup(name             = 'srp',
       packages         = ['srp'],
       package_data     = {'srp' : ['doc/*.rst', 'doc/*.py']},
       ext_modules      = ext_modules,
-      license          = "New BSD",
+      license          = "MIT",
       platforms        = "OS Independent",
       classifiers      = [
         'Development Status :: 5 - Production/Stable',
