@@ -12,7 +12,7 @@
   # A,B  Public ephemeral values
   # x    Private key (derived from p and s)
   # v    Password verifier
-  
+
 import os
 import sys
 import hashlib
@@ -39,8 +39,8 @@ _hash_map = { SHA1   : hashlib.sha1,
               SHA256 : hashlib.sha256,
               SHA384 : hashlib.sha384,
               SHA512 : hashlib.sha512 }
-              
-              
+
+
 _ng_const = (
 # 1024-bit
 ('''\
@@ -131,7 +131,10 @@ FC026E479558E4475677E9AA9E3050E2765694DFC81F56E880B96E71\
 
 dlls = list()
 
-if 'win' in sys.platform:
+platform = sys.platform
+if platform == 'darwin':
+    dlls.append( ctypes.cdll.LoadLibrary('libssl.dylib') )
+elif 'win' in platform:
     for d in ('libeay32.dll', 'libssl32.dll', 'ssleay32.dll'):
         try:
             dlls.append( ctypes.cdll.LoadLibrary(d) )
@@ -139,8 +142,8 @@ if 'win' in sys.platform:
             pass
 else:
     dlls.append( ctypes.cdll.LoadLibrary('libssl.so') )
-        
-    
+
+
 class BIGNUM_Struct (ctypes.Structure):
     _fields_ = [ ("d",     ctypes.c_void_p),
                  ("top",   ctypes.c_int),
@@ -148,11 +151,11 @@ class BIGNUM_Struct (ctypes.Structure):
                  ("neg",   ctypes.c_int),
                  ("flags", ctypes.c_int) ]
 
-                 
+
 class BN_CTX_Struct (ctypes.Structure):
     _fields_ = [ ("_", ctypes.c_byte) ]
 
-    
+
 BIGNUM = ctypes.POINTER( BIGNUM_Struct )
 BN_CTX = ctypes.POINTER( BN_CTX_Struct )
 
@@ -160,7 +163,7 @@ BN_CTX = ctypes.POINTER( BN_CTX_Struct )
 def load_func( name, args, returns = ctypes.c_int):
     d = sys.modules[ __name__ ].__dict__
     f = None
-    
+
     for dll in dlls:
         try:
             f = getattr(dll, name)
@@ -171,8 +174,8 @@ def load_func( name, args, returns = ctypes.c_int):
         except:
             pass
     raise ImportError('Unable to load required functions from SSL dlls')
-    
-    
+
+
 load_func( 'BN_new',   [],         BIGNUM )
 load_func( 'BN_free',  [ BIGNUM ], None )
 load_func( 'BN_init',  [ BIGNUM ], None )
@@ -222,11 +225,11 @@ def bn_to_bytes( n ):
     BN_bn2bin(n, b)
     return b.raw
 
-    
+
 def bytes_to_bn( dest_bn, bytes ):
     BN_bin2bn(bytes, len(bytes), dest_bn)
-    
- 
+
+
 def H_str( hash_class, dest_bn, s ):
     d = hash_class(s).digest()
     buff = ctypes.create_string_buffer( s )
@@ -238,8 +241,8 @@ def H_bn( hash_class, dest, n ):
     BN_bn2bin(n, bin)
     d = hash_class( bin.raw ).digest()
     BN_bin2bn(d, len(d), dest)
-    
-    
+
+
 def H_bn_bn( hash_class, dest, n1, n2 ):
     h    = hash_class()
     bin1 = ctypes.create_string_buffer( BN_num_bytes(n1) )
@@ -250,8 +253,8 @@ def H_bn_bn( hash_class, dest, n1, n2 ):
     h.update( bin2.raw )
     d = h.digest()
     BN_bin2bn(d, len(d), dest)
-    
-    
+
+
 def H_bn_str( hash_class, dest, n, s ):
     h   = hash_class()
     bin = ctypes.create_string_buffer( BN_num_bytes(n) )
@@ -260,19 +263,19 @@ def H_bn_str( hash_class, dest, n, s ):
     h.update( s )
     d = h.digest()
     BN_bin2bn(d, len(d), dest)
- 
-    
+
+
 def calculate_x( hash_class, dest, salt, username, password ):
     up = hash_class('%s:%s' % (username, password )).digest()
     H_bn_str( hash_class, dest, salt, up )
-    
-    
+
+
 def update_hash( ctx, n ):
     buff = ctypes.create_string_buffer( BN_num_bytes(n) )
     BN_bn2bin(n, buff)
     ctx.update( buff.raw )
 
-    
+
 def calculate_M( hash_class, N, g, I, s, A, B, K ):
     h = hash_class()
     h.update( HNxorg( hash_class, N, g ) )
@@ -282,7 +285,7 @@ def calculate_M( hash_class, N, g, I, s, A, B, K ):
     update_hash( h, B )
     h.update( K )
     return h.digest()
-    
+
 
 def calculate_H_AMK( hash_class, A, M, K ):
     h = hash_class()
@@ -291,17 +294,17 @@ def calculate_H_AMK( hash_class, A, M, K ):
     h.update( K )
     return h.digest()
 
-    
-def HNxorg( hash_class, N, g ):    
+
+def HNxorg( hash_class, N, g ):
     bN = ctypes.create_string_buffer( BN_num_bytes(N) )
     bg = ctypes.create_string_buffer( BN_num_bytes(g) )
-    
+
     BN_bn2bin(N, bN)
     BN_bn2bin(g, bg)
-    
+
     hN = hash_class( bN.raw ).digest()
     hg = hash_class( bg.raw ).digest()
-    
+
     return ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
 
 
@@ -312,15 +315,15 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
     N = BN_new()
     g = BN_new()
     k = BN_new()
-    
+
     BN_hex2bn( N, n_hex )
     BN_hex2bn( g, g_hex )
     H_bn_bn(hash_class, k, N, g)
 
     return N, g, k
 
-    
-  
+
+
 def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None ):
     if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
         raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
@@ -328,19 +331,19 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
     v    = BN_new()
     x    = BN_new()
     ctx  = BN_CTX_new()
-    
+
     hash_class = _hash_map[ hash_alg ]
     N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
 
     BN_rand(s, 32, -1, 0);
-        
+
     calculate_x( hash_class, x, s, username, password )
-        
+
     BN_mod_exp(v, g, x, N, ctx)
-    
+
     salt     = bn_to_bytes( s )
     verifier = bn_to_bytes( v )
-    
+
     BN_free(s)
     BN_free(v)
     BN_free(x)
@@ -348,10 +351,10 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
     BN_free(g)
     BN_free(k)
     BN_CTX_free(ctx)
-    
+
     return salt, verifier
-    
-  
+
+
 
 class Verifier (object):
     def __init__(self,  username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None):
@@ -372,47 +375,47 @@ class Verifier (object):
         self.M     = None
         self.H_AMK = None
         self._authenticated = False
-        
+
         self.safety_failed = False
-        
+
         hash_class = _hash_map[ hash_alg ]
         N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
-        
+
         self.hash_class = hash_class
         self.N          = N
         self.g          = g
         self.k          = k
-        
+
         bytes_to_bn( self.s, bytes_s )
-        bytes_to_bn( self.v, bytes_v )        
+        bytes_to_bn( self.v, bytes_v )
         bytes_to_bn( self.A, bytes_A )
-        
+
         # SRP-6a safety check
         BN_mod(self.tmp1, self.A, N, self.ctx)
-        
+
         if BN_is_zero(self.tmp1):
             self.safety_failed = True
-        else:                    
+        else:
             BN_rand(self.b, 256, -1, 0)
-            
+
             # B = kv + g^b
             BN_mul(self.tmp1, k, self.v, self.ctx)
             BN_mod_exp(self.tmp2, g, self.b, N, self.ctx)
             BN_add(self.B, self.tmp1, self.tmp2)
-            
+
             H_bn_bn(hash_class, self.u, self.A, self.B)
-            
+
             # S = (A *(v^u)) ^ b
             BN_mod_exp(self.tmp1, self.v, self.u, N, self.ctx)
             BN_mul(self.tmp2, self.A, self.tmp1, self.ctx)
             BN_mod_exp(self.S, self.tmp2, self.b, N, self.ctx)
-            
+
             self.K = hash_class( bn_to_bytes(self.S) ).digest()
-            
+
             self.M     = calculate_M( hash_class, N, g, self.I, self.s, self.A, self.B, self.K )
             self.H_AMK = calculate_H_AMK( hash_class, self.A, self.M, self.K )
-        
-        
+
+
     def __del__(self):
         if not hasattr(self, 'A'):
             return # __init__ threw exception. no clean up required
@@ -429,36 +432,36 @@ class Verifier (object):
         BN_free(self.tmp1)
         BN_free(self.tmp2)
         BN_CTX_free(self.ctx)
-        
-        
+
+
     def authenticated(self):
         return self._authenticated
 
-    
+
     def get_username(self):
         return self.I
-    
-    
+
+
     def get_session_key(self):
         return self.K if self._authenticated else None
-    
-    
+
+
     # returns (bytes_s, bytes_B) on success, (None,None) if SRP-6a safety check fails
     def get_challenge(self):
         if self.safety_failed:
             return None, None
         else:
             return (bn_to_bytes(self.s), bn_to_bytes(self.B))
-    
-        
+
+
     def verify_session(self, user_M):
         if user_M == self.M:
             self._authenticated = True
             return self.H_AMK
-        
 
-        
-    
+
+
+
 class User (object):
     def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None):
         if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
@@ -481,20 +484,20 @@ class User (object):
         self.K     = None
         self.H_AMK = None
         self._authenticated = False
-        
+
         hash_class = _hash_map[ hash_alg ]
         N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
-        
+
         self.hash_class = hash_class
         self.N          = N
         self.g          = g
         self.k          = k
-        
+
         BN_rand(self.a, 256, -1, 0)
-        
+
         BN_mod_exp(self.A, g, self.a, N, self.ctx)
-        
-        
+
+
     def __del__(self):
         if not hasattr(self, 'a'):
             return # __init__ threw exception. no clean up required
@@ -514,23 +517,23 @@ class User (object):
         BN_free(self.tmp3)
         BN_CTX_free(self.ctx)
 
-                    
+
     def authenticated(self):
         return self._authenticated
 
-    
+
     def get_username(self):
         return self.username
-    
-    
+
+
     def get_session_key(self):
         return self.K if self._authenticated else None
-        
-        
+
+
     def start_authentication(self):
         return (self.username, bn_to_bytes(self.A))
-        
-        
+
+
     # Returns M or None if SRP-6a safety check is violated
     def process_challenge(self, bytes_s, bytes_B):
 
@@ -538,24 +541,24 @@ class User (object):
         N = self.N
         g = self.g
         k = self.k
-        
+
         bytes_to_bn( self.s, bytes_s )
         bytes_to_bn( self.B, bytes_B )
-        
+
         # SRP-6a safety check
         if BN_is_zero(self.B):
             return None
-            
+
         H_bn_bn(hash_class, self.u, self.A, self.B)
-        
+
         # SRP-6a safety check
         if BN_is_zero(self.u):
             return None
-        
+
         calculate_x( hash_class, self.x, self.s, self.username, self.password )
-        
+
         BN_mod_exp(self.v, g, self.x, N, self.ctx)
-        
+
         # S = (B - k*(g^x)) ^ (a + ux)
 
         BN_mul(self.tmp1, self.u, self.x, self.ctx)
@@ -570,16 +573,15 @@ class User (object):
         self.H_AMK = calculate_H_AMK( hash_class, self.A, self.M, self.K )
 
         return self.M
-        
-        
+
+
     def verify_session(self, host_HAMK):
         if self.H_AMK == host_HAMK:
             self._authenticated = True
 
-            
+
 
 #---------------------------------------------------------
 # Init
 #
 RAND_seed( os.urandom(32), 32 )
-
