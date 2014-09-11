@@ -396,7 +396,7 @@ class Verifier (object):
         if BN_is_zero(self.tmp1):
             self.safety_failed = True
         else:
-            BN_rand(self.b, 256, -1, 0)
+            BN_rand(self.b, 256, 0, 0)
 
             # B = kv + g^b
             BN_mul(self.tmp1, k, self.v, self.ctx)
@@ -493,7 +493,7 @@ class User (object):
         self.g          = g
         self.k          = k
 
-        BN_rand(self.a, 256, -1, 0)
+        BN_rand(self.a, 256, 0, 0)
 
         BN_mod_exp(self.A, g, self.a, N, self.ctx)
 

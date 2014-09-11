@@ -588,7 +588,7 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
     BN_mod(tmp1, A, ng->N, ctx);
     if ( !BN_is_zero(tmp1) )
     {
-        BN_rand(b, 256, -1, 0);
+        BN_rand(b, 256, 0, 0);
 
         k = H_nn(alg, ng->N, ng->g);
 
@@ -775,7 +775,7 @@ void  srp_user_start_authentication( struct SRPUser * usr, const char ** usernam
 {
     BN_CTX  *ctx  = BN_CTX_new();
 
-    BN_rand(usr->a, 256, -1, 0);
+    BN_rand(usr->a, 256, 0, 0);
 
     BN_mod_exp(usr->A, usr->ng->g, usr->a, usr->ng->N, ctx);
 

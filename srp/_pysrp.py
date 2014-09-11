@@ -148,6 +148,11 @@ def get_random( nbytes ):
     return bytes_to_long( os.urandom( nbytes ) )
 
 
+def get_random_of_length( nbytes ):
+    offset = (nbytes*8) - 1
+    return get_random( nbytes ) | (1 << offset)
+
+
 def old_H( hash_class, s1, s2 = '', s3=''):
     if isinstance(s1, (long, int)):
         s1 = long_to_bytes(s1)
@@ -248,7 +253,7 @@ class Verifier (object):
 
         if not self.safety_failed:
 
-            self.b = get_random( 32 )
+            self.b = get_random_of_length( 32 )
             self.B = (k*self.v + pow(g, self.b, N)) % N
             self.u = H(hash_class, self.A, self.B)
             self.S = pow(self.A*pow(self.v, self.u, N ), self.b, N)
@@ -294,7 +299,7 @@ class User (object):
 
         self.I     = username
         self.p     = password
-        self.a     = get_random( 32 )
+        self.a     = get_random_of_length( 32 )
         self.A     = pow(g, self.a, N)
         self.v     = None
         self.M     = None

@@ -120,6 +120,11 @@ class SRPTests( unittest.TestCase ):
     def test_all2(self):
         self.doit( _ctsrp, _pysrp, _srp, hash_alg=srp.SHA224, ng_type=srp.NG_4096 )
 
+    def test_random_of_length(self):
+        for x in range(256):
+            val = _pysrp.get_random_of_length(32)
+            self.assertTrue(val >> 255 == 1)
+
     def test_authenticated_on_init(self):
         usr = _pysrp.User('test', 'test')
         self.assertTrue(not usr.authenticated())
