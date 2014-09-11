@@ -714,8 +714,13 @@ struct SRPUser * srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const 
     memcpy((char *)usr->password, bytes_password, len_password);
 
     usr->authenticated = 0;
-
     usr->bytes_A = 0;
+
+    BN_rand(usr->a, 256, 0, 0);
+
+    BN_CTX  *ctx  = BN_CTX_new();
+    BN_mod_exp(usr->A, usr->ng->g, usr->a, usr->ng->N, ctx);
+    BN_CTX_free(ctx);
 
     return usr;
 }
@@ -773,14 +778,6 @@ int                   srp_user_get_session_key_length( struct SRPUser * usr )
 void  srp_user_start_authentication( struct SRPUser * usr, const char ** username,
                                      const unsigned char ** bytes_A, int * len_A )
 {
-    BN_CTX  *ctx  = BN_CTX_new();
-
-    BN_rand(usr->a, 256, 0, 0);
-
-    BN_mod_exp(usr->A, usr->ng->g, usr->a, usr->ng->N, ctx);
-
-    BN_CTX_free(ctx);
-
     *len_A   = BN_num_bytes(usr->A);
     *bytes_A = malloc( *len_A );
 
