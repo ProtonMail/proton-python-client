@@ -357,9 +357,11 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
 
 
 class Verifier (object):
-    def __init__(self,  username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None):
+    def __init__(self,  username, bytes_s, bytes_v, bytes_A, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, bytes_b=None):
         if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
             raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
+        if bytes_b and len(bytes_b) != 32:
+            raise ValueError("32 bytes required for bytes_b")
         self.A     = BN_new()
         self.B     = BN_new()
         self.K     = None
@@ -396,7 +398,10 @@ class Verifier (object):
         if BN_is_zero(self.tmp1):
             self.safety_failed = True
         else:
-            BN_rand(self.b, 256, 0, 0)
+            if bytes_b:
+                bytes_to_bn( self.b, bytes_b )
+            else:
+                BN_rand(self.b, 256, 0, 0)
 
             # B = kv + g^b
             BN_mul(self.tmp1, k, self.v, self.ctx)
@@ -442,6 +447,10 @@ class Verifier (object):
         return self.I
 
 
+    def get_ephemeral_secret(self):
+        return bn_to_bytes(self.b)
+
+
     def get_session_key(self):
         return self.K if self._authenticated else None
 
@@ -463,9 +472,11 @@ class Verifier (object):
 
 
 class User (object):
-    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None):
+    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, bytes_a=None):
         if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
             raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
+        if bytes_a and len(bytes_a) != 32:
+            raise ValueError("32 bytes required for bytes_a")
         self.username = username
         self.password = password
         self.a     = BN_new()
@@ -493,7 +504,10 @@ class User (object):
         self.g          = g
         self.k          = k
 
-        BN_rand(self.a, 256, 0, 0)
+        if bytes_a:
+            bytes_to_bn( self.a, bytes_a )
+        else:
+            BN_rand(self.a, 256, 0, 0)
 
         BN_mod_exp(self.A, g, self.a, N, self.ctx)
 
@@ -524,6 +538,10 @@ class User (object):
 
     def get_username(self):
         return self.username
+
+
+    def get_ephemeral_secret(self):
+        return bn_to_bytes(self.a)
 
 
     def get_session_key(self):

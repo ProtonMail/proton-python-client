@@ -61,22 +61,42 @@ class SRPTests( unittest.TestCase ):
         _s, _v = create_salted_verification_key( username, password, hash_alg, ng_type, n_hex, g_hex )
 
         usr      = User( username, password, hash_alg, ng_type, n_hex, g_hex )
+        bytes_a  = usr.get_ephemeral_secret()
         uname, A = usr.start_authentication()
+
+        # Make sure a recreated User does all the same appropriate things
+        usr2     = User( username, password, hash_alg, ng_type, n_hex, g_hex, bytes_a )
+        uname2, A2 = usr2.start_authentication()
+        self.assertEqual(uname, uname2)
+        self.assertEqual(A, A2)
 
         # username, A => server
         svr      = Verifier( uname, _s, _v, A, hash_alg, ng_type, n_hex, g_hex )
+        bytes_b  = svr.get_ephemeral_secret()
         s,B      = svr.get_challenge()
 
         # s,B => client
         M        = usr.process_challenge( s, B )
+        M2       = usr2.process_challenge( s, B )
+        self.assertEqual(M, M2)
 
         # M => server
         HAMK     = svr.verify_session( M )
 
+        # Make sure that a recreated Verifier will authenticate appropriately
+        svr2     = Verifier( uname, _s, _v, A, hash_alg, ng_type, n_hex, g_hex, bytes_b )
+        HAMK2    = svr2.verify_session( M )
+        self.assertEqual(HAMK, HAMK2)
+
         # HAMK => client
         usr.verify_session( HAMK )
+        usr2.verify_session( HAMK )
 
-        self.assertTrue( svr.authenticated() and usr.authenticated() )
+        self.assertTrue( svr.authenticated() )
+        self.assertTrue( svr2.authenticated() )
+
+        self.assertTrue( usr.authenticated() )
+        self.assertTrue( svr2.authenticated() )
 
     def test_pure_python_defaults(self):
         self.doit( _pysrp, _pysrp, _pysrp )
@@ -121,9 +141,33 @@ class SRPTests( unittest.TestCase ):
         self.doit( _ctsrp, _pysrp, _srp, hash_alg=srp.SHA224, ng_type=srp.NG_4096 )
 
     def test_random_of_length(self):
-        for x in range(256):
+        """
+        Verify that the Python implementation guarantees byte length by
+        setting most significant bit to 1
+        """
+        for x in range(10):
             val = _pysrp.get_random_of_length(32)
             self.assertTrue(val >> 255 == 1)
+
+    def test_ephemeral_length(self):
+        """
+        Verify that all implementations require 32 bytes for ephemeral values
+        """
+        random31 = _pysrp.long_to_bytes(_pysrp.get_random_of_length(31))
+        random33 = _pysrp.long_to_bytes(_pysrp.get_random_of_length(33))
+
+        def verf_len(mod, val):
+            with self.assertRaises(ValueError) as ctx:
+                mod.User('uname', 'pwd', bytes_a=val)
+            self.assertIn('bytes_a', ctx.exception.message)
+
+            with self.assertRaises(ValueError) as ctx:
+                mod.Verifier('uname', random31, random31, random31, bytes_b=val)
+            self.assertIn('bytes_b', ctx.exception.message)
+
+        for mod in [_srp, _ctsrp, _pysrp]:
+            for val in [random31, random33]:
+                verf_len(mod, val)
 
     def test_authenticated_on_init(self):
         usr = _pysrp.User('test', 'test')
