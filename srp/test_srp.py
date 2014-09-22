@@ -8,13 +8,13 @@ import time
 import thread
 
 this_dir = os.path.dirname( os.path.abspath(__file__) )
-    
+
 build_dir = os.path.join( os.path.dirname(this_dir), 'build' )
 
 if not os.path.exists( build_dir ):
     print 'Please run "python setup.py build" prior to running tests'
     sys.exit(1)
-    
+
 plat_dirs = [ d for d in os.listdir('build') if d.startswith('lib') ]
 
 if not len(plat_dirs) == 1:
@@ -62,17 +62,17 @@ class SRPTests( unittest.TestCase ):
 
         usr      = User( username, password, hash_alg, ng_type, n_hex, g_hex )
         uname, A = usr.start_authentication()
-    
+
         # username, A => server
         svr      = Verifier( uname, _s, _v, A, hash_alg, ng_type, n_hex, g_hex )
         s,B      = svr.get_challenge()
-        
+
         # s,B => client
         M        = usr.process_challenge( s, B )
-        
+
         # M => server
         HAMK     = svr.verify_session( M )
-    
+
         # HAMK => client
         usr.verify_session( HAMK )
 
@@ -143,24 +143,24 @@ password = 'testpassword'
 NLEFT = 0
 
 def do_auth( mod, hash_alg, ng_type, _s, _v ):
-    
+
     usr      = mod.User( username, password, hash_alg, ng_type)
     uname, A = usr.start_authentication()
-    
+
     # username, A => server
     svr      = mod.Verifier( uname, _s, _v, A, hash_alg, ng_type)
     s,B      = svr.get_challenge()
-    
+
     # s,B => client
     M        = usr.process_challenge( s, B )
-    
+
     # M => server
     HAMK     = svr.verify_session( M )
-    
+
     # HAMK => client
     usr.verify_session( HAMK )
-    
-    if not svr.authenticated() or not usr.authenticated(): 
+
+    if not svr.authenticated() or not usr.authenticated():
         raise Exception('Authentication failed!')
 
 
@@ -169,7 +169,7 @@ def performance_test( mod, hash_alg, ng_type, niter=10, nthreads=1 ):
     _s, _v = srp.create_salted_verification_key( username, password, hash_alg, ng_type )
 
     NLEFT = niter
-    
+
     def test_thread():
         global NLEFT
         while NLEFT > 0:
@@ -188,22 +188,22 @@ def performance_test( mod, hash_alg, ng_type, niter=10, nthreads=1 ):
 
 
 def get_param_str( mod, hash_alg, ng_type ):
-    
+
     m = { 'srp._pysrp' : 'Python',
           'srp._ctsrp' : 'ctypes',
           'srp._srp'   : 'C     ' }
-    
+
     cfg = '%s, %s, %d:' % (m[mod.__name__], hash_map[hash_alg], prime_map[ng_type])
 
     return cfg
 
-    
+
 def param_test( mod, hash_alg, ng_type, niter=10 ):
     duration = performance_test( mod, hash_alg, ng_type, niter )
     cfg = get_param_str( mod, hash_alg, ng_type )
     print '   ', cfg.ljust(20), '%.6f' % (duration/niter)
     return duration/niter
-    
+
 
 def print_default_timings():
     print '*'*60
@@ -264,5 +264,3 @@ print_default_timings()
 
 # Pause briefly to ensure no background threads are still executing
 time.sleep(0.1)
-
-

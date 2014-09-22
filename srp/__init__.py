@@ -13,7 +13,7 @@ if not _mod:
         _mod = srp._ctsrp
     except ImportError:
         pass
-    
+
 if not _mod:
     import srp._pysrp
     _mod = srp._pysrp
@@ -33,12 +33,3 @@ NG_2048   = _mod.NG_2048
 NG_4096   = _mod.NG_4096
 NG_8192   = _mod.NG_8192
 NG_CUSTOM = _mod.NG_CUSTOM
-
-        
-        
-
-   
-   
-
-    
-    

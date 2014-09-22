@@ -24,33 +24,33 @@ typedef enum
     SRP_NG_CUSTOM
 } SRP_NGType;
 
-typedef enum 
+typedef enum
 {
     SRP_SHA1,
-    SRP_SHA224, 
+    SRP_SHA224,
     SRP_SHA256,
-    SRP_SHA384, 
+    SRP_SHA384,
     SRP_SHA512
 } SRP_HashAlgorithm;
 
 
 /* This library will automatically seed the OpenSSL random number generator
  * using cryptographically sound random data on Windows & Linux. If this is
- * undesirable behavior or the host OS does not provide a /dev/urandom file, 
- * this function may be called to seed the random number generator with 
- * alternate data. 
- * 
+ * undesirable behavior or the host OS does not provide a /dev/urandom file,
+ * this function may be called to seed the random number generator with
+ * alternate data.
+ *
  * Passing a null pointer to this function will cause this library to skip
  * seeding the random number generator.
- * 
- * Notes: 
+ *
+ * Notes:
  *    * This function is optional on Windows & Linux.
- * 
+ *
  *    * This function is mandatory on all other platforms. Although it
  *      will appear to work on other platforms, this library uses the current
  *      time of day to seed the random number generator. This is well known to
- *      be insecure. 
- * 
+ *      be insecure.
+ *
  *    * When using this function, ensure the provided random data is
  *      cryptographically strong.
  */
@@ -58,27 +58,27 @@ void srp_random_seed( const unsigned char * random_data, int data_length );
 
 
 /* Out: bytes_s, len_s, bytes_v, len_v
- * 
+ *
  * The caller is responsible for freeing the memory allocated for bytes_s and bytes_v
- * 
+ *
  * The n_hex and g_hex parameters should be 0 unless SRP_NG_CUSTOM is used for ng_type.
  * If provided, they must contain ASCII text of the hexidecimal notation.
  */
 void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
                                          const unsigned char * password, int len_password,
-                                         const unsigned char ** bytes_s, int * len_s, 
+                                         const unsigned char ** bytes_s, int * len_s,
                                          const unsigned char ** bytes_v, int * len_v,
                                          const char * n_hex, const char * g_hex );
 
 
 /* Out: bytes_B, len_B.
- * 
+ *
  * On failure, bytes_B will be set to NULL and len_B will be set to 0
- * 
+ *
  * The n_hex and g_hex parameters should be 0 unless SRP_NG_CUSTOM is used for ng_type
  */
 struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
-                                        const unsigned char * bytes_s, int len_s, 
+                                        const unsigned char * bytes_s, int len_s,
                                         const unsigned char * bytes_v, int len_v,
                                         const unsigned char * bytes_A, int len_A,
                                         const unsigned char ** bytes_B, int * len_B,
@@ -102,7 +102,7 @@ int                   srp_verifier_get_session_key_length( struct SRPVerifier * 
 
 /* user_M must be exactly srp_verifier_get_session_key_length() bytes in size */
 void                  srp_verifier_verify_session( struct SRPVerifier * ver,
-                                                   const unsigned char * user_M, 
+                                                   const unsigned char * user_M,
                                                    const unsigned char ** bytes_HAMK );
 
 /*******************************************************************************/
@@ -111,7 +111,7 @@ void                  srp_verifier_verify_session( struct SRPVerifier * ver,
 struct SRPUser *      srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
                                     const unsigned char * bytes_password, int len_password,
                                     const char * n_hex, const char * g_hex );
-                                    
+
 void                  srp_user_delete( struct SRPUser * usr );
 
 int                   srp_user_is_authenticated( struct SRPUser * usr);
@@ -125,16 +125,16 @@ const unsigned char * srp_user_get_session_key( struct SRPUser * usr, int * key_
 int                   srp_user_get_session_key_length( struct SRPUser * usr );
 
 /* Output: username, bytes_A, len_A */
-void                  srp_user_start_authentication( struct SRPUser * usr, const char ** username, 
+void                  srp_user_start_authentication( struct SRPUser * usr, const char ** username,
                                                      const unsigned char ** bytes_A, int * len_A );
 
-/* Output: bytes_M, len_M  (len_M may be null and will always be 
+/* Output: bytes_M, len_M  (len_M may be null and will always be
  *                          srp_user_get_session_key_length() bytes in size) */
-void                  srp_user_process_challenge( struct SRPUser * usr, 
-                                                  const unsigned char * bytes_s, int len_s, 
+void                  srp_user_process_challenge( struct SRPUser * usr,
+                                                  const unsigned char * bytes_s, int len_s,
                                                   const unsigned char * bytes_B, int len_B,
                                                   const unsigned char ** bytes_M, int * len_M );
-                                                  
+
 /* bytes_HAMK must be exactly srp_user_get_session_key_length() bytes in size */
 void                  srp_user_verify_session( struct SRPUser * usr, const unsigned char * bytes_HAMK );
 
@@ -152,7 +152,7 @@ typedef struct
     BIGNUM     * g;
 } NGConstant;
 
-struct NGHex 
+struct NGHex
 {
     const char * n_hex;
     const char * g_hex;
@@ -254,10 +254,10 @@ static NGConstant * new_ng( SRP_NGType ng_type, const char * n_hex, const char *
         n_hex = global_Ng_constants[ ng_type ].n_hex;
         g_hex = global_Ng_constants[ ng_type ].g_hex;
     }
-        
+
     BN_hex2bn( &ng->N, n_hex );
     BN_hex2bn( &ng->g, g_hex );
-    
+
     return ng;
 }
 
@@ -272,7 +272,7 @@ static void delete_ng( NGConstant * ng )
 
 
 
-typedef union 
+typedef union
 {
     SHA_CTX    sha;
     SHA256_CTX sha256;
@@ -284,11 +284,11 @@ struct SRPVerifier
 {
     SRP_HashAlgorithm  hash_alg;
     NGConstant        *ng;
-    
+
     const char          * username;
     const unsigned char * bytes_B;
     int                   authenticated;
-    
+
     unsigned char M           [SHA512_DIGEST_LENGTH];
     unsigned char H_AMK       [SHA512_DIGEST_LENGTH];
     unsigned char session_key [SHA512_DIGEST_LENGTH];
@@ -299,18 +299,18 @@ struct SRPUser
 {
     SRP_HashAlgorithm  hash_alg;
     NGConstant        *ng;
-    
+
     BIGNUM *a;
     BIGNUM *A;
     BIGNUM *S;
 
     const unsigned char * bytes_A;
     int                   authenticated;
-    
+
     const char *          username;
     const unsigned char * password;
     int                   password_len;
-    
+
     unsigned char M           [SHA512_DIGEST_LENGTH];
     unsigned char H_AMK       [SHA512_DIGEST_LENGTH];
     unsigned char session_key [SHA512_DIGEST_LENGTH];
@@ -410,7 +410,7 @@ static BIGNUM * H_ns( SRP_HashAlgorithm alg, const BIGNUM * n, const unsigned ch
     free(bin);
     return BN_bin2bn(buff, hash_length(alg), NULL);
 }
-    
+
 static BIGNUM * calculate_x( SRP_HashAlgorithm alg, const BIGNUM * salt, const char * username, const unsigned char * password, int password_len )
 {
     unsigned char ucp_hash[SHA512_DIGEST_LENGTH];
@@ -421,9 +421,9 @@ static BIGNUM * calculate_x( SRP_HashAlgorithm alg, const BIGNUM * salt, const c
     hash_update( alg, &ctx, username, strlen(username) );
     hash_update( alg, &ctx, ":", 1 );
     hash_update( alg, &ctx, password, password_len );
-    
+
     hash_final( alg, &ctx, ucp_hash );
-        
+
     return H_ns( alg, salt, ucp_hash, hash_length(alg) );
 }
 
@@ -455,38 +455,38 @@ static void calculate_M( SRP_HashAlgorithm alg, NGConstant *ng, unsigned char * 
     HashCTX       ctx;
     int           i = 0;
     int           hash_len = hash_length(alg);
-        
+
     hash_num( alg, ng->N, H_N );
     hash_num( alg, ng->g, H_g );
-    
+
     hash(alg, (const unsigned char *)I, strlen(I), H_I);
-    
-    
+
+
     for (i=0; i < hash_len; i++ )
         H_xor[i] = H_N[i] ^ H_g[i];
-    
+
     hash_init( alg, &ctx );
-    
+
     hash_update( alg, &ctx, H_xor, hash_len );
     hash_update( alg, &ctx, H_I,   hash_len );
     update_hash_n( alg, &ctx, s );
     update_hash_n( alg, &ctx, A );
     update_hash_n( alg, &ctx, B );
     hash_update( alg, &ctx, K, hash_len );
-    
+
     hash_final( alg, &ctx, dest );
 }
 
 static void calculate_H_AMK( SRP_HashAlgorithm alg, unsigned char *dest, const BIGNUM * A, const unsigned char * M, const unsigned char * K )
 {
     HashCTX ctx;
-    
+
     hash_init( alg, &ctx );
-    
+
     update_hash_n( alg, &ctx, A );
     hash_update( alg, &ctx, M, hash_length(alg) );
     hash_update( alg, &ctx, K, hash_length(alg) );
-    
+
     hash_final( alg, &ctx, dest );
 }
 
@@ -511,7 +511,7 @@ void srp_random_seed( const unsigned char * random_data, int data_length )
 
 void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
                                          const unsigned char * password, int len_password,
-                                         const unsigned char ** bytes_s, int * len_s, 
+                                         const unsigned char ** bytes_s, int * len_s,
                                          const unsigned char ** bytes_v, int * len_v,
                                          const char * n_hex, const char * g_hex )
 {
@@ -522,22 +522,22 @@ void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_ty
     NGConstant * ng  = new_ng( ng_type, n_hex, g_hex );
 
     init_random(); /* Only happens once */
-    
+
     BN_rand(s, 32, -1, 0);
-    
+
     x = calculate_x( alg, s, username, password, len_password );
 
     BN_mod_exp(v, ng->g, x, ng->N, ctx);
-        
+
     *len_s   = BN_num_bytes(s);
     *len_v   = BN_num_bytes(v);
-    
+
     *bytes_s = (const unsigned char *) malloc( *len_s );
     *bytes_v = (const unsigned char *) malloc( *len_v );
-    
+
     BN_bn2bin(s, (unsigned char *) *bytes_s);
     BN_bn2bin(v, (unsigned char *) *bytes_v);
-        
+
     delete_ng( ng );
     BN_free(s);
     BN_free(v);
@@ -548,11 +548,11 @@ void srp_create_salted_verification_key( SRP_HashAlgorithm alg, SRP_NGType ng_ty
 
 
 /* Out: bytes_B, len_B.
- * 
+ *
  * On failure, bytes_B will be set to NULL and len_B will be set to 0
  */
 struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
-                                        const unsigned char * bytes_s, int len_s, 
+                                        const unsigned char * bytes_s, int len_s,
                                         const unsigned char * bytes_v, int len_v,
                                         const unsigned char * bytes_A, int len_A,
                                         const unsigned char ** bytes_B, int * len_B,
@@ -571,49 +571,49 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
     BN_CTX     *ctx  = BN_CTX_new();
     int         ulen = strlen(username) + 1;
     NGConstant *ng   = new_ng( ng_type, n_hex, g_hex );
-    
+
     struct SRPVerifier * ver = (struct SRPVerifier *) malloc( sizeof(struct SRPVerifier) );
 
     init_random(); /* Only happens once */
-    
+
     ver->username = (char *) malloc( ulen );
     ver->hash_alg = alg;
     ver->ng       = ng;
-    
+
     memcpy( (char*)ver->username, username, ulen );
-    
+
     ver->authenticated = 0;
-        
+
     /* SRP-6a safety check */
     BN_mod(tmp1, A, ng->N, ctx);
     if ( !BN_is_zero(tmp1) )
-    {        
+    {
         BN_rand(b, 256, -1, 0);
-        
+
         k = H_nn(alg, ng->N, ng->g);
-        
+
         /* B = kv + g^b */
         BN_mul(tmp1, k, v, ctx);
         BN_mod_exp(tmp2, ng->g, b, ng->N, ctx);
         BN_add(B, tmp1, tmp2);
-        
+
         u = H_nn(alg, A, B);
-        
+
         /* S = (A *(v^u)) ^ b */
         BN_mod_exp(tmp1, v, u, ng->N, ctx);
         BN_mul(tmp2, A, tmp1, ctx);
         BN_mod_exp(S, tmp2, b, ng->N, ctx);
 
         hash_num(alg, S, ver->session_key);
-        
+
         calculate_M( alg, ng, ver->M, username, s, A, B, ver->session_key );
         calculate_H_AMK( alg, ver->H_AMK, A, ver->M, ver->session_key );
-        
+
         *len_B   = BN_num_bytes(B);
         *bytes_B = malloc( *len_B );
-        
+
         BN_bn2bin( B, (unsigned char *) *bytes_B );
-        
+
         ver->bytes_B = *bytes_B;
     }
     else
@@ -621,7 +621,7 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
         *len_B   = 0;
         *bytes_B = NULL;
     }
-    
+
     BN_free(s);
     BN_free(v);
     BN_free(A);
@@ -633,11 +633,11 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
     BN_free(tmp1);
     BN_free(tmp2);
     BN_CTX_free(ctx);
-    
+
     return ver;
 }
 
-                                        
+
 
 
 void srp_verifier_delete( struct SRPVerifier * ver )
@@ -690,7 +690,7 @@ void srp_verifier_verify_session( struct SRPVerifier * ver, const unsigned char 
 
 /*******************************************************************************/
 
-struct SRPUser * srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username, 
+struct SRPUser * srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const char * username,
                                const unsigned char * bytes_password, int len_password,
                                const char * n_hex, const char * g_hex )
 {
@@ -698,25 +698,25 @@ struct SRPUser * srp_user_new( SRP_HashAlgorithm alg, SRP_NGType ng_type, const 
     int              ulen = strlen(username) + 1;
 
     init_random(); /* Only happens once */
-    
+
     usr->hash_alg = alg;
     usr->ng       = new_ng( ng_type, n_hex, g_hex );
-    
+
     usr->a = BN_new();
     usr->A = BN_new();
     usr->S = BN_new();
-    
+
     usr->username     = (const char *) malloc(ulen);
     usr->password     = (const unsigned char *) malloc(len_password);
     usr->password_len = len_password;
-    
+
     memcpy((char *)usr->username, username,       ulen);
     memcpy((char *)usr->password, bytes_password, len_password);
 
     usr->authenticated = 0;
-    
+
     usr->bytes_A = 0;
-    
+
     return usr;
 }
 
@@ -727,15 +727,15 @@ void srp_user_delete( struct SRPUser * usr )
     BN_free( usr->a );
     BN_free( usr->A );
     BN_free( usr->S );
-    
+
     delete_ng( usr->ng );
-    
+
     free((char *)usr->username);
     free((char *)usr->password);
-    
-    if (usr->bytes_A) 
+
+    if (usr->bytes_A)
         free( (char *)usr->bytes_A );
-    
+
     free( usr );
 }
 
@@ -770,30 +770,30 @@ int                   srp_user_get_session_key_length( struct SRPUser * usr )
 
 
 /* Output: username, bytes_A, len_A */
-void  srp_user_start_authentication( struct SRPUser * usr, const char ** username, 
+void  srp_user_start_authentication( struct SRPUser * usr, const char ** username,
                                      const unsigned char ** bytes_A, int * len_A )
 {
     BN_CTX  *ctx  = BN_CTX_new();
-    
+
     BN_rand(usr->a, 256, -1, 0);
-        
+
     BN_mod_exp(usr->A, usr->ng->g, usr->a, usr->ng->N, ctx);
-        
+
     BN_CTX_free(ctx);
-    
+
     *len_A   = BN_num_bytes(usr->A);
     *bytes_A = malloc( *len_A );
-        
+
     BN_bn2bin( usr->A, (unsigned char *) *bytes_A );
-    
+
     usr->bytes_A = *bytes_A;
     *username = usr->username;
 }
 
 
 /* Output: bytes_M. Buffer length is SHA512_DIGEST_LENGTH */
-void  srp_user_process_challenge( struct SRPUser * usr, 
-                                  const unsigned char * bytes_s, int len_s, 
+void  srp_user_process_challenge( struct SRPUser * usr,
+                                  const unsigned char * bytes_s, int len_s,
                                   const unsigned char * bytes_B, int len_B,
                                   const unsigned char ** bytes_M, int * len_M )
 {
@@ -807,18 +807,18 @@ void  srp_user_process_challenge( struct SRPUser * usr,
     BIGNUM *tmp2 = BN_new();
     BIGNUM *tmp3 = BN_new();
     BN_CTX *ctx  = BN_CTX_new();
-    
+
     u = H_nn(usr->hash_alg, usr->A, B);
-    
+
     x = calculate_x( usr->hash_alg, s, usr->username, usr->password, usr->password_len );
-    
+
     k = H_nn(usr->hash_alg, usr->ng->N, usr->ng->g);
-    
+
     /* SRP-6a safety check */
     if ( !BN_is_zero(B) && !BN_is_zero(u) )
     {
         BN_mod_exp(v, usr->ng->g, x, usr->ng->N, ctx);
-        
+
         /* S = (B - k*(g^x)) ^ (a + ux) */
         BN_mul(tmp1, u, x, ctx);
         BN_add(tmp2, usr->a, tmp1);             /* tmp2 = (a + ux)      */
@@ -828,10 +828,10 @@ void  srp_user_process_challenge( struct SRPUser * usr,
         BN_mod_exp(usr->S, tmp1, tmp2, usr->ng->N, ctx);
 
         hash_num(usr->hash_alg, usr->S, usr->session_key);
-        
+
         calculate_M( usr->hash_alg, usr->ng, usr->M, usr->username, s, usr->A, B, usr->session_key );
         calculate_H_AMK( usr->hash_alg, usr->H_AMK, usr->A, usr->M, usr->session_key );
-        
+
         *bytes_M = usr->M;
         if (len_M)
             *len_M = hash_length( usr->hash_alg );
@@ -839,10 +839,10 @@ void  srp_user_process_challenge( struct SRPUser * usr,
     else
     {
         *bytes_M = NULL;
-        if (len_M) 
+        if (len_M)
             *len_M   = 0;
     }
-    
+
     BN_free(s);
     BN_free(B);
     BN_free(u);
@@ -854,7 +854,7 @@ void  srp_user_process_challenge( struct SRPUser * usr,
     BN_free(tmp3);
     BN_CTX_free(ctx);
 }
-                                                  
+
 
 void srp_user_verify_session( struct SRPUser * usr, const unsigned char * bytes_HAMK )
 {
@@ -864,12 +864,12 @@ void srp_user_verify_session( struct SRPUser * usr, const unsigned char * bytes_
 
 
 /******************************************************************************
- * 
+ *
  *                         Python Module
- * 
+ *
  *****************************************************************************/
 
-typedef struct 
+typedef struct
 {
     PyObject_HEAD
     struct SRPVerifier  * ver;
@@ -880,7 +880,7 @@ typedef struct
 }PyVerifier;
 
 
-typedef struct 
+typedef struct
 {
     PyObject_HEAD
     struct SRPUser * usr;
@@ -891,10 +891,10 @@ static void ver_dealloc( PyVerifier * self )
 {
     if ( self->ver != NULL )
         srp_verifier_delete( self->ver );
-    
+
     if ( self->bytes_s != NULL )
         free( (char *)self->bytes_s );
-        
+
     self->ob_type->tp_free( (PyObject *) self );
 }
 
@@ -910,16 +910,16 @@ static void usr_dealloc( PyUser * self )
 static PyObject * ver_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     PyVerifier *self = (PyVerifier *) type->tp_alloc(type, 0);
-    
+
     if (!self)
         return NULL;
-    
+
     self->ver     = NULL;
     self->bytes_B = NULL;
     self->bytes_s = NULL;
     self->len_B   = 0;
     self->len_s   = 0;
-    
+
     return (PyObject *) self;
 }
 
@@ -927,12 +927,12 @@ static PyObject * ver_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject * usr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     PyUser *self = (PyUser *) type->tp_alloc(type, 0);
-    
+
     if (!self)
         return NULL;
-    
+
     self->usr   = NULL;
-    
+
     return (PyObject *) self;
 }
 
@@ -946,18 +946,18 @@ static int ver_init( PyVerifier *self, PyObject *args, PyObject *kwds )
     int                  ng_type        = SRP_NG_2048;
     const char          *n_hex          = 0;
     const char          *g_hex          = 0;
-    static char * kwnames[] = { "username", "bytes_s", "bytes_v", "bytes_A", 
+    static char * kwnames[] = { "username", "bytes_s", "bytes_v", "bytes_A",
                                 "hash_alg", "ng_type",
                                 "n_hex", "g_hex", NULL };
-        
+
     if ( self->ver != NULL )
     {
         PyErr_SetString(PyExc_TypeError, "Type cannot be re-initialized");
         return -1;
     }
-    
+
     if ( ! PyArg_ParseTupleAndKeywords(args, kwds, "st#t#t#|iiss", kwnames,
-                            &username, 
+                            &username,
                             &bytes_s, &len_s,
                             &bytes_v, &len_v,
                             &bytes_A, &len_A,
@@ -968,51 +968,51 @@ static int ver_init( PyVerifier *self, PyObject *args, PyObject *kwds )
     {
         return -1;
     }
-    
+
     if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
         return -1;
     }
-    
+
     if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
         return -1;
     }
-    
+
     if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
     {
         PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
         return -1;
     }
-    
+
     /* The srp_verifier_new command is computationally intensive. Allowing multiple,
      *  simultaneous calls here will speed things up for multi-cpu machines
      */
     Py_BEGIN_ALLOW_THREADS
-        self->ver = srp_verifier_new( (SRP_HashAlgorithm) hash_alg, 
+        self->ver = srp_verifier_new( (SRP_HashAlgorithm) hash_alg,
                                       (SRP_NGType) ng_type,
                                       username,
-                                      bytes_s, len_s, 
-                                      bytes_v, len_v, 
+                                      bytes_s, len_s,
+                                      bytes_v, len_v,
                                       bytes_A, len_A,
                                       &self->bytes_B, &self->len_B,
                                       n_hex,
                                       g_hex );
     Py_END_ALLOW_THREADS
-        
+
     if ( self->bytes_B == NULL )
     {
         PyErr_SetString(PyExc_Exception, "SRP-6a safety check violated");
         return -1;
     }
-    
+
     self->bytes_s = malloc( len_s );
     self->len_s   = len_s;
-    
+
     memcpy( (char *)self->bytes_s, bytes_s, len_s );
-    
+
     return 0;
 }
 
@@ -1026,19 +1026,19 @@ static int usr_init( PyUser *self, PyObject *args, PyObject *kwds )
     int                  ng_type        = SRP_NG_2048;
     const char          *n_hex          = 0;
     const char          *g_hex          = 0;
-    static char * kwnames[] = { "username", "password", "hash_alg", 
+    static char * kwnames[] = { "username", "password", "hash_alg",
                                 "ng_type", "n_hex", "g_hex", NULL };
-    
-        
+
+
     if ( self->usr != NULL )
     {
         PyErr_SetString(PyExc_TypeError, "Type cannot be re-initialized");
         return -1;
     }
-    
+
     if ( ! PyArg_ParseTupleAndKeywords(args, kwds, "st#|iiss", kwnames,
-                                       &username, 
-                                       &bytes_password, 
+                                       &username,
+                                       &bytes_password,
                                        &len_password,
                                        &hash_alg,
                                        &ng_type,
@@ -1047,38 +1047,38 @@ static int usr_init( PyUser *self, PyObject *args, PyObject *kwds )
     {
         return -1;
     }
-    
+
     if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
         return -1;
     }
-    
+
     if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
         return -1;
     }
-    
+
     if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
     {
         PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
         return -1;
     }
-    
-    
-    self->usr = srp_user_new( (SRP_HashAlgorithm) hash_alg, 
+
+
+    self->usr = srp_user_new( (SRP_HashAlgorithm) hash_alg,
                               (SRP_NGType) ng_type,
-                              username, 
-                              bytes_password, 
+                              username,
+                              bytes_password,
                               len_password,
                               n_hex,
                               g_hex );
-        
+
     return 0;
 }
 
-    
+
 static PyObject * ver_is_authenticated( PyVerifier * self )
 {
     if ( self->ver == NULL ) {
@@ -1111,7 +1111,7 @@ static PyObject * ver_get_username( PyVerifier * self )
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-    
+
     return PyString_FromString( srp_verifier_get_username(self->ver) );
 }
 
@@ -1122,7 +1122,7 @@ static PyObject * usr_get_username( PyUser * self )
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-    
+
     return PyString_FromString( srp_user_get_username(self->usr) );
 }
 
@@ -1171,10 +1171,10 @@ static PyObject * ver_get_challenge( PyVerifier * self )
         PyErr_SetString(PyExc_Exception, "SRP-6a security check failed");
         return NULL;
     }
-    
-    return Py_BuildValue("s#s#", self->bytes_s, 
-                                 self->len_s, 
-                                 self->bytes_B, 
+
+    return Py_BuildValue("s#s#", self->bytes_s,
+                                 self->len_s,
+                                 self->bytes_B,
                                  self->len_B);
 }
 
@@ -1184,26 +1184,26 @@ static PyObject * ver_verify_session( PyVerifier * self, PyObject * args )
     const unsigned char * bytes_M;
     const unsigned char * bytes_HAMK;
     int                   len_M;
-    
+
     if ( self->ver == NULL ) {
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-    
+
     if ( ! PyArg_ParseTuple(args, "t#", &bytes_M, &len_M) )
     {
         return NULL;
     }
-    
+
     if ( len_M != srp_verifier_get_session_key_length( self->ver ) )
         Py_RETURN_NONE;
-    
+
     srp_verifier_verify_session( self->ver, bytes_M, &bytes_HAMK );
-    
+
     if ( bytes_HAMK == NULL )
         Py_RETURN_NONE;
     else
-        return PyString_FromStringAndSize((const char *) bytes_HAMK, 
+        return PyString_FromStringAndSize((const char *) bytes_HAMK,
                                           srp_verifier_get_session_key_length( self->ver ));
 }
 
@@ -1213,14 +1213,14 @@ static PyObject * usr_start_authentication( PyUser * self )
     const char          * username;
     const unsigned char * bytes_A;
     int                   len_A;
-    
+
     if ( self->usr == NULL ) {
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-        
+
     srp_user_start_authentication( self->usr, &username, &bytes_A, &len_A );
-    
+
     return Py_BuildValue("ss#", username, bytes_A, len_A);
 }
 
@@ -1230,30 +1230,30 @@ static PyObject * usr_process_challenge( PyUser * self, PyObject * args )
     const unsigned char * bytes_s, *bytes_B;
     int                   len_s, len_B, len_M;
     const unsigned char * bytes_M;
-    
+
     if ( self->usr == NULL ) {
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-    
-    if ( ! PyArg_ParseTuple(args, "t#t#", &bytes_s, &len_s, &bytes_B, 
+
+    if ( ! PyArg_ParseTuple(args, "t#t#", &bytes_s, &len_s, &bytes_B,
                                           &len_B) )
     {
         return NULL;
     }
-    
+
     /* The srp_user_process_challenge command is computationally intensive.
      * Allowing multiple, simultaneous calls here will speed things up on
      * multi-cpu machines.
      */
     Py_BEGIN_ALLOW_THREADS
-    srp_user_process_challenge( self->usr, bytes_s, len_s, bytes_B, len_B, 
+    srp_user_process_challenge( self->usr, bytes_s, len_s, bytes_B, len_B,
                                 &bytes_M, &len_M );
     Py_END_ALLOW_THREADS
-    
+
     if (bytes_M == NULL)
         Py_RETURN_NONE;
-    else        
+    else
         return PyString_FromStringAndSize((const char *) bytes_M, len_M);
 }
 
@@ -1262,20 +1262,20 @@ static PyObject * usr_verify_session( PyUser * self, PyObject * args )
 {
     const unsigned char * bytes_HAMK;
     int                   len_HAMK;
-    
+
     if ( self->usr == NULL ) {
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
     }
-    
+
     if ( ! PyArg_ParseTuple(args, "t#", &bytes_HAMK, &len_HAMK) )
     {
         return NULL;
     }
-    
+
     if ( len_HAMK == srp_user_get_session_key_length( self->usr ) )
         srp_user_verify_session( self->usr, bytes_HAMK );
-    
+
     Py_RETURN_NONE;
 }
 
@@ -1290,50 +1290,50 @@ static PyObject * py_create_salted_verification_key( PyObject *self, PyObject *a
     int                  ng_type        = SRP_NG_2048;
     const char          *n_hex          = 0;
     const char          *g_hex          = 0;
-    static char * kwnames[] = { "username", "password", "hash_alg", 
+    static char * kwnames[] = { "username", "password", "hash_alg",
                                 "ng_type", "n_hex", "g_hex", NULL };
-        
+
     if ( ! PyArg_ParseTupleAndKeywords(args, kwds, "st#|iiss", kwnames,
-                                       &username, 
-                                       &bytes_password, 
+                                       &username,
+                                       &bytes_password,
                                        &len_password,
                                        &hash_alg,
                                        &ng_type,
                                        &n_hex,
                                        &g_hex) )
         return NULL;
-    
-    
+
+
     if ( hash_alg < SRP_SHA1 || hash_alg > SRP_SHA512 )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Hash Algorithm");
         return NULL;
     }
-    
+
     if ( ng_type < SRP_NG_1024 || ng_type > SRP_NG_CUSTOM )
     {
         PyErr_SetString(PyExc_ValueError, "Invalid Prime Number Constant");
         return NULL;
     }
-    
+
     if ( ng_type == SRP_NG_CUSTOM && ( !n_hex || !g_hex ) )
     {
         PyErr_SetString(PyExc_ValueError, "Both n_hex and g_hex are required when ng_type = NG_CUSTOM");
         return NULL;
     }
 
-    srp_create_salted_verification_key( (SRP_HashAlgorithm) hash_alg, 
+    srp_create_salted_verification_key( (SRP_HashAlgorithm) hash_alg,
                                         (SRP_NGType) ng_type,
-                                        username, bytes_password, len_password, &bytes_s, &len_s, 
+                                        username, bytes_password, len_password, &bytes_s, &len_s,
                                         &bytes_v, &len_v,
                                         n_hex,
                                         g_hex );
-    
+
     ret = Py_BuildValue("s#s#", bytes_s, len_s, bytes_v, len_v);
-    
+
     free((char*)bytes_s);
     free((char*)bytes_v);
-    
+
     return ret;
 }
 
@@ -1376,7 +1376,7 @@ static PyMethodDef PyUser_methods[] = {
             PyDoc_STR("Returns the session key for an authenticated session. "
                       "Returns None if the session is not authenticated.")
     },
-    {"start_authentication", (PyCFunction) usr_start_authentication, 
+    {"start_authentication", (PyCFunction) usr_start_authentication,
             METH_NOARGS,
             PyDoc_STR("Returns (username,A). The username and initial "
                       "authentication challenge to send to the verifier")
@@ -1499,12 +1499,12 @@ init_srp(void)
     PyObject *m          = NULL;
     PyObject *os         = NULL;
     PyObject *py_urandom = NULL;
-    
+
     os = PyImport_ImportModule("os");
-    
+
     if (os == NULL)
         return;
-    
+
     py_urandom = PyObject_GetAttrString(os, "urandom");
 
     if ( py_urandom && PyCallable_Check(py_urandom) )
@@ -1527,31 +1527,31 @@ init_srp(void)
         }
         Py_XDECREF(args);
     }
-    
+
     Py_XDECREF(os);
     Py_XDECREF(py_urandom);
-    
+
     if (!init_ok)
     {
         PyErr_SetString(PyExc_ImportError, "Initialization failed");
         return;
     }
-    
-            
+
+
     if (PyType_Ready(&PyVerifier_Type) < 0 || PyType_Ready(&PyUser_Type) < 0)
         return;
-        
+
     m = Py_InitModule3("srp._srp", srp_module_methods,"SRP-6a implementation");
-        
+
     if (m == NULL)
         return;
-    
+
     Py_INCREF(&PyVerifier_Type);
     Py_INCREF(&PyUser_Type);
-    
+
     PyModule_AddObject(m, "Verifier", (PyObject*) &PyVerifier_Type );
     PyModule_AddObject(m, "User", (PyObject*) &PyUser_Type );
-    
+
     PyModule_AddIntConstant(m, "NG_1024",   SRP_NG_1024);
     PyModule_AddIntConstant(m, "NG_2048",   SRP_NG_2048);
     PyModule_AddIntConstant(m, "NG_4096",   SRP_NG_4096);
