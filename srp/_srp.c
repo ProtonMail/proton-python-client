@@ -663,6 +663,7 @@ void srp_verifier_delete( struct SRPVerifier * ver )
     delete_ng( ver->ng );
     free( (char *) ver->username );
     free( (unsigned char *) ver->bytes_B );
+    free( (unsigned char *) ver->bytes_b );
     free( ver );
 }
 
@@ -1184,6 +1185,8 @@ static PyObject * ver_get_ephemeral_secret( PyVerifier * self)
 
 static PyObject * usr_get_ephemeral_secret( PyUser * self)
 {
+    PyObject            *ret;
+
     if ( self->usr == NULL ) {
         PyErr_SetString(PyExc_Exception, "Type not initialized");
         return NULL;
@@ -1194,7 +1197,11 @@ static PyObject * usr_get_ephemeral_secret( PyUser * self)
 
     BN_bn2bin( self->usr->a, (unsigned char *) bytes_a );
 
-    return Py_BuildValue("s#", bytes_a, len_a);
+    ret = Py_BuildValue("s#", bytes_a, len_a);
+
+    free((char*)bytes_a);
+
+    return ret;
 }
 
 
