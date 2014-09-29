@@ -85,6 +85,7 @@ class SRPTests( unittest.TestCase ):
 
         # Make sure that a recreated Verifier will authenticate appropriately
         svr2     = Verifier( uname, _s, _v, A, hash_alg, ng_type, n_hex, g_hex, bytes_b )
+        self.assertEqual(bytes_b, svr2.get_ephemeral_secret())
         HAMK2    = svr2.verify_session( M )
         self.assertEqual(HAMK, HAMK2)
 

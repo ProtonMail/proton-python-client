@@ -595,6 +595,8 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
         if (*len_b > 0)
         {
             BN_bin2bn(*bytes_b, *len_b, b);
+            ver->bytes_b = (unsigned char *) malloc( *len_b );
+            memcpy( (unsigned char *)ver->bytes_b, *bytes_b, *len_b );
         }
         else
         {
