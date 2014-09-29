@@ -66,6 +66,7 @@ class SRPTests( unittest.TestCase ):
 
         # Make sure a recreated User does all the same appropriate things
         usr2     = User( username, password, hash_alg, ng_type, n_hex, g_hex, bytes_a )
+        self.assertEqual(bytes_a, usr2.get_ephemeral_secret())
         uname2, A2 = usr2.start_authentication()
         self.assertEqual(uname, uname2)
         self.assertEqual(A, A2)
