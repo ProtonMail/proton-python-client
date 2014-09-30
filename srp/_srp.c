@@ -1020,7 +1020,7 @@ static int ver_init( PyVerifier *self, PyObject *args, PyObject *kwds )
         return -1;
     }
 
-    if ( self->len_b && self->len_b != 32 )
+    if ( self->bytes_b && self->len_b != 32 )
     {
         PyErr_SetString(PyExc_ValueError, "32 bytes required for bytes_b");
         return -1;
