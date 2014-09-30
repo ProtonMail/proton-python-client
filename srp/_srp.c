@@ -639,7 +639,9 @@ struct SRPVerifier *  srp_verifier_new( SRP_HashAlgorithm alg, SRP_NGType ng_typ
     else
     {
         *len_B   = 0;
+        *len_b   = 0;
         *bytes_B = NULL;
+        *bytes_b = NULL;
     }
 
     BN_free(s);
@@ -1042,6 +1044,8 @@ static int ver_init( PyVerifier *self, PyObject *args, PyObject *kwds )
 
     if ( self->bytes_B == NULL )
     {
+        srp_verifier_delete(self->ver);
+        self->ver = NULL;
         PyErr_SetString(PyExc_Exception, "SRP-6a safety check violated");
         return -1;
     }
