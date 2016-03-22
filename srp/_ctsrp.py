@@ -407,6 +407,7 @@ class Verifier (object):
             BN_mul(self.tmp1, k, self.v, self.ctx)
             BN_mod_exp(self.tmp2, g, self.b, N, self.ctx)
             BN_add(self.B, self.tmp1, self.tmp2)
+            BN_mod(self.B, self.B, N, self.ctx)
 
             H_bn_bn(hash_class, self.u, self.A, self.B)
 
