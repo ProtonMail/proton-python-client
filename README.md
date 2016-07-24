@@ -14,7 +14,7 @@ protocol for password-based, mutual authentication over an insecure
 network connection.
 
 Unlike other common challenge-response autentication protocols, such
-as Kereros and SSL, SRP does not rely on an external infrastructure
+as Kerberos and SSL, SRP does not rely on an external infrastructure
 of trusted key servers or certificate management. Instead, SRP server
 applications use verification keys derived from each user's password
 to determine the authenticity of a network connection.
