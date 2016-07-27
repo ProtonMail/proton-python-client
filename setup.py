@@ -12,7 +12,7 @@ protocol for password-based, mutual authentication over an insecure
 network connection.
 
 Unlike other common challenge-response autentication protocols, such
-as Kereros and SSL, SRP does not rely on an external infrastructure
+as Kerberos and SSL, SRP does not rely on an external infrastructure
 of trusted key servers or certificate management. Instead, SRP server
 applications use verification keys derived from each user's password
 to determine the authenticity of a network connection.
@@ -35,10 +35,8 @@ please refer to the `srp module documentation`_.
 
 '''
 
-ext_modules = [ Extension('srp._srp', ['srp/_srp.c',], libraries = ['ssl',]), ]
-
 setup(name             = 'srp',
-      version          = '1.0.4',
+      version          = '1.0.5',
       description      = 'Secure Remote Password',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
@@ -48,7 +46,6 @@ setup(name             = 'srp',
       provides         = ['srp'],
       packages         = ['srp'],
       package_data     = {'srp' : ['doc/*.rst', 'doc/*.py']},
-      ext_modules      = ext_modules,
       license          = "MIT",
       platforms        = "OS Independent",
       classifiers      = [

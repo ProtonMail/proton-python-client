@@ -30,12 +30,6 @@ import srp
 import srp._pysrp as _pysrp
 import srp._ctsrp as _ctsrp
 
-try:
-    import srp._srp as _srp
-except ImportError:
-    print 'Failed to import srp._srp. Aborting tests'
-    sys.exit(1)
-
 
 test_g_hex = "2"
 test_n_hex = '''\
@@ -106,41 +100,33 @@ class SRPTests( unittest.TestCase ):
     def test_ctypes_defaults(self):
         self.doit( _ctsrp, _ctsrp, _ctsrp )
 
-    def test_c_defaults(self):
-        self.doit( _srp, _srp, _srp )
-
     def test_mix1(self):
-        self.doit( _pysrp, _ctsrp, _srp )
+        self.doit( _pysrp, _ctsrp, _ctsrp )
 
     def test_mix2(self):
-        self.doit( _pysrp, _srp, _ctsrp )
+        self.doit( _pysrp, _pysrp, _ctsrp )
 
     def test_mix3(self):
-        self.doit( _ctsrp, _pysrp, _srp )
+        self.doit( _ctsrp, _pysrp, _pysrp )
 
     def test_mix4(self):
-        self.doit( _ctsrp, _srp, _pysrp )
+        self.doit( _ctsrp, _ctsrp, _pysrp )
 
-    def test_mix5(self):
-        self.doit( _srp, _pysrp, _ctsrp )
-
-    def test_mix6(self):
-        self.doit( _srp, _ctsrp, _pysrp )
 
     def test_hash_SHA512(self):
-        self.doit( _srp, _srp, _srp, hash_alg=srp.SHA512 )
+        self.doit( _ctsrp, _ctsrp, _ctsrp, hash_alg=srp.SHA512 )
 
     def test_NG_8192(self):
-        self.doit( _srp, _srp, _srp, ng_type=srp.NG_8192 )
+        self.doit( _ctsrp, _ctsrp, _ctsrp, ng_type=srp.NG_8192 )
 
     def test_NG_CUSTOM(self):
-        self.doit( _srp, _srp, _srp, ng_type=srp.NG_CUSTOM, n_hex=test_n_hex, g_hex=test_g_hex )
+        self.doit( _ctsrp, _ctsrp, _ctsrp, ng_type=srp.NG_CUSTOM, n_hex=test_n_hex, g_hex=test_g_hex )
 
     def test_all1(self):
-        self.doit( _srp, _pysrp, _ctsrp, hash_alg=srp.SHA256, ng_type=srp.NG_CUSTOM, n_hex=test_n_hex, g_hex=test_g_hex )
+        self.doit( _ctsrp, _pysrp, _ctsrp, hash_alg=srp.SHA256, ng_type=srp.NG_CUSTOM, n_hex=test_n_hex, g_hex=test_g_hex )
 
     def test_all2(self):
-        self.doit( _ctsrp, _pysrp, _srp, hash_alg=srp.SHA224, ng_type=srp.NG_4096 )
+        self.doit( _ctsrp, _pysrp, _ctsrp, hash_alg=srp.SHA224, ng_type=srp.NG_4096 )
 
     def test_random_of_length(self):
         """
@@ -167,7 +153,7 @@ class SRPTests( unittest.TestCase ):
                 mod.Verifier('uname', random31, random31, random31, bytes_b=val)
             self.assertIn('bytes_b', ctx.exception.message)
 
-        for mod in [_srp, _ctsrp, _pysrp]:
+        for mod in [_ctsrp, _pysrp]:
             for val in [random31, random33]:
                 verf_len(mod, val)
 
@@ -176,9 +162,6 @@ class SRPTests( unittest.TestCase ):
         self.assertTrue(not usr.authenticated())
 
         usr = _ctsrp.User('test', 'test')
-        self.assertTrue(not usr.authenticated())
-
-        usr = _srp.User('test', 'test')
         self.assertTrue(not usr.authenticated())
 
 
@@ -241,8 +224,7 @@ def performance_test( mod, hash_alg, ng_type, niter=10, nthreads=1 ):
 def get_param_str( mod, hash_alg, ng_type ):
 
     m = { 'srp._pysrp' : 'Python',
-          'srp._ctsrp' : 'ctypes',
-          'srp._srp'   : 'C     ' }
+          'srp._ctsrp' : 'ctypes' }
 
     cfg = '%s, %s, %d:' % (m[mod.__name__], hash_map[hash_alg], prime_map[ng_type])
 
@@ -261,11 +243,9 @@ def print_default_timings():
     print 'Default Parameter Timings:'
     py_time = param_test( _pysrp, srp.SHA1, srp.NG_2048 )
     ct_time = param_test( _ctsrp, srp.SHA1, srp.NG_2048 )
-    c_time  = param_test( _srp,   srp.SHA1, srp.NG_2048 )
     print ''
     print 'Performance increases: '
     print '   ctypes-module : ', py_time/ct_time
-    print '   C-module      : ', py_time/c_time
 
 
 def print_performance_table():
@@ -285,7 +265,7 @@ def print_performance_table():
 
         print '%s |' % hash_map[hash_alg],
         for ng in ng_types:
-            print '{0:>12f}'.format(performance_test(_srp, hash_alg, ng) / 10),
+            print '{0:>12f}'.format(performance_test(_ctsrp, hash_alg, ng) / 10),
         print ''
 
 
@@ -294,7 +274,7 @@ def print_thread_performance():
     print 'Thread Performance Test:'
     niter = 100
     for nthreads in range(1,11):
-        print '   Thread Count {0:>2}: {1:8f}'.format(nthreads, performance_test(_srp, srp.SHA1, srp.NG_2048, niter, nthreads)/niter)
+        print '   Thread Count {0:>2}: {1:8f}'.format(nthreads, performance_test(_ctsrp, srp.SHA1, srp.NG_2048, niter, nthreads)/niter)
 
 
 print '*'*60
