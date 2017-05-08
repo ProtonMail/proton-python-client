@@ -36,7 +36,7 @@ please refer to the `srp module documentation`_.
 '''
 
 setup(name             = 'srp',
-      version          = '1.0.6',
+      version          = '1.0.7',
       description      = 'Secure Remote Password',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
@@ -54,7 +54,8 @@ setup(name             = 'srp',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python',
-        'Programming Language :: C',
         'Topic :: Security',
         ],)
