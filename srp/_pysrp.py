@@ -16,6 +16,7 @@
 import hashlib
 import os
 import binascii
+import six
 
 SHA1   = 0
 SHA224 = 1
@@ -125,8 +126,8 @@ def get_ng( ng_type, n_hex, g_hex ):
 
 
 def bytes_to_long(s):
-    n = ord(s[0])
-    for b in ( ord(x) for x in s[1:] ):
+    n = 0
+    for b in six.iterbytes(s):
         n = (n << 8) | b
     return n
 
@@ -141,7 +142,7 @@ def long_to_bytes(n):
         x = x | (b << off)
         off += 8
     l.reverse()
-    return ''.join(l)
+    return six.b(''.join(l))
 
 
 def get_random( nbytes ):
@@ -154,11 +155,11 @@ def get_random_of_length( nbytes ):
 
 
 def old_H( hash_class, s1, s2 = '', s3=''):
-    if isinstance(s1, (long, int)):
+    if isinstance(s1, six.integer_types):
         s1 = long_to_bytes(s1)
-    if s2 and isinstance(s2, (long, int)):
+    if s2 and isinstance(s2, six.integer_types):
         s2 = long_to_bytes(s2)
-    if s3 and isinstance(s3, (long, int)):
+    if s3 and isinstance(s3, six.integer_types):
         s3 = long_to_bytes(s3)
     s = s1 + s2 + s3
     return long(hash_class(s).hexdigest(), 16)
@@ -169,9 +170,9 @@ def H( hash_class, *args, **kwargs ):
 
     for s in args:
         if s is not None:
-            h.update( long_to_bytes(s) if isinstance(s, (long, int)) else s )
+            h.update( long_to_bytes(s) if isinstance(s, six.integer_types) else s )
 
-    return long( h.hexdigest(), 16 )
+    return int( h.hexdigest(), 16 )
 
 
 
@@ -183,12 +184,12 @@ def HNxorg( hash_class, N, g ):
     hN = hash_class( long_to_bytes(N) ).digest()
     hg = hash_class( long_to_bytes(g) ).digest()
 
-    return ''.join( chr( ord(hN[i]) ^ ord(hg[i]) ) for i in range(0,len(hN)) )
+    return six.b( ''.join( chr( six.indexbytes(hN, i) ^ six.indexbytes(hg, i) ) for i in range(0,len(hN)) ) )
 
 
 
 def gen_x( hash_class, salt, username, password ):
-    return H( hash_class, salt, H( hash_class, username + ':' + password ) )
+    return H( hash_class, salt, H( hash_class, username + six.b(':') + password ) )
 
 
 
