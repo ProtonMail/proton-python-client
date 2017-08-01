@@ -4,7 +4,7 @@ _mod     = None
 try:
     import srp._ctsrp
     _mod = srp._ctsrp
-except ImportError:
+except (ImportError, OSError):
     pass
 
 if not _mod:
