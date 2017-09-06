@@ -23,6 +23,12 @@ import time
 import six
 
 
+_rfc5054_compat = False
+
+def rfc5054_enable(enable=True):
+    global _rfc5054_compat
+    _rfc5054_compat = enable
+
 
 SHA1   = 0
 SHA224 = 1
@@ -245,13 +251,17 @@ def H_bn( hash_class, dest, n ):
     BN_bin2bn(d, len(d), dest)
 
 
-def H_bn_bn( hash_class, dest, n1, n2 ):
+def H_bn_bn( hash_class, dest, n1, n2, width ):
     h    = hash_class()
     bin1 = ctypes.create_string_buffer( BN_num_bytes(n1) )
     bin2 = ctypes.create_string_buffer( BN_num_bytes(n2) )
     BN_bn2bin(n1, bin1)
     BN_bn2bin(n2, bin2)
+    if _rfc5054_compat:
+        h.update(bytes(width - len(bin1.raw)))
     h.update( bin1.raw )
+    if _rfc5054_compat:
+        h.update(bytes(width - len(bin2.raw)))
     h.update( bin2.raw )
     d = h.digest()
     BN_bin2bn(d, len(d), dest)
@@ -310,7 +320,7 @@ def HNxorg( hash_class, N, g ):
     return six.b( ''.join( chr( six.indexbytes(hN, i) ^ six.indexbytes(hg, i) ) for i in range(0,len(hN)) ) )
 
 
-def get_ngk( hash_class, ng_type, n_hex, g_hex ):
+def get_ngk( hash_class, ng_type, n_hex, g_hex, ctx ):
     if ng_type < NG_CUSTOM:
         n_hex, g_hex = _ng_const[ ng_type ]
     N = BN_new()
@@ -319,7 +329,9 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
 
     BN_hex2bn( N, n_hex )
     BN_hex2bn( g, g_hex )
-    H_bn_bn(hash_class, k, N, g)
+    H_bn_bn(hash_class, k, N, g, width=BN_num_bytes(N))
+    if _rfc5054_compat:
+        BN_mod(k, k, N, ctx)
 
     return N, g, k
 
@@ -334,7 +346,7 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
     ctx  = BN_CTX_new()
 
     hash_class = _hash_map[ hash_alg ]
-    N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+    N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex, ctx )
 
     BN_rand(s, 32, -1, 0);
 
@@ -382,7 +394,7 @@ class Verifier (object):
         self.safety_failed = False
 
         hash_class = _hash_map[ hash_alg ]
-        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex, self.ctx )
 
         self.hash_class = hash_class
         self.N          = N
@@ -410,7 +422,7 @@ class Verifier (object):
             BN_add(self.B, self.tmp1, self.tmp2)
             BN_mod(self.B, self.B, N, self.ctx)
 
-            H_bn_bn(hash_class, self.u, self.A, self.B)
+            H_bn_bn(hash_class, self.u, self.A, self.B, width=BN_num_bytes(N))
 
             # S = (A *(v^u)) ^ b
             BN_mod_exp(self.tmp1, self.v, self.u, N, self.ctx)
@@ -499,7 +511,7 @@ class User (object):
         self._authenticated = False
 
         hash_class = _hash_map[ hash_alg ]
-        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex, self.ctx )
 
         self.hash_class = hash_class
         self.N          = N
@@ -569,7 +581,7 @@ class User (object):
         if BN_is_zero(self.B):
             return None
 
-        H_bn_bn(hash_class, self.u, self.A, self.B)
+        H_bn_bn(hash_class, self.u, self.A, self.B, width=BN_num_bytes(N))
 
         # SRP-6a safety check
         if BN_is_zero(self.u):
