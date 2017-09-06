@@ -194,12 +194,12 @@ def gen_x( hash_class, salt, username, password ):
 
 
 
-def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None ):
+def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, salt_len=4 ):
     if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
         raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     hash_class = _hash_map[ hash_alg ]
     N,g = get_ng( ng_type, n_hex, g_hex )
-    _s = long_to_bytes( get_random( 4 ) )
+    _s = long_to_bytes( get_random( salt_len ) )
     _v = long_to_bytes( pow(g,  gen_x( hash_class, _s, username, password ), N) )
 
     return _s, _v

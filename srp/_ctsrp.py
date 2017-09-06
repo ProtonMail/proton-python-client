@@ -325,7 +325,7 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
 
 
 
-def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None ):
+def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, salt_len=4 ):
     if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
         raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
     s    = BN_new()
@@ -336,7 +336,7 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
     hash_class = _hash_map[ hash_alg ]
     N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
 
-    BN_rand(s, 32, -1, 0);
+    BN_rand(s, salt_len * 8, -1, 0);
 
     calculate_x( hash_class, x, s, username, password )
 
