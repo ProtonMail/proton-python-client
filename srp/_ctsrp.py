@@ -268,7 +268,7 @@ def H_bn_str( hash_class, dest, n, s ):
 
 
 def calculate_x( hash_class, dest, salt, username, password ):
-    up = hash_class(username + six.b(':') + password).digest()
+    up = hash_class(username.encode() + six.b(':') + password.encode()).digest()
     H_bn_str( hash_class, dest, salt, up )
 
 
