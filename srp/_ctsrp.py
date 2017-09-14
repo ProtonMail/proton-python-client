@@ -281,7 +281,7 @@ def update_hash( ctx, n ):
 def calculate_M( hash_class, N, g, I, s, A, B, K ):
     h = hash_class()
     h.update( HNxorg( hash_class, N, g ) )
-    h.update( hash_class(I).digest() )
+    h.update( hash_class(I.encode()).digest() )
     update_hash( h, s )
     update_hash( h, A )
     update_hash( h, B )
