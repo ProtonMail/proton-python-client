@@ -33,12 +33,21 @@ for symmetric-key encryption.
 For a full description of the pysrp package and the SRP protocol, please refer
 to the [pysrp documentation](http://pythonhosted.org/srp/)
 
+Note: RFC5054 now provides the de-facto standard for the hashing algorithm used
+for interoperable SRP implementations. When using pysrp to interact with
+another SRP implementation, use the srp.rfc5054_enable() method to enable
+RFC5054 compatibility. Otherwise a pysrp-specific default implementation will
+be used.
+
 
 Usage Example
 -------------
 
 ```python
 import srp
+
+# Consider enabling RFC5054 compatibility for interoperation with non pysrp SRP-6a implementations
+#pysrp.rfc5054_enable()
 
 # The salt and verifier returned from srp.create_salted_verification_key() should be
 # stored on the server.
