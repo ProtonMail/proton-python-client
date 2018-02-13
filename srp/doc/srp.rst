@@ -121,8 +121,15 @@ Functions
 
     Generate a salted verification key for the given username and password and return the tuple:
     (salt_bytes, verification_key_bytes)
-    
-    
+
+
+.. function:: rfc5054_enable( enable=True )
+
+    *enable* True if compatibility with RFC5054 is required, False otherwise.
+
+    For backward compatibility, pysrp by default does not conform to RFC5054. If you need compatibility
+    with RFC5054, just call this function before using pysrp.
+
 :class:`Verifier` Objects
 -------------------------
 

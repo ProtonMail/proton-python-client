@@ -26,3 +26,5 @@ NG_2048   = _mod.NG_2048
 NG_4096   = _mod.NG_4096
 NG_8192   = _mod.NG_8192
 NG_CUSTOM = _mod.NG_CUSTOM
+
+rfc5054_enable = _mod.rfc5054_enable

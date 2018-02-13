@@ -18,6 +18,14 @@ import os
 import binascii
 import six
 
+
+_rfc5054_compat = False
+
+def rfc5054_enable(enable=True):
+    global _rfc5054_compat
+    _rfc5054_compat = enable
+
+
 SHA1   = 0
 SHA224 = 1
 SHA256 = 2
@@ -165,12 +173,15 @@ def old_H( hash_class, s1, s2 = '', s3=''):
     return long(hash_class(s).hexdigest(), 16)
 
 
-def H( hash_class, *args, **kwargs ):
+def H( hash_class, *args, width=None, **kwargs ):
     h = hash_class()
 
     for s in args:
         if s is not None:
-            h.update( long_to_bytes(s) if isinstance(s, six.integer_types) else s )
+            data = long_to_bytes(s) if isinstance(s, six.integer_types) else s
+            if width is not None and _rfc5054_compat:
+                h.update( bytes(width - len(data)))
+            h.update( data )
 
     return int( h.hexdigest(), 16 )
 
@@ -242,7 +253,7 @@ class Verifier (object):
 
         N,g        = get_ng( ng_type, n_hex, g_hex )
         hash_class = _hash_map[ hash_alg ]
-        k          = H( hash_class, N, g )
+        k          = H( hash_class, N, g, width=len(long_to_bytes(N)) )
 
         self.hash_class = hash_class
         self.N          = N
@@ -261,7 +272,7 @@ class Verifier (object):
             else:
                 self.b = get_random_of_length( 32 )
             self.B = (k*self.v + pow(g, self.b, N)) % N
-            self.u = H(hash_class, self.A, self.B)
+            self.u = H(hash_class, self.A, self.B, width=len(long_to_bytes(N)))
             self.S = pow(self.A*pow(self.v, self.u, N ), self.b, N)
             self.K = hash_class( long_to_bytes(self.S) ).digest()
             self.M = calculate_M( hash_class, N, g, self.I, self.s, self.A, self.B, self.K )
@@ -307,7 +318,7 @@ class User (object):
             raise ValueError("32 bytes required for bytes_a")
         N,g        = get_ng( ng_type, n_hex, g_hex )
         hash_class = _hash_map[ hash_alg ]
-        k          = H( hash_class, N, g )
+        k          = H( hash_class, N, g, width=len(long_to_bytes(N)) )
 
         self.I     = username
         self.p     = password
@@ -364,7 +375,7 @@ class User (object):
         if (self.B % N) == 0:
             return None
 
-        self.u = H( hash_class, self.A, self.B )
+        self.u = H( hash_class, self.A, self.B, width=len(long_to_bytes(N)) )
 
         # SRP-6a safety check
         if self.u == 0:
