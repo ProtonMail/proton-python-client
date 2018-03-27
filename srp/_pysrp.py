@@ -173,7 +173,9 @@ def old_H( hash_class, s1, s2 = '', s3=''):
     return long(hash_class(s).hexdigest(), 16)
 
 
-def H( hash_class, *args, width=None, **kwargs ):
+def H( hash_class, *args, **kwargs ):
+    width = kwargs.get('width', None)
+    
     h = hash_class()
 
     for s in args:
