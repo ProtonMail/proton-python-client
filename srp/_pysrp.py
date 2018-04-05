@@ -202,7 +202,7 @@ def HNxorg( hash_class, N, g ):
 
 
 def gen_x( hash_class, salt, username, password ):
-    return H( hash_class, salt, H( hash_class, username + six.b(':') + password ) )
+    return H( hash_class, salt, H( hash_class, username.encode() + six.b(':') + password.encode() ) )
 
 
 
@@ -222,7 +222,7 @@ def create_salted_verification_key( username, password, hash_alg=SHA1, ng_type=N
 def calculate_M( hash_class, N, g, I, s, A, B, K ):
     h = hash_class()
     h.update( HNxorg( hash_class, N, g ) )
-    h.update( hash_class(I).digest() )
+    h.update( hash_class(I.encode()).digest() )
     h.update( long_to_bytes(s) )
     h.update( long_to_bytes(A) )
     h.update( long_to_bytes(B) )
