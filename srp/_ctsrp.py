@@ -283,7 +283,9 @@ def H_bn_str( hash_class, dest, n, s ):
 
 
 def calculate_x( hash_class, dest, salt, username, password ):
-    up = hash_class(username.encode() + six.b(':') + password.encode()).digest()
+    username = username.encode() if hasattr(username, 'encode') else username
+    password = password.encode() if hasattr(password, 'encode') else password
+    up = hash_class(username + six.b(':') + password).digest()
     H_bn_str( hash_class, dest, salt, up )
 
 
@@ -294,9 +296,10 @@ def update_hash( ctx, n ):
 
 
 def calculate_M( hash_class, N, g, I, s, A, B, K ):
+    I = I.encode() if hasattr(I, 'encode') else I
     h = hash_class()
     h.update( HNxorg( hash_class, N, g ) )
-    h.update( hash_class(I.encode()).digest() )
+    h.update( hash_class(I).digest() )
     update_hash( h, s )
     update_hash( h, A )
     update_hash( h, B )
