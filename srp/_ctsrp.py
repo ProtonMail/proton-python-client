@@ -322,8 +322,10 @@ def HNxorg( hash_class, N, g ):
     BN_bn2bin(N, bN)
     BN_bn2bin(g, bg)
 
+    padding = len(bN) - len(bg)
+
     hN = hash_class( bN.raw ).digest()
-    hg = hash_class( bg.raw ).digest()
+    hg = hash_class( b''.join([ b'\0'*padding, bg.raw ]) ).digest()
 
     return six.b( ''.join( chr( six.indexbytes(hN, i) ^ six.indexbytes(hg, i) ) for i in range(0,len(hN)) ) )
 
