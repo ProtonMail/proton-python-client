@@ -322,7 +322,7 @@ def HNxorg( hash_class, N, g ):
     BN_bn2bin(N, bN)
     BN_bn2bin(g, bg)
 
-    padding = len(bN) - len(bg)
+    padding = len(bN) - len(bg) if _rfc5054_compat else 0
 
     hN = hash_class( bN.raw ).digest()
     hg = hash_class( b''.join([ b'\0'*padding, bg.raw ]) ).digest()

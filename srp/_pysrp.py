@@ -197,7 +197,7 @@ def HNxorg( hash_class, N, g ):
     bin_N = long_to_bytes(N)
     bin_g = long_to_bytes(g)
 
-    padding = len(bin_N) - len(bin_g)
+    padding = len(bin_N) - len(bin_g) if _rfc5054_compat else 0
 
     hN = hash_class( bin_N ).digest()
     hg = hash_class( b''.join( [b'\0'*padding, bin_g] ) ).digest()
