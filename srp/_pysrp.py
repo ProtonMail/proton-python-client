@@ -194,8 +194,13 @@ def H( hash_class, *args, **kwargs ):
 #k = H(N,g)
 
 def HNxorg( hash_class, N, g ):
-    hN = hash_class( long_to_bytes(N) ).digest()
-    hg = hash_class( long_to_bytes(g) ).digest()
+    bin_N = long_to_bytes(N)
+    bin_g = long_to_bytes(g)
+
+    padding = len(bin_N) - len(bin_g) if _rfc5054_compat else 0
+
+    hN = hash_class( bin_N ).digest()
+    hg = hash_class( b''.join( [b'\0'*padding, bin_g] ) ).digest()
 
     return six.b( ''.join( chr( six.indexbytes(hN, i) ^ six.indexbytes(hg, i) ) for i in range(0,len(hN)) ) )
 
