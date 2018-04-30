@@ -496,7 +496,7 @@ class Verifier (object):
 
 
 class User (object):
-    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, bytes_a=None):
+    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, bytes_a=None, bytes_A=None):
         if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
             raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         if bytes_a and len(bytes_a) != 32:
@@ -533,7 +533,11 @@ class User (object):
         else:
             BN_rand(self.a, 256, 0, 0)
 
-        BN_mod_exp(self.A, g, self.a, N, self.ctx)
+        if bytes_A:
+            bytes_to_bn( self.A, bytes_A )
+        else:
+            BN_mod_exp(self.A, g, self.a, N, self.ctx)
+
 
 
     def __del__(self):
