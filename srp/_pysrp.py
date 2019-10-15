@@ -215,7 +215,7 @@ def gen_x( hash_class, salt, username, password ):
     username = username.encode() if hasattr(username, 'encode') else username
     password = password.encode() if hasattr(password, 'encode') else password
     if _no_username_in_x:
-        username = ''
+        username = six.b('')
     return H( hash_class, salt, H( hash_class, username + six.b(':') + password ) )
 
 
