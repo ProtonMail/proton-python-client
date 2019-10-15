@@ -24,10 +24,15 @@ import six
 
 
 _rfc5054_compat = False
+_no_username_in_x = False
 
 def rfc5054_enable(enable=True):
     global _rfc5054_compat
     _rfc5054_compat = enable
+
+def no_username_in_x(enable=True):
+    global _no_username_in_x
+    _no_username_in_x = enable
 
 
 SHA1   = 0
@@ -285,6 +290,8 @@ def H_bn_str( hash_class, dest, n, s ):
 def calculate_x( hash_class, dest, salt, username, password ):
     username = username.encode() if hasattr(username, 'encode') else username
     password = password.encode() if hasattr(password, 'encode') else password
+    if _no_username_in_x:
+        username = six.b('')
     up = hash_class(username + six.b(':') + password).digest()
     H_bn_str( hash_class, dest, salt, up )
 
