@@ -291,7 +291,7 @@ def calculate_x( hash_class, dest, salt, username, password ):
     username = username.encode() if hasattr(username, 'encode') else username
     password = password.encode() if hasattr(password, 'encode') else password
     if _no_username_in_x:
-        username = ''
+        username = six.b('')
     up = hash_class(username + six.b(':') + password).digest()
     H_bn_str( hash_class, dest, salt, up )
 
