@@ -196,11 +196,9 @@ def load_func( name, args, returns = ctypes.c_int):
 
 load_func( 'BN_new',   [],         BIGNUM )
 load_func( 'BN_free',  [ BIGNUM ], None )
-load_func( 'BN_init',  [ BIGNUM ], None )
 load_func( 'BN_clear', [ BIGNUM ], None )
 
 load_func( 'BN_CTX_new',  []        , BN_CTX )
-load_func( 'BN_CTX_init', [ BN_CTX ], None   )
 load_func( 'BN_CTX_free', [ BN_CTX ], None   )
 
 load_func( 'BN_cmp',      [ BIGNUM, BIGNUM ], ctypes.c_int )
