@@ -35,13 +35,12 @@ please refer to the `srp module documentation`_.
 
 '''
 
-setup(name             = 'srp',
+setup(name             = 'pmsrp',
       version          = '1.0.16',
       description      = 'Secure Remote Password',
       author           = 'Tom Cocagne',
       author_email     = 'tom.cocagne@gmail.com',
-      url              = 'https://github.com/cocagne/pysrp',
-      download_url     = 'http://pypi.python.org/pypi/srp',
+      url              = 'https://gitlab.protontech.ch/crypto/python-pmsrp',
       long_description = long_description,
       provides         = ['srp'],
       install_requires = ['six'],
