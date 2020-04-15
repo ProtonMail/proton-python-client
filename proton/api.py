@@ -2,10 +2,16 @@ from .srp import User as PmsrpUser
 
 import requests, gnupg, base64
 
+
+class ProtonError(Exception):
+    def __init__(self, ret):
+        super().__init__("[{0[Code]}] {0[Error]}".format(ret))
+        self.code = ret['Code']
+        self.error = ret['Error']
+
 class Session:
     _base_headers = {
         "x-pm-apiversion": "3",
-        "x-pm-appversion": "Web_3.99.99",
         "Accept": "application/vnd.protonmail.v1+json"
     }
 
@@ -22,8 +28,9 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 -----END PGP PUBLIC KEY BLOCK-----"""
 
 
-    def __init__(self, api_url):
+    def __init__(self, api_url, appversion="Other"):
         self.__api_url = api_url
+        self._appversion = appversion
 
         ## Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -34,13 +41,15 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
         headers = self._base_headers.copy()
 
+        headers['x-pm-appversion'] = self._appversion
+
         if self.UID is not None:
             headers['x-pm-uid'] = self.UID
             headers['Authorization'] = 'Bearer ' + self.AccessToken
 
         if additional_headers is not None:
             headers.update(additional_headers)
-        
+
         #Remove None values
         headers = dict([(k, v) for k, v in headers.items() if v is not None])
 
@@ -69,10 +78,10 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         ).json()
 
         if ret['Code'] != 1000:
-            raise ValueError("[{0[Code]}] {0[Error]}".format(ret))
+            raise ProtonError(ret)
 
         return ret
-        
+
 
     def authenticate(self, username, password):
         self._session_data = {}
@@ -100,8 +109,8 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         auth_response = self.api_request("/auth",
             {
                 "Username": username,
-                "ClientEphemeral" : base64.b64encode(A),
-                "ClientProof" : base64.b64encode(M),
+                "ClientEphemeral" : base64.b64encode(A).decode('utf8'),
+                "ClientProof" : base64.b64encode(M).decode('utf8'),
                 "SRPSession": session,
             }
         )
@@ -112,7 +121,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         usr.verify_session( base64.b64decode(auth_response["ServerProof"]))
         if not usr.authenticated():
             raise ValueError('Invalid server proof')
-        
+
         self._session_data = {
             'UID': auth_response["UID"],
             'AccessToken': auth_response["AccessToken"],
