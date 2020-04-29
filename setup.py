@@ -10,12 +10,12 @@ This package, originally forked from python-srp module implements a simple
 wrapper to the Proton Technologies API, abstracting from the SRP authentication.
 '''
 
-setup(name             = 'python-proton-api',
+setup(name             = 'proton-client',
       version          = '0.0.1',
       description      = 'Proton Technologies API wrapper',
       author           = 'Proton Technologies',
       author_email     = 'contact@protonmail.com',
-      url              = 'https://github.com/python-proton-api',
+      url              = 'https://github.com/ProtonMail/proton-python-client',
       long_description = long_description,
       install_requires = ['six'],
       packages         = ['proton'],
