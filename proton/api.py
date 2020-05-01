@@ -27,10 +27,30 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 =Y4Mw
 -----END PGP PUBLIC KEY BLOCK-----"""
 
+    @staticmethod
+    def load(dump):
+        api_url = dump['api_url']
+        appversion = dump['appversion']
+        cookies = dump.get('cookies', {})
+        s = Session(api_url, appversion)
+        requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
+        s._session_data = dump['session_data']
+        if s.UID is not None:
+            s.s.headers['x-pm-uid'] = s.UID
+            s.s.headers['Authorization'] = 'Bearer ' + s.AccessToken
+        return s
+
+    def dump(self):
+        return {
+            'api_url': self.__api_url,
+            'appversion': self.__appversion,
+            'cookies': self.s.cookies.get_dict(),
+            'session_data': self._session_data
+        }
 
     def __init__(self, api_url, appversion="Other"):
         self.__api_url = api_url
-        self._appversion = appversion
+        self.__appversion = appversion
 
         ## Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -38,34 +58,23 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
         self._session_data = {}
 
+        self.s = requests.Session()
+        self.s.headers['x-pm-appversion'] = appversion
+
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
-        headers = self._base_headers.copy()
-
-        headers['x-pm-appversion'] = self._appversion
-
-        if self.UID is not None:
-            headers['x-pm-uid'] = self.UID
-            headers['Authorization'] = 'Bearer ' + self.AccessToken
-
-        if additional_headers is not None:
-            headers.update(additional_headers)
-
-        #Remove None values
-        headers = dict([(k, v) for k, v in headers.items() if v is not None])
-
-        fct = requests.post
+        fct = self.s.post
         if method is None:
             if jsondata is None:
-                fct = requests.get
+                fct = self.s.get
             else:
-                fct = requests.post
+                fct = self.s.post
         else:
             fct = {
-                'get': requests.get,
-                'post': requests.post,
-                'put': requests.put,
-                'delete': requests.delete,
-                'patch': requests.patch
+                'get': self.s.get,
+                'post': self.s.post,
+                'put': self.s.put,
+                'delete': self.s.delete,
+                'patch': self.s.patch
             }.get(method.lower())
 
         if fct is None:
@@ -73,7 +82,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
         ret = fct(
             self.__api_url + endpoint,
-            headers = headers,
+            headers = additional_headers,
             json = jsondata
         ).json()
 
@@ -84,7 +93,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
 
     def authenticate(self, username, password):
-        self._session_data = {}
+        self.logout()
 
         info_response = self.api_request("/auth/info", {"Username": username})
         d = self.__gnupg.decrypt(info_response['Modulus'])
@@ -126,14 +135,18 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'UID': auth_response["UID"],
             'AccessToken': auth_response["AccessToken"],
             'RefreshToken': auth_response["RefreshToken"],
-            'SessionSecret': usr.get_session_key()
         }
+
+        if self.UID is not None:
+            self.s.headers['x-pm-uid'] = self.UID
+            self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
 
         return True
 
     def logout(self):
-        self.api_request('/auth',method='DELETE')
-        self._session_data = {}
+        if self._session_data:
+            self.api_request('/auth',method='DELETE')
+            self._session_data = {}
 
     def refresh(self):
         refresh_response = self.api_request('/auth/refresh', {
@@ -156,7 +169,3 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
     @property
     def RefreshToken(self):
         return self._session_data.get('RefreshToken', None)
-
-    @property
-    def SessionSecret(self):
-        return self._session_data.get('SessionSecret', None)
