@@ -1,4 +1,4 @@
 include LICENSE
 include *.txt
-recursive-include srp *.py
-recursive-include srp *.rst
+recursive-include proton *.py
+recursive-include proton *.rst
