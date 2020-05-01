@@ -11,7 +11,7 @@ wrapper to the Proton Technologies API, abstracting from the SRP authentication.
 '''
 
 setup(name             = 'proton-client',
-      version          = '0.0.1',
+      version          = '0.0.2',
       description      = 'Proton Technologies API wrapper',
       author           = 'Proton Technologies',
       author_email     = 'contact@protonmail.com',
