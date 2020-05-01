@@ -135,17 +135,28 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'UID': auth_response["UID"],
             'AccessToken': auth_response["AccessToken"],
             'RefreshToken': auth_response["RefreshToken"],
+            'Scope': auth_response["Scope"].split(),
         }
 
         if self.UID is not None:
             self.s.headers['x-pm-uid'] = self.UID
             self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
 
-        return True
+        return self.Scope
+
+    def provide_2fa(self, code):
+        ret = self.api_request('/auth/2fa', {
+            "TwoFactorCode": code
+        })
+        self._session_data['Scope'] = ret['Scope']
+
+        return self.Scope
 
     def logout(self):
         if self._session_data:
             self.api_request('/auth',method='DELETE')
+            del self.s.headers['Authorization']
+            del self.s.headers['x-pm-uid']
             self._session_data = {}
 
     def refresh(self):
@@ -169,3 +180,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
     @property
     def RefreshToken(self):
         return self._session_data.get('RefreshToken', None)
+
+    @property
+    def Scope(self):
+        return self._session_data.get('Scope', [])
