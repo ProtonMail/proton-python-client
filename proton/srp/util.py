@@ -49,10 +49,7 @@ def get_random_of_length(nbytes):
 
 
 def custom_hash(hash_class, *args, **kwargs):
-    width = kwargs.get('width', None)
-
     h = hash_class()
-
     for s in args:
         if s is not None:
             data = long_to_bytes(s) if isinstance(s, six.integer_types) else s

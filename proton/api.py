@@ -107,8 +107,8 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         session   = info_response["SRPSession"]
         version   = info_response["Version"]
 
-        usr        = PmsrpUser(username, password, modulus)
-        uname, A   = usr.start_authentication()
+        usr        = PmsrpUser(password, modulus)
+        A          = usr.get_challenge()
         M          = usr.process_challenge(salt, challenge, version)
 
         if M is None:

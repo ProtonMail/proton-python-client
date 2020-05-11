@@ -103,20 +103,20 @@ load_func('CRYPTO_free', [ctypes.c_char_p])
 load_func('RAND_seed', [ctypes.c_char_p, ctypes.c_int])
 
 
-def BN_num_bytes(a):
+def bn_num_bytes(a):
     return ((BN_num_bits(a) + 7) // 8)
 
 
-def BN_mod(rem, m, d, ctx):
+def bn_mod(rem, m, d, ctx):
     return BN_div(None, rem, m, d, ctx)
 
 
-def BN_is_zero(n):
+def bn_is_zero(n):
     return n[0].top == 0
 
 
 def bn_to_bytes(n):
-    b = ctypes.create_string_buffer(BN_num_bytes(n))
+    b = ctypes.create_string_buffer(bn_num_bytes(n))
     BN_bn2bin(n, b)
     return b.raw[::-1]
 
@@ -125,7 +125,7 @@ def bytes_to_bn(dest_bn, bytes):
     BN_bin2bn(bytes[::-1], len(bytes), dest_bn)
 
 
-def H_bn_bn(hash_class, dest, n1, n2, width):
+def bn_hash(hash_class, dest, n1, n2):
     h = hash_class()
     h.update(bn_to_bytes(n1))
     h.update(bn_to_bytes(n2))
@@ -133,7 +133,7 @@ def H_bn_bn(hash_class, dest, n1, n2, width):
     bytes_to_bn(dest, d)
 
 
-def H_bn_bn_k(hash_class, dest, g, N, width):
+def bn_hash_k(hash_class, dest, g, N, width):
     h = hash_class()
     bin1 = ctypes.create_string_buffer(width)
     bin2 = ctypes.create_string_buffer(width)
@@ -141,8 +141,7 @@ def H_bn_bn_k(hash_class, dest, g, N, width):
     BN_bn2bin(N, bin2)
     h.update(bin1)
     h.update(bin2[::-1])
-    d = h.digest()
-    bytes_to_bn(dest, d)
+    bytes_to_bn(dest, h.digest())
 
 
 def calculate_x(hash_class, dest, salt, password, modulus, version):
@@ -154,7 +153,7 @@ def update_hash(h, n):
     h.update(bn_to_bytes(n))
 
 
-def calculate_M(hash_class, A, B, K):
+def calculate_client_challenge(hash_class, A, B, K):
     h = hash_class()
     update_hash(h, A)
     update_hash(h, B)
@@ -162,7 +161,7 @@ def calculate_M(hash_class, A, B, K):
     return h.digest()
 
 
-def calculate_H_AMK(hash_class, A, M, K):
+def calculate_server_challenge(hash_class, A, M, K):
     h = hash_class()
     update_hash(h, A)
     h.update(M)
@@ -177,52 +176,19 @@ def get_ngk(hash_class, n_bin, g_hex, ctx):
 
     bytes_to_bn(N, n_bin)
     BN_hex2bn(g, g_hex)
-    H_bn_bn_k(hash_class, k, g, N, width=BN_num_bytes(N))
+    bn_hash_k(hash_class, k, g, N, width=bn_num_bytes(N))
 
     return N, g, k
 
 
-def create_salted_verification_key(username, password, n_bin, g_hex, salt_len=4):
-    s = BN_new()
-    v = BN_new()
-    x = BN_new()
-    ctx = BN_CTX_new()
-
-    hash_class = pmhash
-    N, g, k = get_ngk(hash_class, n_bin, g_hex, ctx)
-
-    BN_rand(s, salt_len * 8, -1, 0);
-
-    calculate_x(hash_class, x, s, password, N, PM_VERSION)
-
-    BN_mod_exp(v, g, x, N, ctx)
-
-    salt = bn_to_bytes(s)
-    verifier = bn_to_bytes(v)
-
-    BN_free(s)
-    BN_free(v)
-    BN_free(x)
-    BN_free(N)
-    BN_free(g)
-    BN_free(k)
-    BN_CTX_free(ctx)
-
-    return salt, verifier
-
-
 class User(object):
-    def __init__(self, username, password, n_bin, g_hex=b"2", bytes_a=None, bytes_A=None):
+    def __init__(self, password, n_bin, g_hex=b"2", bytes_a=None, bytes_A=None):
         if bytes_a and len(bytes_a) != 32:
             raise ValueError("32 bytes required for bytes_a")
-
-        if not isinstance(username, str) or len(username) == 0:
-            raise ValueError("Invalid username")
 
         if not isinstance(password, str) or len(password) == 0:
             raise ValueError("Invalid password")
 
-        self.username = username.encode()
         self.password = password.encode()
         self.a = BN_new()
         self.A = BN_new()
@@ -238,16 +204,11 @@ class User(object):
         self.ctx = BN_CTX_new()
         self.M = None
         self.K = None
-        self.H_AMK = None
+        self.expected_server_proof = None
         self._authenticated = False
 
-        hash_class = pmhash
-        N, g, k = get_ngk(hash_class, n_bin, g_hex, self.ctx)
-
-        self.hash_class = hash_class
-        self.N = N
-        self.g = g
-        self.k = k
+        self.hash_class = pmhash
+        self.N, self.g, self.k = get_ngk(self.hash_class, n_bin, g_hex, self.ctx)
 
         if bytes_a:
             bytes_to_bn(self.a, bytes_a)
@@ -257,7 +218,7 @@ class User(object):
         if bytes_A:
             bytes_to_bn(self.A, bytes_A)
         else:
-            BN_mod_exp(self.A, g, self.a, N, self.ctx)
+            BN_mod_exp(self.A, self.g, self.a, self.N, self.ctx)
 
     def __del__(self):
         if not hasattr(self, 'a'):
@@ -281,31 +242,28 @@ class User(object):
     def authenticated(self):
         return self._authenticated
 
-    def get_username(self):
-        return self.username
-
     def get_ephemeral_secret(self):
         return bn_to_bytes(self.a)
 
     def get_session_key(self):
         return self.K if self._authenticated else None
 
-    def start_authentication(self):
-        return (self.username, bn_to_bytes(self.A))
+    def get_challenge(self):
+        return bn_to_bytes(self.A)
 
     # Returns M or None if SRP-6a safety check is violated
-    def process_challenge(self, bytes_s, bytes_B, version=PM_VERSION):
+    def process_challenge(self, bytes_s, bytes_server_challenge, version=PM_VERSION):
         bytes_to_bn(self.s, bytes_s)
-        bytes_to_bn(self.B, bytes_B)
+        bytes_to_bn(self.B, bytes_server_challenge)
 
         # SRP-6a safety check
-        if BN_is_zero(self.B):
+        if bn_is_zero(self.B):
             return None
 
-        H_bn_bn(self.hash_class, self.u, self.A, self.B, width=BN_num_bytes(self.N))
+        bn_hash(self.hash_class, self.u, self.A, self.B)
 
         # SRP-6a safety check
-        if BN_is_zero(self.u):
+        if bn_is_zero(self.u):
             return None
 
         calculate_x(self.hash_class, self.x, self.s, self.password, self.N, version)
@@ -321,20 +279,24 @@ class User(object):
         BN_mod_exp(self.S, self.tmp1, self.tmp2, self.N, self.ctx)
 
         self.K = bn_to_bytes(self.S)
-        self.M = calculate_M(self.hash_class, self.A, self.B, self.K)
-        self.H_AMK = calculate_H_AMK(self.hash_class, self.A, self.M, self.K)
+        self.M = calculate_client_challenge(self.hash_class, self.A, self.B, self.K)
+        self.expected_server_proof = calculate_server_challenge(self.hash_class, self.A, self.M, self.K)
 
         return self.M
 
-    def verify_session(self, host_HAMK):
-        if self.H_AMK == host_HAMK:
+    def verify_session(self, server_proof):
+        if self.expected_server_proof == server_proof:
             self._authenticated = True
 
-    def compute_v(self, bytes_s, version):
-        bytes_to_bn(self.s, bytes_s)
+    def compute_v(self, bytes_s=None, version=PM_VERSION):
+        if bytes_s is None:
+            BN_rand(self.s, 10*8, 0, 0)
+        else:
+            bytes_to_bn(self.s, bytes_s)
+
         calculate_x(self.hash_class, self.x, self.s, self.password, self.N, version)
         BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)
-        return bn_to_bytes(self.v)
+        return bn_to_bytes(self.s), bn_to_bytes(self.v)
 
 # ---------------------------------------------------------
 # Init

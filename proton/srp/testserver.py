@@ -52,7 +52,7 @@ class TestServer:
 
     def process_challenge(self, client_challenge, client_proof):
         self.A = bytes_to_long(client_challenge)
-        self.u = custom_hash(self.hash_class, self.A, self.B, width=len(long_to_bytes(self.modulus)))
+        self.u = custom_hash(self.hash_class, self.A, self.B)
         self.secret = pow((self.A * pow(self.verifier, self.u, self.modulus)), self.b, self.modulus)
 
         if client_proof != self.calculate_client_proof():

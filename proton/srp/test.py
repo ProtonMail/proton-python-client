@@ -14,28 +14,34 @@ class SRPTestCases:
             salt = base64.b64decode(instances[0]['Salt'])
 
             with self.assertRaises(ValueError):
-                usr = self.user('user', 'pass', modulus)
-                usr.compute_v(salt, 2)
+                usr = self.user('pass', modulus)
+                salt, usr.compute_v(salt, 2)
 
             with self.assertRaises(ValueError):
-                usr = self.user('user', 'pass', modulus)
-                usr.compute_v(salt, 5)
+                usr = self.user('pass', modulus)
+                salt, usr.compute_v(salt, 5)
 
         def test_generate_v(self):
             for instance in instances:
-
                 if instance["Exception"] is not None:
                     with self.assertRaises(instance['Exception']):
-                        usr = self.user(instance["Username"], instance["Password"], bytes.fromhex(instance["Modulus"]))
+                        usr = self.user(instance["Password"], bytes.fromhex(instance["Modulus"]))
                         usr.compute_v(base64.b64decode(instance["Salt"]), PM_VERSION)
                 else:
-                    usr = self.user(instance["Username"], instance["Password"], bytes.fromhex(instance["Modulus"]))
-                    v = usr.compute_v(base64.b64decode(instance["Salt"]), PM_VERSION)
+                    usr = self.user(instance["Password"], bytes.fromhex(instance["Modulus"]))
+                    salt, v = usr.compute_v(base64.b64decode(instance["Salt"]), PM_VERSION)
 
                     self.assertFalse(
                         instance['Exception'],
                         "Expected exception while generating v, instance: " + str(instance)[:30] + "..."
                     )
+
+                    self.assertEqual(
+                        instance["Salt"],
+                        base64.b64encode(salt).decode('utf8'),
+                        "Wrong output while generating v, instance: " + str(instance)[:30] + "..."
+                    )
+
                     self.assertEqual(
                         instance["Verifier"],
                         base64.b64encode(v).decode('utf8'),
@@ -54,9 +60,9 @@ class SRPTestCases:
                 )
 
                 server_challenge = server.get_challenge()
-                usr = self.user(instance["Username"], instance["Password"], bytes.fromhex(instance["Modulus"]))
+                usr = self.user(instance["Password"], bytes.fromhex(instance["Modulus"]))
 
-                _, client_challenge = usr.start_authentication()
+                client_challenge = usr.get_challenge()
                 client_proof = usr.process_challenge(base64.b64decode(instance["Salt"]), server_challenge, PM_VERSION)
                 server_proof = server.process_challenge(client_challenge, client_proof)
                 usr.verify_session(server_proof)
