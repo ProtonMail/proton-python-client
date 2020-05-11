@@ -21,7 +21,7 @@ class SRPTestCases:
                 usr = self.user('pass', modulus)
                 salt, usr.compute_v(salt, 5)
 
-        def test_generate_v(self):
+        def test_compute_v(self):
             for instance in instances:
                 if instance["Exception"] is not None:
                     with self.assertRaises(instance['Exception']):
@@ -31,22 +31,39 @@ class SRPTestCases:
                     usr = self.user(instance["Password"], bytes.fromhex(instance["Modulus"]))
                     salt, v = usr.compute_v(base64.b64decode(instance["Salt"]), PM_VERSION)
 
-                    self.assertFalse(
-                        instance['Exception'],
-                        "Expected exception while generating v, instance: " + str(instance)[:30] + "..."
-                    )
-
                     self.assertEqual(
                         instance["Salt"],
                         base64.b64encode(salt).decode('utf8'),
-                        "Wrong output while generating v, instance: " + str(instance)[:30] + "..."
+                        "Wrong salt while generating v, instance: " + str(instance)[:30] + "..."
                     )
 
                     self.assertEqual(
                         instance["Verifier"],
                         base64.b64encode(v).decode('utf8'),
-                        "Wrong output while generating v, instance: " + str(instance)[:30] + "..."
+                        "Wrong verifier while generating v, instance: " + str(instance)[:30] + "..."
                     )
+
+        def test_generate_v(self):
+            for instance in instances:
+                if instance["Exception"] is not None:
+                    continue
+
+                usr = self.user(instance["Password"], bytes.fromhex(instance["Modulus"]))
+                generated_salt, generated_v = usr.compute_v()
+
+                computed_salt, computed_v = usr.compute_v(generated_salt)
+
+                self.assertEqual(
+                    generated_salt,
+                    computed_salt,
+                    "Wrong salt while generating v, instance: " + str(instance)[:30] + "..."
+                )
+
+                self.assertEqual(
+                    generated_v,
+                    computed_v,
+                    "Wrong verifier while generating v, instance: " + str(instance)[:30] + "..."
+                )
 
         def test_srp(self):
             for instance in instances:
@@ -70,11 +87,6 @@ class SRPTestCases:
                 self.assertIsNotNone(
                     client_proof,
                     "SRP exchange failed, client_proof is none for instance: " + str(instance)[:30] + "..."
-                )
-
-                self.assertFalse(
-                    instance['Exception'],
-                    "Expected exception while performing auth, instance: " + str(instance)[:30] + "..."
                 )
 
                 self.assertEqual(
