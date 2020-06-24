@@ -1,4 +1,4 @@
-# SRP submodule
+# Secure Remote Password submodule
 This submodule provides the interface to the custom implementation of ProtonMail's SRP API.
 It automatically tries to load the constant time ctypes + OpenSSL implementation, 
 and on failure it uses the native long int implementation.
@@ -7,7 +7,7 @@ It is based on [pysrp](https://github.com/cocagne/pysrp).
 ## Examples
 ### Authenticate against the API
 ```python
-from python.srp import User
+from proton.srp import User
 usr = User(password, modulus)
 client_challenge = usr.get_challenge()
 
@@ -24,14 +24,14 @@ if usr.authenticated():
 
 ### Generate new random verifier
 ```python
-from python.srp import User
+from proton.srp import User
 usr = User(password, modulus)
 generated_salt, generated_v = usr.compute_v()
 ```
 
 ### Generate verifier given salt
 ```python
-from python.srp import User
+from proton.srp import User
 usr = User(password, modulus)
 generated_salt, generated_v = usr.compute_v(salt)
 ```
