@@ -168,6 +168,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         })
         self._session_data['AccessToken'] = refresh_response["AccessToken"]
         self._session_data['RefreshToken'] = refresh_response["RefreshToken"]
+        self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
 
     @property
     def UID(self):
