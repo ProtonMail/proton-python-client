@@ -1,7 +1,6 @@
 import base64
 import bcrypt
 import os
-import six
 
 PM_VERSION = 4
 
@@ -52,7 +51,7 @@ def custom_hash(hash_class, *args, **kwargs):
     h = hash_class()
     for s in args:
         if s is not None:
-            data = long_to_bytes(s) if isinstance(s, six.integer_types) else s
+            data = long_to_bytes(s) if isinstance(s, int) else s
             h.update(data)
 
     return bytes_to_long(h.digest())
