@@ -28,7 +28,7 @@ class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
         
         cert_hash = self.extract_hash(cert)
 
-        if not self.validate_hash(self.host, cert_hash):
+        if not self.validate_hash(cert_hash):
             # Also generate a report
             conn.close()
             raise Exception("Server hash does not match local hash")
@@ -36,7 +36,7 @@ class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
         return True
 
 
-    def validate_hash(self, url, cert_hash):
+    def validate_hash(self, cert_hash):
         """Validates the hash agains a known list of hashes/pins"""
         folder_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -45,7 +45,7 @@ class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
 
         for domain_info in pin_list["domain_list"]:
             try:
-                if domain_info["url"] in url and cert_hash in domain_info["hashes"]:
+                if domain_info["url"] == self.host and cert_hash in domain_info["hashes"]:
                     return True
             except Exception as e:
                 print(e)
