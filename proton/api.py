@@ -59,10 +59,10 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         self._session_data = {}
 
         self.s = requests.Session()
+        self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
 
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
-        self.s.mount(self.__api_url, TLSPinningAdapter())
         fct = self.s.post
         if method is None:
             if jsondata is None:
