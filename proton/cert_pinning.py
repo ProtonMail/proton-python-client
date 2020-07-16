@@ -12,6 +12,12 @@ from constants import PUBKEY_HASH_DICT
 
 crypto = requests.packages.urllib3.contrib.pyopenssl.OpenSSL.crypto
 
+class TLSPinningError(requests.exceptions.SSLError):
+    def __init__(self, strerror):
+        self.strerror = strerror
+        super(TLSPinningError, self).__init__(strerror)
+
+
 class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
     """Custom HTTPSConnectionPool that verifies the certificate for each connection"""
     
@@ -33,7 +39,7 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         if not self.validate_hash(cert_hash):
             # Also generate a report
             conn.close()
-            raise Exception("Server hash does not match local hash")
+            raise TLSPinningError("Insecure connection")
         
         return True
 
