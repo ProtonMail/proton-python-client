@@ -8,6 +8,8 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.connectionpool import HTTPSConnectionPool
 from requests.packages.urllib3.poolmanager import PoolManager
 
+from constants import PUBKEY_HASH_DICT
+
 crypto = requests.packages.urllib3.contrib.pyopenssl.OpenSSL.crypto
 
 class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
@@ -38,19 +40,12 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
     def validate_hash(self, cert_hash):
         """Validates the hash agains a known list of hashes/pins"""
-        folder_path = os.path.dirname(os.path.abspath(__file__))
-
-        with open(os.path.join(folder_path, "pins.json"), "r") as f:
-            pin_list = json.load(f)
-
-        for domain_info in pin_list["domain_list"]:
-            try:
-                if domain_info["url"] == self.host and cert_hash in domain_info["hashes"]:
-                    return True
-            except Exception as e:
-                print(e)
-
-        return False
+        try:
+            PUBKEY_HASH_DICT[self.host].index(cert_hash)
+        except ValueError:
+            return False
+        else:
+            return True
 
 
     def extract_hash(self, cert):
