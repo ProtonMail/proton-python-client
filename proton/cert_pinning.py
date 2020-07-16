@@ -8,7 +8,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.connectionpool import HTTPSConnectionPool
 from requests.packages.urllib3.poolmanager import PoolManager
 
-from constants import PUBKEY_HASH_DICT
+from .constants import PUBKEY_HASH_DICT
 
 crypto = requests.packages.urllib3.contrib.pyopenssl.OpenSSL.crypto
 
@@ -48,7 +48,7 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         """Validates the hash agains a known list of hashes/pins"""
         try:
             PUBKEY_HASH_DICT[self.host].index(cert_hash)
-        except ValueError:
+        except (ValueError, KeyError):
             return False
         else:
             return True
@@ -89,8 +89,3 @@ class TLSPinningAdapter(HTTPAdapter):
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
         self.poolmanager = TLSPinningPoolManager(num_pools=connections, maxsize=maxsize, block=block, strict=True, **pool_kwargs)
 
-# Code below is only for testing purposes
-# url = 'https://protonvpn.com'
-# s = requests.Session()
-# s.mount(url, TLSPinningAdapter())
-# r = s.get(url)
