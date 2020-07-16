@@ -10,7 +10,7 @@ from requests.packages.urllib3.poolmanager import PoolManager
 
 from .constants import PUBKEY_HASH_DICT
 
-crypto = requests.packages.urllib3.contrib.pyopenssl.OpenSSL.crypto
+from OpenSSL import crypto
 
 class TLSPinningError(requests.exceptions.SSLError):
     def __init__(self, strerror):
