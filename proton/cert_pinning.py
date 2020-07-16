@@ -27,8 +27,13 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         sock = conn.sock
         sock_connection = sock.connection
 
-        if self.is_session_secure(sock_connection.get_peer_cert_chain()[0], conn):
-            return r
+        try:
+            certificate = sock_connection.get_peer_cert_chain()[0]
+        except IndexError as e:
+            raise TLSPinningError("X.509 was not found: {}".format(e))
+        else:
+            if self.is_session_secure(certificate, conn):
+                return r
 
 
     def is_session_secure(self, cert, conn):
