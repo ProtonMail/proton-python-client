@@ -2,15 +2,16 @@ import base64
 import hashlib
 import json
 import os
+from ssl import DER_cert_to_PEM_cert
 
 import requests
+from OpenSSL import crypto
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.connectionpool import HTTPSConnectionPool
-from requests.packages.urllib3.poolmanager import PoolManager
+from urllib3.connectionpool import HTTPSConnectionPool
+from urllib3.poolmanager import PoolManager
 
 from .constants import PUBKEY_HASH_DICT
 
-from OpenSSL import crypto
 
 class TLSPinningError(requests.exceptions.SSLError):
     def __init__(self, strerror):
@@ -23,17 +24,13 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
     
     def _validate_conn(self, conn):
         r = super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
- 
+        
         sock = conn.sock
-        sock_connection = sock.connection
 
-        try:
-            certificate = sock_connection.get_peer_cert_chain()[0]
-        except IndexError as e:
-            raise TLSPinningError("X.509 was not found: {}".format(e))
-        else:
-            if self.is_session_secure(certificate, conn):
-                return r
+        pem_certificate = self.get_certificate(sock)
+
+        if self.is_session_secure(pem_certificate, conn):
+            return r
 
 
     def is_session_secure(self, cert, conn):
@@ -58,11 +55,16 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         else:
             return True
 
+    def get_certificate(self, sock):
+        """Extracts and converts certificate to PEM"""
+        certificate_binary_form = sock.getpeercert(True)
+        pem_certificate = DER_cert_to_PEM_cert(certificate_binary_form)
+
+        return pem_certificate
 
     def extract_hash(self, cert):
         """Extracts the encrypted hash from the certificate"""
-        cert_data = crypto.dump_certificate(crypto.FILETYPE_ASN1, cert)
-        cert_obj = crypto.load_certificate(crypto.FILETYPE_ASN1, cert_data)
+        cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
 
         pubkey_obj = cert_obj.get_pubkey()
 
@@ -93,4 +95,3 @@ class TLSPinningAdapter(HTTPAdapter):
 
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
         self.poolmanager = TLSPinningPoolManager(num_pools=connections, maxsize=maxsize, block=block, strict=True, **pool_kwargs)
-
