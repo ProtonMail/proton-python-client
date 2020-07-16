@@ -1,7 +1,7 @@
 from .srp import User as PmsrpUser
 
 import requests, gnupg, base64
-from .cert_pinning import TLSPinning
+from .cert_pinning import TLSPinningAdapter
 
 class ProtonError(Exception):
     def __init__(self, ret):
@@ -62,7 +62,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         self.s.headers['x-pm-appversion'] = appversion
 
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
-        self.s.mount(self.__api_url, TLSPinning())
+        self.s.mount(self.__api_url, TLSPinningAdapter())
         fct = self.s.post
         if method is None:
             if jsondata is None:
