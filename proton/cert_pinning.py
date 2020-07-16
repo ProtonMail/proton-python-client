@@ -10,11 +10,11 @@ from requests.packages.urllib3.poolmanager import PoolManager
 
 crypto = requests.packages.urllib3.contrib.pyopenssl.OpenSSL.crypto
 
-class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
+class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
     """Custom HTTPSConnectionPool that verifies the certificate for each connection"""
     
     def _validate_conn(self, conn):
-        r = super(InspectedHTTPSConnectionPool, self)._validate_conn(conn)
+        r = super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
  
         sock = conn.sock
         sock_connection = sock.connection
@@ -55,7 +55,6 @@ class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
 
     def extract_hash(self, cert):
         """Extracts the encrypted hash from the certificate"""
-        # issuer = cert.get_issuer().get_components()
         cert_data = crypto.dump_certificate(crypto.FILETYPE_ASN1, cert)
         cert_obj = crypto.load_certificate(crypto.FILETYPE_ASN1, cert_data)
 
@@ -65,34 +64,32 @@ class InspectedHTTPSConnectionPool(HTTPSConnectionPool):
         spki_hash = hashlib.sha256(pubkey).digest()
         cert_hash = base64.b64encode(spki_hash).decode('utf-8')
         
-        # print(cert_hash)
-        
         return cert_hash
 
 
-class InspectedPoolManager(PoolManager):
+class TLSPinningPoolManager(PoolManager):
     """Custom PoolManager that attaches a custom HTTPSConnectionPool to a new connection pool"""
     def _new_pool(self, scheme, host, port, request_context):
         if scheme != 'https':
-            return super(InspectedPoolManager, self)._new_pool(scheme, host, port, request_context)
+            return super(TLSPinningPoolManager, self)._new_pool(scheme, host, port, request_context)
 
         kwargs = self.connection_pool_kw
 
-        pool = InspectedHTTPSConnectionPool(host, port, **kwargs)
+        pool = TLSPinningHTTPSConnectionPool(host, port, **kwargs)
         
         return pool
 
 
-class TLSPinning(HTTPAdapter):
+class TLSPinningAdapter(HTTPAdapter):
     """HTTPAdapter that attaches the custom PoolManager to a session"""
     def __init__(self):
-        super(TLSPinning, self).__init__()
+        super(TLSPinningAdapter, self).__init__()
 
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
-        self.poolmanager = InspectedPoolManager(num_pools=connections, maxsize=maxsize, block=block, strict=True, **pool_kwargs)
+        self.poolmanager = TLSPinningPoolManager(num_pools=connections, maxsize=maxsize, block=block, strict=True, **pool_kwargs)
 
-# # Code below is only for testing purposes
+# Code below is only for testing purposes
 # url = 'https://protonvpn.com'
 # s = requests.Session()
-# s.mount(url, TLSPinning())
+# s.mount(url, TLSPinningAdapter())
 # r = s.get(url)
