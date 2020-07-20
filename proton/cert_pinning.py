@@ -19,7 +19,7 @@ class TLSPinningError(requests.exceptions.SSLError):
 
 
 class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
-    """HTTPSConnectionPool that verifies the certificate for each connection"""
+    """Verify the certificate upon each connection"""
     def __init__(
         self,
         host,
@@ -79,19 +79,19 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
             return r
 
     def is_session_secure(self, cert, conn, hash_dict):
-        """Checks if connection is secure"""
+        """Check if connection is secure"""
 
         cert_hash = self.extract_hash(cert)
 
-        if not self.validate_hash(cert_hash, hash_dict):
+        if not self.is_hash_valid(cert_hash, hash_dict):
             # Also generate a report
             conn.close()
             raise TLSPinningError("Insecure connection")
 
         return True
 
-    def validate_hash(self, cert_hash, hash_dict):
-        """Validates the hash agains a known list of hashes/pins"""
+    def is_hash_valid(self, cert_hash, hash_dict):
+        """Validate the hash against a known list of hashes/pins"""
         try:
             hash_dict[self.host].index(cert_hash)
         except (ValueError, KeyError, TypeError):
@@ -100,30 +100,23 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
             return True
 
     def get_certificate(self, sock):
-        """Extracts and converts certificate to PEM"""
+        """Extract and convert certificate to PEM format"""
         certificate_binary_form = sock.getpeercert(True)
-        pem_certificate = DER_cert_to_PEM_cert(certificate_binary_form)
-
-        return pem_certificate
+        return DER_cert_to_PEM_cert(certificate_binary_form)
 
     def extract_hash(self, cert):
-        """Extracts the encrypted hash from the certificate"""
+        """Extract encrypted hash from the certificate"""
         cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-
         pubkey_obj = cert_obj.get_pubkey()
-
         pubkey = crypto.dump_publickey(crypto.FILETYPE_ASN1, pubkey_obj)
+
         spki_hash = hashlib.sha256(pubkey).digest()
         cert_hash = base64.b64encode(spki_hash).decode('utf-8')
-
         return cert_hash
 
 
 class TLSPinningPoolManager(PoolManager):
-    """
-    Custom PoolManager that attaches
-    a custom HTTPSConnectionPool to a new connection pool
-    """
+    """Attach TLSPinningHTTPSConnectionPool to TLSPinningPoolManager"""
     def __init__(
         self,
         hash_dict,
@@ -153,7 +146,7 @@ class TLSPinningPoolManager(PoolManager):
 
 
 class TLSPinningAdapter(HTTPAdapter):
-    """HTTPAdapter that attaches the custom PoolManager to a session"""
+    """Attach TLSPinningPoolManager to TLSPinningAdapter"""
     def __init__(self, hash_dict=PUBKEY_HASH_DICT):
         self.hash_dict = hash_dict
         super(TLSPinningAdapter, self).__init__()
