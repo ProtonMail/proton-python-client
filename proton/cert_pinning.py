@@ -1,5 +1,4 @@
 import base64
-import copy
 import hashlib
 from ssl import DER_cert_to_PEM_cert
 
@@ -24,7 +23,7 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
     def __init__(
         self,
         host,
-        alt_hash_dict,
+        hash_dict,
         port=None,
         strict=False,
         timeout=Timeout.DEFAULT_TIMEOUT,
@@ -45,7 +44,7 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         ca_cert_dir=None,
         **conn_kw
     ):
-        self.alt_hash_dict = alt_hash_dict
+        self.hash_dict = hash_dict
         super(TLSPinningHTTPSConnectionPool, self).__init__(
             host,
             port,
@@ -76,31 +75,26 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
         pem_certificate = self.get_certificate(sock)
 
-        if self.is_session_secure(pem_certificate, conn, self.alt_hash_dict):
+        if self.is_session_secure(pem_certificate, conn, self.hash_dict):
             return r
 
-    def is_session_secure(self, cert, conn, alt_hash_dict):
+    def is_session_secure(self, cert, conn, hash_dict):
         """Checks if connection is secure"""
 
         cert_hash = self.extract_hash(cert)
 
-        if not self.validate_hash(cert_hash, alt_hash_dict):
+        if not self.validate_hash(cert_hash, hash_dict):
             # Also generate a report
             conn.close()
             raise TLSPinningError("Insecure connection")
 
         return True
 
-    def validate_hash(self, cert_hash, alt_hash_dict):
+    def validate_hash(self, cert_hash, hash_dict):
         """Validates the hash agains a known list of hashes/pins"""
-        hash_dict = copy.deepcopy(PUBKEY_HASH_DICT)
-
-        if alt_hash_dict:
-            hash_dict = copy.deepcopy(alt_hash_dict)
-
         try:
             hash_dict[self.host].index(cert_hash)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             return False
         else:
             return True
@@ -132,12 +126,12 @@ class TLSPinningPoolManager(PoolManager):
     """
     def __init__(
         self,
-        alt_hash_dict,
+        hash_dict,
         num_pools=10,
         headers=None,
         **connection_pool_kw
     ):
-        self.alt_hash_dict = alt_hash_dict
+        self.hash_dict = hash_dict
         super(TLSPinningPoolManager, self).__init__(
             num_pools=10, headers=None, **connection_pool_kw
         )
@@ -152,7 +146,7 @@ class TLSPinningPoolManager(PoolManager):
 
         pool = TLSPinningHTTPSConnectionPool(
                     host=host, port=port,
-                    alt_hash_dict=self.alt_hash_dict, **kwargs
+                    hash_dict=self.hash_dict, **kwargs
                 )
 
         return pool
@@ -160,8 +154,8 @@ class TLSPinningPoolManager(PoolManager):
 
 class TLSPinningAdapter(HTTPAdapter):
     """HTTPAdapter that attaches the custom PoolManager to a session"""
-    def __init__(self, alt_hash_dict=None):
-        self.alt_hash_dict = alt_hash_dict
+    def __init__(self, hash_dict=PUBKEY_HASH_DICT):
+        self.hash_dict = hash_dict
         super(TLSPinningAdapter, self).__init__()
 
     def init_poolmanager(
@@ -173,5 +167,5 @@ class TLSPinningAdapter(HTTPAdapter):
     ):
         self.poolmanager = TLSPinningPoolManager(
             num_pools=connections, maxsize=maxsize, block=block,
-            strict=True, alt_hash_dict=self.alt_hash_dict, **pool_kwargs
+            strict=True, hash_dict=self.hash_dict, **pool_kwargs
         )
