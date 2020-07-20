@@ -1,4 +1,5 @@
 import base64
+import copy
 import hashlib
 from ssl import DER_cert_to_PEM_cert
 
@@ -92,10 +93,10 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
     def validate_hash(self, cert_hash, alt_hash_dict):
         """Validates the hash agains a known list of hashes/pins"""
-        hash_dict = PUBKEY_HASH_DICT
+        hash_dict = copy.deepcopy(PUBKEY_HASH_DICT)
 
         if alt_hash_dict:
-            hash_dict = alt_hash_dict
+            hash_dict = copy.deepcopy(alt_hash_dict)
 
         try:
             hash_dict[self.host].index(cert_hash)
