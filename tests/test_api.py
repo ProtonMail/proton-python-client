@@ -47,10 +47,3 @@ class TestCertificatePinning():
 
         with pytest.raises(requests.exceptions.ConnectionError):
             self.s.get(url)
-
-    def test_random_page_real_hash(self):
-        url = 'https://randompage.com'
-        self.s.mount(url, cert_pinning.TLSPinningAdapter())
-
-        with pytest.raises(requests.exceptions.ConnectionError):
-            self.s.get(url)
