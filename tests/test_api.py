@@ -34,13 +34,6 @@ class TestCertificatePinning():
         r = self.s.get(url)
         assert int(r.status_code) == 200
 
-    def test_random_page_real_hash(self):
-        url = 'https://randompage.com'
-        self.s.mount(url, cert_pinning.TLSPinningAdapter())
-
-        with pytest.raises(requests.exceptions.ConnectionError):
-            self.s.get(url)
-
     def test_api_url_fake_hash(self):
         url = 'https://api.protonvpn.ch/tests/ping'
         self.s.mount(url, cert_pinning.TLSPinningAdapter(fake_hashes))
@@ -49,8 +42,15 @@ class TestCertificatePinning():
             self.s.get(url)
 
     def test_non_api_url_fake_hash(self):
-        url = 'https://api.protonvpn.ch/tests/ping'
+        url = 'https://protonvpn.com'
         self.s.mount(url, cert_pinning.TLSPinningAdapter(fake_hashes))
+
+        with pytest.raises(requests.exceptions.ConnectionError):
+            self.s.get(url)
+
+    def test_random_page_real_hash(self):
+        url = 'https://randompage.com'
+        self.s.mount(url, cert_pinning.TLSPinningAdapter())
 
         with pytest.raises(requests.exceptions.ConnectionError):
             self.s.get(url)
