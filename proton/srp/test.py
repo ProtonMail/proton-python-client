@@ -70,7 +70,9 @@ class SRPTestCases:
                 if instance["Exception"]:
                     continue
 
-                server = TestServer(
+                server = TestServer()
+
+                server.setup(
                     instance["Username"],
                     bytes.fromhex(instance["Modulus"]),
                     base64.b64decode(instance["Verifier"])

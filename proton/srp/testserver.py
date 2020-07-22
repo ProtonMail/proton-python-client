@@ -3,7 +3,7 @@ from .pmhash import pmhash
 
 
 class TestServer:
-    def __init__(self, username, modulus, verifier):
+    def setup(self, username, modulus, verifier):
         self.hash_class = pmhash
         self.generator = 2
         self._authenticated = False
