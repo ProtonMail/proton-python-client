@@ -1,5 +1,5 @@
-from .util import *
-from .pmhash import pmhash
+from proton.srp.util import *
+from proton.srp.pmhash import pmhash
 
 
 class TestServer:
