@@ -1,10 +1,10 @@
 import unittest
 
-from .testdata import instances
-from .testserver import TestServer
-from .util import *
-from ._ctsrp import User as CTUser
-from ._pysrp import User as PYUser
+from testdata import instances
+from testserver import TestServer
+from proton.srp.util import *
+from proton.srp._ctsrp import User as CTUser
+from proton.srp._pysrp import User as PYUser
 
 
 class SRPTestCases:
@@ -70,7 +70,9 @@ class SRPTestCases:
                 if instance["Exception"]:
                     continue
 
-                server = TestServer(
+                server = TestServer()
+
+                server.setup(
                     instance["Username"],
                     bytes.fromhex(instance["Modulus"]),
                     base64.b64decode(instance["Verifier"])
