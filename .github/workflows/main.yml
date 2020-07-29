@@ -27,6 +27,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install bcrypt requests gnupg pyopenssl
+        pip install bcrypt requests gnupg pyopenssl pytest
     - name: Unit testing
       run: pytest
