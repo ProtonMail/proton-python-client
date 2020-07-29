@@ -1,7 +1,7 @@
 from .srp import User as PmsrpUser
 
 import requests, gnupg, base64
-
+from .cert_pinning import TLSPinningAdapter
 
 class ProtonError(Exception):
     def __init__(self, ret):
@@ -28,11 +28,11 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 -----END PGP PUBLIC KEY BLOCK-----"""
 
     @staticmethod
-    def load(dump):
+    def load(dump, TLSPinning=True):
         api_url = dump['api_url']
         appversion = dump['appversion']
         cookies = dump.get('cookies', {})
-        s = Session(api_url, appversion)
+        s = Session(api_url, appversion, TLSPinning=TLSPinning)
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
         s._session_data = dump['session_data']
         if s.UID is not None:
@@ -48,7 +48,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other"):
+    def __init__(self, api_url, appversion="Other", TLSPinning=True):
         self.__api_url = api_url
         self.__appversion = appversion
 
@@ -59,6 +59,8 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         self._session_data = {}
 
         self.s = requests.Session()
+        if TLSPinning:
+            self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
 
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
