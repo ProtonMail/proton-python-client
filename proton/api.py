@@ -31,8 +31,9 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
     def load(dump, TLSPinning=True):
         api_url = dump['api_url']
         appversion = dump['appversion']
+        user_agent = dump['User-Agent']
         cookies = dump.get('cookies', {})
-        s = Session(api_url, appversion, TLSPinning=TLSPinning)
+        s = Session(api_url, appversion, user_agent, TLSPinning=TLSPinning)
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
         s._session_data = dump['session_data']
         if s.UID is not None:
@@ -44,13 +45,15 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         return {
             'api_url': self.__api_url,
             'appversion': self.__appversion,
+            'User-Agent': self.__user_agent,
             'cookies': self.s.cookies.get_dict(),
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other", TLSPinning=True):
+    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True):
         self.__api_url = api_url
         self.__appversion = appversion
+        self.__user_agent = user_agent
 
         ## Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -62,6 +65,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if TLSPinning:
             self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
+        self.s.headers['User-Agent'] = user_agent
 
     def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
         fct = self.s.post
