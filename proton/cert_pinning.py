@@ -45,28 +45,51 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         **conn_kw
     ):
         self.hash_dict = hash_dict
-        super(TLSPinningHTTPSConnectionPool, self).__init__(
-            host,
-            port,
-            strict,
-            timeout,
-            maxsize,
-            block,
-            headers,
-            retries,
-            _proxy,
-            _proxy_headers,
-            key_file,
-            cert_file,
-            cert_reqs,
-            key_password,
-            ca_certs,
-            ssl_version,
-            assert_hostname,
-            assert_fingerprint,
-            ca_cert_dir,
-            **conn_kw
-        )
+        try:
+            super(TLSPinningHTTPSConnectionPool, self).__init__(
+                host,
+                port,
+                strict,
+                timeout,
+                maxsize,
+                block,
+                headers,
+                retries,
+                _proxy,
+                _proxy_headers,
+                key_file,
+                cert_file,
+                cert_reqs,
+                key_password,
+                ca_certs,
+                ssl_version,
+                assert_hostname,
+                assert_fingerprint,
+                ca_cert_dir,
+                **conn_kw
+            )
+        except TypeError:
+            super(TLSPinningHTTPSConnectionPool, self).__init__(
+                host,
+                port,
+                strict,
+                timeout,
+                maxsize,
+                block,
+                headers,
+                retries,
+                _proxy,
+                _proxy_headers,
+                key_file,
+                cert_file,
+                cert_reqs,
+                ca_certs,
+                ssl_version,
+                assert_hostname,
+                assert_fingerprint,
+                ca_cert_dir,
+                **conn_kw
+            )
 
     def _validate_conn(self, conn):
         r = super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
