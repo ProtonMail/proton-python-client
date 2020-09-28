@@ -10,7 +10,7 @@ wrapper to the Proton Technologies API, abstracting from the SRP authentication.
 '''
 
 setup(name                  = 'proton-client',
-      version               = '0.0.6',
+      version               = '0.0.7',
       description           = 'Proton Technologies API wrapper',
       author                = 'Proton Technologies',
       author_email          = 'contact@protonmail.com',
