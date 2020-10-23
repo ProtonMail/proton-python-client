@@ -50,10 +50,11 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True):
+    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True, ClientSecret=None):
         self.__api_url = api_url
         self.__appversion = appversion
         self.__user_agent = user_agent
+        self.__clientsecret = ClientSecret
 
         ## Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -101,7 +102,10 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
     def authenticate(self, username, password):
         self.logout()
 
-        info_response = self.api_request("/auth/info", {"Username": username})
+        payload = {"Username": username}
+        if self.__clientsecret:
+            payload['ClientSecret'] = self.__clientsecret
+        info_response = self.api_request("/auth/info", payload)
         d = self.__gnupg.decrypt(info_response['Modulus'])
 
         if not d.valid:
@@ -121,14 +125,15 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             raise ValueError('Invalid challenge')
 
         ## Send response
-        auth_response = self.api_request("/auth",
-            {
-                "Username": username,
-                "ClientEphemeral" : base64.b64encode(A).decode('utf8'),
-                "ClientProof" : base64.b64encode(M).decode('utf8'),
-                "SRPSession": session,
-            }
-        )
+        payload = {
+            "Username": username,
+            "ClientEphemeral" : base64.b64encode(A).decode('utf8'),
+            "ClientProof" : base64.b64encode(M).decode('utf8'),
+            "SRPSession": session,
+        }
+        if self.__clientsecret:
+            payload['ClientSecret'] = self.__clientsecret
+        auth_response = self.api_request("/auth", payload)
 
         if "ServerProof" not in auth_response:
             raise ValueError("Invalid password")
