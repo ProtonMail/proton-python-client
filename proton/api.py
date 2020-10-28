@@ -15,7 +15,7 @@ class ProtonError(Exception):
         try:
             self.headers = ret["Headers"]
         except KeyError:
-            self.headers = None
+            self.headers = ""
 
         super().__init__("[{}] {} {}".format(
             self.code, self.error, self.headers
