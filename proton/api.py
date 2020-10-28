@@ -100,23 +100,23 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
+
+        ret = fct(
+            self.__api_url + endpoint,
+            headers = additional_headers,
+            json = jsondata
+        )
+
         try:
-            ret = fct(
-                self.__api_url + endpoint,
-                headers = additional_headers,
-                json = jsondata
-            )
-            ret.raise_for_status()
-        except requests.exceptions.HTTPError as e:
+            ret = ret.json()
+        except json.decoder.JSONDecodeError:
             raise ProtonError(
                 {
-                    "Code": e.response.status_code,
-                    "Error": e.response.reason,
-                    "Headers": e.response.headers
+                    "Code": ret.status_code,
+                    "Error": ret.reason,
+                    "Headers": ret.headers
                 }
             )
-        
-        ret = ret.json()
 
         if ret['Code'] != 1000:
             raise ProtonError(ret)
