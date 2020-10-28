@@ -112,7 +112,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
                 {
                     "Code": e.response.status_code,
                     "Error": e.response.reason,
-                    "Header": e.response.headers
+                    "Headers": e.response.headers
                 }
             )
         
