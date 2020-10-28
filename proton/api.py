@@ -1,13 +1,26 @@
+import base64
+import json
+
+import gnupg
+import requests
+
+from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
 
-import requests, gnupg, base64
-from .cert_pinning import TLSPinningAdapter
 
 class ProtonError(Exception):
     def __init__(self, ret):
-        super().__init__("[{0[Code]}] {0[Error]}".format(ret))
         self.code = ret['Code']
         self.error = ret['Error']
+        try:
+            self.headers = ret["Headers"]
+        except KeyError:
+            self.headers = None
+
+        super().__init__("[{}] {} {}".format(
+            self.code, self.error, self.headers
+        ))
+
 
 class Session:
     _base_headers = {
@@ -87,11 +100,23 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
-        ret = fct(
-            self.__api_url + endpoint,
-            headers = additional_headers,
-            json = jsondata
-        ).json()
+        try:
+            ret = fct(
+                self.__api_url + endpoint,
+                headers = additional_headers,
+                json = jsondata
+            )
+            ret.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ProtonError(
+                {
+                    "Code": e.response.status_code,
+                    "Error": e.response.reason,
+                    "Header": e.response.headers
+                }
+            )
+        
+        ret = ret.json()
 
         if ret['Code'] != 1000:
             raise ProtonError(ret)
