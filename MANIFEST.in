@@ -1,0 +1,4 @@
+include LICENSE
+include *.txt
+recursive-include proton *.py
+recursive-include proton *.rst

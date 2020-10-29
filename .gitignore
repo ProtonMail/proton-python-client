@@ -1,0 +1,7 @@
+build/
+dist/
+MANIFEST
+*.pyc
+*.egg-info/
+.vscode/
+*.lock
