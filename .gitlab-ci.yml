@@ -9,12 +9,13 @@ stages:
 
 ########## Manage the Image ##########
 .common-image:
-  image: docker:stable
+  image: $CI_REGISTRY/infra/kubernetes/images/docker:stable
   interruptible: true
   variables:
     DOCKER_HOST: tcp://docker:2375
   services:
-    - docker:dind
+    - name: $CI_REGISTRY/infra/kubernetes/images/docker:dind
+      alias: docker
   before_script:
     - apk update
     - apk add make bash git gawk rsync
