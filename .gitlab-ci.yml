@@ -1,0 +1,76 @@
+default:
+ image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
+
+stages:
+ - image
+ - test
+ - image-latest
+ - release
+
+########## Manage the Image ##########
+.common-image:
+  image: docker:stable
+  interruptible: true
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  services:
+    - docker:dind
+  before_script:
+    - apk update
+    - apk add make bash git gawk rsync
+
+
+# Make image when we push to a branch -> run tests on top of this one
+publish:
+ stage: image
+ extends: .common-image
+ except:
+   - schedules
+   - triggers
+ script:
+   - make image branch=$CI_COMMIT_REF_SLUG
+
+# Once the CI is green, we retag the current branch-master to latest
+publish-latest:
+ stage: image-latest
+ extends: .common-image
+ dependencies: [] # Prevent download + extract artifacts
+ only:
+   - master
+ except:
+   - schedules
+   - triggers
+ script:
+   - make latest
+
+
+
+########## CI Jobs ##########
+
+test:
+ stage: test
+ interruptible: true
+ script:
+   - python3 -m pytest
+
+## Jobs to publish commits + tags from master to github
+include:
+ - project: 'agarroux/publish-github'
+   ref: master
+   file: '/jobs/release.gitlab-ci.yml'
+
+release-publish-github:
+ stage: release
+ variables:
+   RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
+   RELEASE_SYNC_TO_BRANCH: 'master'
+   RELEASE_SYNC_FROM_BRANCH: 'master'
+ extends: .release-sync-commit-shared
+
+release-publish-github-tags:
+ stage: release
+ variables:
+   RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
+   RELEASE_SYNC_TO_BRANCH: 'master'
+   RELEASE_SYNC_FROM_BRANCH: 'master'
+ extends: .release-sync-tags-shared
