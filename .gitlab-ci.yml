@@ -1,9 +1,17 @@
+# Jobs to build and publish debian packages
+include:
+ - project: 'ProtonVPN/Linux/_gitlab-ci'
+   ref: public-protonvpn-repo
+   file: 'gitlab-ci-build-publish-debian.yml'
+
 default:
  image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
 
 stages:
  - image
  - test
+ - build
+ - publish
  - image-latest
  - release
 
