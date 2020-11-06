@@ -1,0 +1,18 @@
+proton-python-client (0.0.9-1.1) unstable; urgency=medium
+	
+  * Pass headers to exception
+
+ -- Proton Technologies AG <opensource@proton.me>  Wed, 29 Oct 2020 16:34:49 +0100
+
+proton-python-client (0.0.8-1.1) unstable; urgency=medium
+	
+  * Add secret key
+
+ -- Proton Technologies AG <opensource@proton.me>  Wed, 28 Oct 2020 10:21:15 +0100
+
+proton-python-client (0.0.7-1.1) unstable; urgency=medium
+	
+  * Initial release
+  * Releasing signed package.
+
+ -- Proton Technologies AG <opensource@proton.me>  Wed, 28 Oct 2020 14:41:37 +0100

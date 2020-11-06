@@ -1,0 +1,15 @@
+Source: proton-python-client
+Priority: optional
+Maintainer: Proton Technologies AG <opensource@proton.me>
+Build-Depends: debhelper (>= 10), dh-python, python3-all, python3-setuptools
+Standards-Version: 4.1.2
+Homepage: https://protonvpn.com/
+X-Python3-Version: >= 3.5
+
+Package: python3-proton-client
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-bcrypt, python3-gnupg, python3-openssl, python3-requests (>= 2.16.0)
+Description: Proton SRP (Python 3)
+ Safely login with ProtonVPN credentials to connect to Proton.
+ .
+ This package installs the library for Python 3.
