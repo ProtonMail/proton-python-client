@@ -3,6 +3,9 @@ include:
  - project: 'ProtonVPN/Linux/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'gitlab-ci-build-publish-debian.yml'
+ - project: 'agarroux/publish-github'
+   ref: master
+   file: '/jobs/release.gitlab-ci.yml'
 
 default:
  image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
@@ -14,6 +17,7 @@ stages:
  - publish
  - image-latest
  - release
+
 
 ########## Manage the Image ##########
 .common-image:
@@ -39,6 +43,7 @@ publish:
  script:
    - make image branch=$CI_COMMIT_REF_SLUG
 
+
 # Once the CI is green, we retag the current branch-master to latest
 publish-latest:
  stage: image-latest
@@ -53,21 +58,15 @@ publish-latest:
    - make latest
 
 
-
 ########## CI Jobs ##########
-
 test:
  stage: test
  interruptible: true
  script:
    - python3 -m pytest
 
-## Jobs to publish commits + tags from master to github
-include:
- - project: 'agarroux/publish-github'
-   ref: master
-   file: '/jobs/release.gitlab-ci.yml'
 
+# Jobs to publish commits + tags from master to github
 release-publish-github:
  stage: release
  variables:
