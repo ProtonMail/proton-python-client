@@ -6,6 +6,7 @@ import requests
 
 from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
+from .constants import DEFAULT_TIMEOUT
 
 
 class ProtonError(Exception):
@@ -41,12 +42,18 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 -----END PGP PUBLIC KEY BLOCK-----"""
 
     @staticmethod
-    def load(dump, TLSPinning=True):
+    def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT):
         api_url = dump['api_url']
         appversion = dump['appversion']
         user_agent = dump['User-Agent']
         cookies = dump.get('cookies', {})
-        s = Session(api_url, appversion, user_agent, TLSPinning=TLSPinning)
+        s = Session(
+            api_url=api_url,
+            appversion=appversion,
+            user_agent=user_agent,
+            TLSPinning=TLSPinning,
+            timeout=timeout
+        )
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
         s._session_data = dump['session_data']
         if s.UID is not None:
@@ -63,13 +70,17 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True, ClientSecret=None):
+    def __init__(
+        self, api_url, appversion="Other", user_agent="None",
+        TLSPinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT
+    ):
         self.__api_url = api_url
         self.__appversion = appversion
         self.__user_agent = user_agent
         self.__clientsecret = ClientSecret
+        self.__timeout = timeout
 
-        ## Verify modulus
+        # Verify modulus
         self.__gnupg = gnupg.GPG()
         self.__gnupg.import_keys(self._srp_modulus_key)
 
@@ -100,11 +111,11 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
-
         ret = fct(
             self.__api_url + endpoint,
-            headers = additional_headers,
-            json = jsondata
+            headers=additional_headers,
+            json=jsondata,
+            timeout=self.__timeout
         )
 
         try:
@@ -122,7 +133,6 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             raise ProtonError(ret)
 
         return ret
-
 
     def authenticate(self, username, password):
         self.logout()

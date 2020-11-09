@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-
+from proton.constants import VERSION
 
 long_description = '''
 
@@ -10,7 +10,7 @@ wrapper to the Proton Technologies API, abstracting from the SRP authentication.
 '''
 
 setup(name                  = 'proton-client',
-      version               = '0.0.9',
+      version               =  VERSION,
       description           = 'Proton Technologies API wrapper',
       author                = 'Proton Technologies',
       author_email          = 'contact@protonmail.com',
