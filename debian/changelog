@@ -1,3 +1,11 @@
+proton-python-client (0.1.0-1) UNRELEASED; urgency=medium
+	
+  * Project is flake8 compatible
+  * Remove unused folder
+  * Initial beta release
+
+ -- Proton Technologies AG <opensource@proton.me>  Mon, 13 Nov 2020 14:19:02 +0000
+
 proton-python-client (0.0.9-2) unstable; urgency=medium
 	
   * Add timeout
