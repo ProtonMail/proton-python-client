@@ -1,11 +1,11 @@
 
-VERSION = "0.0.9"
+VERSION = "0.1.0"
 DEFAULT_TIMEOUT = (10, 30)
 PUBKEY_HASH_DICT = {
     "api.protonvpn.ch": [
         "IEwk65VSaxv3s1/88vF/rM8PauJoIun3rzVCX5mLS3M=",
-        "drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE=", 
-        "YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54=", 
+        "drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE=",
+        "YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54=",
         "AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw="
     ],
     "protonvpn.com": [
@@ -14,5 +14,4 @@ PUBKEY_HASH_DICT = {
         "JMI8yrbc6jB1FYGyyWRLFTmDNgIszrNEMGlgy972e7w=",
         "Iu44zU84EOCZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY="
     ]
-    
 }

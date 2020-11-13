@@ -13,8 +13,15 @@ class PMHash:
         self.b += b
 
     def digest(self):
-        return hashlib.sha512(self.b + b'\0').digest() + hashlib.sha512(self.b + b'\1').digest() + hashlib.sha512(
-            self.b + b'\2').digest() + hashlib.sha512(self.b + b'\3').digest()
+        return hashlib.sha512(
+                self.b + b'\0'
+            ).digest() + hashlib.sha512(
+                self.b + b'\1'
+            ).digest() + hashlib.sha512(
+                self.b + b'\2'
+            ).digest() + hashlib.sha512(
+                self.b + b'\3'
+            ).digest()
 
     def hexdigest(self):
         return self.digest().hex()

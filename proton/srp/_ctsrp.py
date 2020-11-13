@@ -14,11 +14,12 @@
 # v    Password verifier
 
 from __future__ import division
-import sys
+
 import ctypes
+import sys, os
 
 from .pmhash import pmhash
-from .util import *
+from .util import PM_VERSION, hash_password
 
 dlls = list()
 
@@ -29,7 +30,7 @@ elif 'win' in platform:
     for d in ('libeay32.dll', 'libssl32.dll', 'ssleay32.dll'):
         try:
             dlls.append(ctypes.cdll.LoadLibrary(d))
-        except:
+        except Exception:
             pass
 else:
     try:
@@ -68,7 +69,7 @@ def load_func(name, args, returns=ctypes.c_int):
             f.restype = returns
             d[name] = f
             return
-        except:
+        except Exception:
             pass
     raise ImportError('Unable to load required functions from SSL dlls')
 
@@ -104,11 +105,11 @@ load_func('RAND_seed', [ctypes.c_char_p, ctypes.c_int])
 
 
 def bn_num_bytes(a):
-    return ((BN_num_bits(a) + 7) // 8)
+    return ((BN_num_bits(a) + 7) // 8) # noqa
 
 
 def bn_mod(rem, m, d, ctx):
-    return BN_div(None, rem, m, d, ctx)
+    return BN_div(None, rem, m, d, ctx) # noqa
 
 
 def bn_is_zero(n):
@@ -117,12 +118,12 @@ def bn_is_zero(n):
 
 def bn_to_bytes(n):
     b = ctypes.create_string_buffer(bn_num_bytes(n))
-    BN_bn2bin(n, b)
+    BN_bn2bin(n, b) # noqa
     return b.raw[::-1]
 
 
 def bytes_to_bn(dest_bn, bytes):
-    BN_bin2bn(bytes[::-1], len(bytes), dest_bn)
+    BN_bin2bn(bytes[::-1], len(bytes), dest_bn) # noqa
 
 
 def bn_hash(hash_class, dest, n1, n2):
@@ -137,15 +138,17 @@ def bn_hash_k(hash_class, dest, g, N, width):
     h = hash_class()
     bin1 = ctypes.create_string_buffer(width)
     bin2 = ctypes.create_string_buffer(width)
-    BN_bn2bin(g, bin1)
-    BN_bn2bin(N, bin2)
+    BN_bn2bin(g, bin1) # noqa
+    BN_bn2bin(N, bin2) # noqa
     h.update(bin1)
     h.update(bin2[::-1])
     bytes_to_bn(dest, h.digest())
 
 
 def calculate_x(hash_class, dest, salt, password, modulus, version):
-    exp = hash_password(hash_class, password, bn_to_bytes(salt), bn_to_bytes(modulus), version)
+    exp = hash_password(
+        hash_class, password, bn_to_bytes(salt), bn_to_bytes(modulus), version
+    )
     bytes_to_bn(dest, exp)
 
 
@@ -170,19 +173,19 @@ def calculate_server_challenge(hash_class, A, M, K):
 
 
 def get_ngk(hash_class, n_bin, g_hex, ctx):
-    N = BN_new()
-    g = BN_new()
-    k = BN_new()
+    N = BN_new() # noqa
+    g = BN_new() # noqa
+    k = BN_new() # noqa
 
     bytes_to_bn(N, n_bin)
-    BN_hex2bn(g, g_hex)
+    BN_hex2bn(g, g_hex) # noqa
     bn_hash_k(hash_class, k, g, N, width=bn_num_bytes(N))
 
     return N, g, k
 
 
 class User(object):
-    def __init__(self, password, n_bin, g_hex=b"2", bytes_a=None, bytes_A=None):
+    def __init__(self, password, n_bin, g_hex=b"2", bytes_a=None, bytes_A=None): # noqa
         if bytes_a and len(bytes_a) != 32:
             raise ValueError("32 bytes required for bytes_a")
 
@@ -190,54 +193,54 @@ class User(object):
             raise ValueError("Invalid password")
 
         self.password = password.encode()
-        self.a = BN_new()
-        self.A = BN_new()
-        self.B = BN_new()
-        self.s = BN_new()
-        self.S = BN_new()
-        self.u = BN_new()
-        self.x = BN_new()
-        self.v = BN_new()
-        self.tmp1 = BN_new()
-        self.tmp2 = BN_new()
-        self.tmp3 = BN_new()
-        self.ctx = BN_CTX_new()
+        self.a = BN_new() # noqa
+        self.A = BN_new() # noqa
+        self.B = BN_new() # noqa
+        self.s = BN_new() # noqa
+        self.S = BN_new() # noqa
+        self.u = BN_new() # noqa
+        self.x = BN_new() # noqa
+        self.v = BN_new() # noqa
+        self.tmp1 = BN_new() # noqa
+        self.tmp2 = BN_new() # noqa
+        self.tmp3 = BN_new() # noqa
+        self.ctx = BN_CTX_new() # noqa
         self.M = None
         self.K = None
         self.expected_server_proof = None
         self._authenticated = False
 
         self.hash_class = pmhash
-        self.N, self.g, self.k = get_ngk(self.hash_class, n_bin, g_hex, self.ctx)
+        self.N, self.g, self.k = get_ngk(self.hash_class, n_bin, g_hex, self.ctx) # noqa
 
         if bytes_a:
             bytes_to_bn(self.a, bytes_a)
         else:
-            BN_rand(self.a, 256, 0, 0)
+            BN_rand(self.a, 256, 0, 0) # noqa
 
         if bytes_A:
             bytes_to_bn(self.A, bytes_A)
         else:
-            BN_mod_exp(self.A, self.g, self.a, self.N, self.ctx)
+            BN_mod_exp(self.A, self.g, self.a, self.N, self.ctx) # noqa
 
     def __del__(self):
         if not hasattr(self, 'a'):
             return  # __init__ threw exception. no clean up required
-        BN_free(self.a)
-        BN_free(self.A)
-        BN_free(self.B)
-        BN_free(self.s)
-        BN_free(self.S)
-        BN_free(self.u)
-        BN_free(self.x)
-        BN_free(self.v)
-        BN_free(self.N)
-        BN_free(self.g)
-        BN_free(self.k)
-        BN_free(self.tmp1)
-        BN_free(self.tmp2)
-        BN_free(self.tmp3)
-        BN_CTX_free(self.ctx)
+        BN_free(self.a) # noqa
+        BN_free(self.A) # noqa
+        BN_free(self.B) # noqa
+        BN_free(self.s) # noqa
+        BN_free(self.S) # noqa
+        BN_free(self.u) # noqa
+        BN_free(self.x) # noqa
+        BN_free(self.v) # noqa
+        BN_free(self.N) # noqa
+        BN_free(self.g) # noqa
+        BN_free(self.k) # noqa
+        BN_free(self.tmp1) # noqa
+        BN_free(self.tmp2) # noqa
+        BN_free(self.tmp3) # noqa
+        BN_CTX_free(self.ctx) # noqa
 
     def authenticated(self):
         return self._authenticated
@@ -252,7 +255,9 @@ class User(object):
         return bn_to_bytes(self.A)
 
     # Returns M or None if SRP-6a safety check is violated
-    def process_challenge(self, bytes_s, bytes_server_challenge, version=PM_VERSION):
+    def process_challenge(
+        self, bytes_s, bytes_server_challenge, version=PM_VERSION
+    ):
         bytes_to_bn(self.s, bytes_s)
         bytes_to_bn(self.B, bytes_server_challenge)
 
@@ -266,21 +271,27 @@ class User(object):
         if bn_is_zero(self.u):
             return None
 
-        calculate_x(self.hash_class, self.x, self.s, self.password, self.N, version)
+        calculate_x(
+            self.hash_class, self.x, self.s, self.password, self.N, version
+        )
 
-        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)
+        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)  # noqa
 
         # S = (B - k*(g^x)) ^ (a + ux)
-        BN_mul(self.tmp1, self.u, self.x, self.ctx)
-        BN_add(self.tmp2, self.a, self.tmp1)  # tmp2 = (a + ux)
-        BN_mod_exp(self.tmp1, self.g, self.x, self.N, self.ctx)
-        BN_mul(self.tmp3, self.k, self.tmp1, self.ctx)  # tmp3 = k*(g^x)
-        BN_sub(self.tmp1, self.B, self.tmp3)  # tmp1 = (B - K*(g^x))
-        BN_mod_exp(self.S, self.tmp1, self.tmp2, self.N, self.ctx)
+        BN_mul(self.tmp1, self.u, self.x, self.ctx) # noqa
+        BN_add(self.tmp2, self.a, self.tmp1) # noqa tmp2 = (a + ux)  
+        BN_mod_exp(self.tmp1, self.g, self.x, self.N, self.ctx) # noqa
+        BN_mul(self.tmp3, self.k, self.tmp1, self.ctx) # noqa tmp3 = k*(g^x)
+        BN_sub(self.tmp1, self.B, self.tmp3)  # noqa tmp1 = (B - K*(g^x))
+        BN_mod_exp(self.S, self.tmp1, self.tmp2, self.N, self.ctx) # noqa
 
         self.K = bn_to_bytes(self.S)
-        self.M = calculate_client_challenge(self.hash_class, self.A, self.B, self.K)
-        self.expected_server_proof = calculate_server_challenge(self.hash_class, self.A, self.M, self.K)
+        self.M = calculate_client_challenge(
+            self.hash_class, self.A, self.B, self.K
+        )
+        self.expected_server_proof = calculate_server_challenge(
+            self.hash_class, self.A, self.M, self.K
+        )
 
         return self.M
 
@@ -290,15 +301,17 @@ class User(object):
 
     def compute_v(self, bytes_s=None, version=PM_VERSION):
         if bytes_s is None:
-            BN_rand(self.s, 10*8, 0, 0)
+            BN_rand(self.s, 10*8, 0, 0) # noqa
         else:
             bytes_to_bn(self.s, bytes_s)
 
-        calculate_x(self.hash_class, self.x, self.s, self.password, self.N, version)
-        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)
+        calculate_x(
+            self.hash_class, self.x, self.s, self.password, self.N, version
+        )
+        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx) # noqa
         return bn_to_bytes(self.s), bn_to_bytes(self.v)
 
 # ---------------------------------------------------------
 # Init
 #
-RAND_seed(os.urandom(32), 32)
+RAND_seed(os.urandom(32), 32) # noqa

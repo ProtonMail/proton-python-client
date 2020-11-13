@@ -1,4 +1,3 @@
-import pytest
 import requests
 from proton import cert_pinning
 

@@ -6,8 +6,8 @@ PM_VERSION = 4
 
 
 def bcrypt_b64_encode(s):  # The joy of bcrypt
-    bcrypt_base64 = b"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    std_base64chars = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    bcrypt_base64 = b"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" # noqa
+    std_base64chars = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"  # noqa
     s = base64.b64encode(s)
     return s.translate(bytes.maketrans(std_base64chars, bcrypt_base64))
 
