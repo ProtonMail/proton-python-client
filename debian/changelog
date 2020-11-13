@@ -4,7 +4,7 @@ proton-python-client (0.1.0-1) UNRELEASED; urgency=medium
   * Remove unused folder
   * Initial beta release
 
- -- Proton Technologies AG <opensource@proton.me>  Mon, 13 Nov 2020 14:19:02 +0000
+ -- Proton Technologies AG <opensource@proton.me>  Fri, 13 Nov 2020 14:19:02 +0000
 
 proton-python-client (0.0.9-2) unstable; urgency=medium
 	
@@ -16,7 +16,7 @@ proton-python-client (0.0.9-1) unstable; urgency=medium
 	
   * Pass headers to exception
 
- -- Proton Technologies AG <opensource@proton.me>  Wed, 29 Oct 2020 16:34:49 +0000
+ -- Proton Technologies AG <opensource@proton.me>  Thu, 29 Oct 2020 16:34:49 +0000
 
 proton-python-client (0.0.8-1) unstable; urgency=medium
 	
