@@ -1,5 +1,6 @@
-from proton.srp.util import *
 from proton.srp.pmhash import pmhash
+from proton.srp.util import (bytes_to_long, custom_hash, get_random_of_length,
+                             long_length, long_to_bytes)
 
 
 class TestServer:
@@ -13,7 +14,11 @@ class TestServer:
         self.verifier = bytes_to_long(verifier)
 
         self.b = get_random_of_length(32)
-        self.B = (self.calculate_k() * self.verifier + pow(self.generator, self.b, self.modulus))
+        self.B = (
+            self.calculate_k() * self.verifier + pow(
+                self.generator, self.b, self.modulus
+            )
+        )
 
         self.secret = None
         self.A = None
@@ -45,7 +50,7 @@ class TestServer:
         return long_to_bytes(self.B)
 
     def get_session_key(self):
-        return long_to_bytes(self.secret) #if self._authenticated else None
+        return long_to_bytes(self.secret)  # if self._authenticated else None
 
     def get_authenticated(self):
         return self._authenticated
@@ -53,7 +58,12 @@ class TestServer:
     def process_challenge(self, client_challenge, client_proof):
         self.A = bytes_to_long(client_challenge)
         self.u = custom_hash(self.hash_class, self.A, self.B)
-        self.secret = pow((self.A * pow(self.verifier, self.u, self.modulus)), self.b, self.modulus)
+        self.secret = pow(
+            (
+                self.A * pow(self.verifier, self.u, self.modulus)
+            ),
+            self.b, self.modulus
+        )
 
         if client_proof != self.calculate_client_proof():
             return False

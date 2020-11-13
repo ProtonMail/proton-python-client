@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
+flake8 = "*"
 
 [packages]
 requests = ">=2.18.4"

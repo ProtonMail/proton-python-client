@@ -92,7 +92,9 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         self.s.headers['x-pm-appversion'] = appversion
         self.s.headers['User-Agent'] = user_agent
 
-    def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
+    def api_request(
+        self, endpoint, jsondata=None, additional_headers=None, method=None
+    ):
         fct = self.s.post
         if method is None:
             if jsondata is None:
@@ -146,24 +148,24 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if not d.valid:
             raise ValueError('Invalid modulus')
 
-        modulus   = base64.b64decode(d.data.strip())
+        modulus = base64.b64decode(d.data.strip())
         challenge = base64.b64decode(info_response["ServerEphemeral"])
-        salt      = base64.b64decode(info_response["Salt"])
-        session   = info_response["SRPSession"]
-        version   = info_response["Version"]
+        salt = base64.b64decode(info_response["Salt"])
+        session = info_response["SRPSession"]
+        version = info_response["Version"]
 
-        usr        = PmsrpUser(password, modulus)
-        A          = usr.get_challenge()
-        M          = usr.process_challenge(salt, challenge, version)
+        usr = PmsrpUser(password, modulus)
+        A = usr.get_challenge()
+        M = usr.process_challenge(salt, challenge, version)
 
         if M is None:
             raise ValueError('Invalid challenge')
 
-        ## Send response
+        # Send response
         payload = {
             "Username": username,
-            "ClientEphemeral" : base64.b64encode(A).decode('utf8'),
-            "ClientProof" : base64.b64encode(M).decode('utf8'),
+            "ClientEphemeral": base64.b64encode(A).decode('utf8'),
+            "ClientProof": base64.b64encode(M).decode('utf8'),
             "SRPSession": session,
         }
         if self.__clientsecret:
@@ -173,7 +175,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if "ServerProof" not in auth_response:
             raise ValueError("Invalid password")
 
-        usr.verify_session( base64.b64decode(auth_response["ServerProof"]))
+        usr.verify_session(base64.b64decode(auth_response["ServerProof"]))
         if not usr.authenticated():
             raise ValueError('Invalid server proof')
 
@@ -200,7 +202,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
     def logout(self):
         if self._session_data:
-            self.api_request('/auth',method='DELETE')
+            self.api_request('/auth', method='DELETE')
             del self.s.headers['Authorization']
             del self.s.headers['x-pm-uid']
             self._session_data = {}
