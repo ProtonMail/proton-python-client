@@ -3,6 +3,7 @@
 -include .env
 
 branch ?= master
+DOCKERFILE_BUILD=/tmp/Dockerfile.image
 NAME_IMAGE ?= "$(CI_REGISTRY_IMAGE)"
 TAG_IMAGE := branch-$(subst /,-,$(branch))
 
@@ -12,16 +13,20 @@ ifeq ($(branch), latest)
 endif
 
 
-IMAGE_URL ?= $(CI_REGISTRY)/ubuntu:latest            
-ifndef CI_REGISTRY                                   
-	IMAGE_URL = 'ubuntu:latest'                        
-endif  
+IMAGE_URL ?= $(CI_REGISTRY_IMAGE_PROTON)/ubuntu:latest
+ifndef CI_REGISTRY_IMAGE_PROTON
+	IMAGE_URL = ubuntu:latest
+endif
 
 ## Make remote image form a branch make image branch=<branchName> (master default)
-image: requirements.txt copy-app
-	docker build -t $(NAME_IMAGE):$(TAG_IMAGE) .
+image: requirements.txt copy-app docker-source
+	docker build -t $(NAME_IMAGE):$(TAG_IMAGE) -f "$(DOCKERFILE_BUILD)" .
 	docker push $(NAME_IMAGE):$(TAG_IMAGE)
 	docker tag $(NAME_IMAGE):$(TAG_IMAGE) $(NAME_IMAGE):$(TAG_IMAGE)
+
+## We host our own copy of the image ubuntu:latest
+docker-source:
+	sed "s|IMAGE_URL|$(IMAGE_URL)|" Dockerfile > /tmp/Dockerfile.image
 
 ## Copy the current app and remove some items we don't need inside the image
 # - .git -> huge and doesn't provide anything relevant
@@ -48,8 +53,8 @@ latest:
 	docker push $(NAME_IMAGE):latest
 
 ## Build image on local -> name nm-core:latest
-local: requirements.txt copy-app
-	@ docker build -t "$(NAME_IMAGE)" .
+local: copy-app docker-source
+	docker build -t "$(NAME_IMAGE)" -f "$(DOCKERFILE_BUILD)" .
 	@ rm -rf __SOURCE_APP || true
 local: NAME_IMAGE = proton-python-client:latest
 
