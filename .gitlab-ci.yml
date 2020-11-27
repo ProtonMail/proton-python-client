@@ -19,6 +19,9 @@ stages:
  - image-latest
  - release
 
+variables:
+  CI_REGISTRY_IMAGE_PROTON: "$CI_REGISTRY/infra/kubernetes/images"
+
 
 ########## Manage the Image ##########
 .common-image:

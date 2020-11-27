@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM IMAGE_URL
 RUN apt-get update
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 
