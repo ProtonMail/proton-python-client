@@ -38,18 +38,23 @@ variables:
 
 
 # Make image when we push to a branch -> run tests on top of this one
-publish:
+make-image-deb:
  stage: image
  extends: .common-image
  except:
    - schedules
    - triggers
  script:
-   - make image branch=$CI_COMMIT_REF_SLUG
-
+   - make image-deb branch=$CI_COMMIT_REF_SLUG src=ubuntu
+   
+make-image-rpm:
+ stage: image
+ extends: make-image-deb
+ script:
+   - make image-rpm branch=$CI_COMMIT_REF_SLUG src=fedora
 
 # Once the CI is green, we retag the current branch-master to latest
-publish-latest:
+publish-latest-deb:
  stage: image-latest
  extends: .common-image
  dependencies: [] # Prevent download + extract artifacts
@@ -59,15 +64,29 @@ publish-latest:
    - schedules
    - triggers
  script:
-   - make latest
+   - make latest src=ubuntu
+
+publish-latest-rpm:
+ extends: publish-latest-deb
+ script:
+   - make latest src=fedora
 
 
 ########## CI Jobs ##########
-test:
+test-deb:
  stage: test
+ image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-ubuntu
  interruptible: true
+ needs:
+   - job: make-image-deb
  script:
    - python3 -m pytest
+
+test-rpm:
+ extends: test-deb
+ needs:
+   - job: make-image-rpm
+ image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-fedora
 
 
 # Jobs to publish commits + tags from master to github
