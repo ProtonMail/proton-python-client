@@ -40,17 +40,7 @@ COPY docker_entry.sh /usr/local/bin
 COPY . /home/user/proton-python-client
 
 RUN chown -R user:user /home/user/
+USER user
 WORKDIR /home/user/proton-python-client
 
-
-# RUN cd /usr/lib64/ && ls -l | grep "libssl"
-
-# USER user
-
-# RUN python3 setup.py bdist_rpm
-
-# RUN mv /home/user/proton-python-client/rpmbuild /home/user/
-# RUN mv /home/user/proton-python-client/dist/*.tar.gz /home/user/rpmbuild/SOURCES/
-
-# RUN rpmbuild -bb /home/user/rpmbuild/SPECS/python3-proton-client.spec
 ENTRYPOINT ["/usr/local/bin/docker_entry.sh"]

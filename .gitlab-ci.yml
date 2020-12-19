@@ -1,8 +1,11 @@
-# Jobs to build and publish debian packages
+# # Jobs to build and publish debian packages
 include:
  - project: 'ProtonVPN/Linux/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'gitlab-ci-build-publish-debian.yml'
+ - project: 'ProtonVPN/Linux/_gitlab-ci'
+   ref: public-protonvpn-repo
+   file: 'gitlab-ci-build-publish-rpm.yml'
  - project: 'agarroux/publish-github'
    ref: master
    file: '/jobs/release.gitlab-ci.yml'
@@ -37,7 +40,7 @@ variables:
     - apk add make bash git gawk rsync
 
 
-# Make image when we push to a branch -> run tests on top of this one
+## Make image when we push to a branch -> run tests on top of this one
 make-image-deb:
  stage: image
  extends: .common-image
@@ -53,7 +56,7 @@ make-image-rpm:
  script:
    - make image-rpm branch=$CI_COMMIT_REF_SLUG src=fedora
 
-# Once the CI is green, we retag the current branch-master to latest
+## Once the CI is green, we retag the current branch-master to latest
 publish-latest-deb:
  stage: image-latest
  extends: .common-image
@@ -72,7 +75,7 @@ publish-latest-rpm:
    - make latest src=fedora
 
 
-########## CI Jobs ##########
+######### CI Jobs ##########
 test-deb:
  stage: test
  image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-ubuntu
@@ -89,7 +92,7 @@ test-rpm:
  image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-fedora
 
 
-# Jobs to publish commits + tags from master to github
+# # Jobs to publish commits + tags from master to github
 release-publish-github:
  stage: release
  variables:
