@@ -15,13 +15,15 @@ endif
 
 IMAGE_URL_DEB ?= $(CI_REGISTRY_IMAGE_PROTON)/ubuntu:latest
 IMAGE_URL_RPM ?= $(CI_REGISTRY_IMAGE_PROTON)/fedora:latest
+IMAGE_URL_ARCH ?= $(CI_REGISTRY_IMAGE_PROTON)/archlinux:latest
 ifndef CI_REGISTRY_IMAGE_PROTON
  	IMAGE_URL_DEB = ubuntu:latest
   	IMAGE_URL_RPM = fedora:latest
+  	IMAGE_URL_ARCH = archlinux:latest
 endif
 
 # Run make base to build both images based on ubuntu and fedora
-base: image-deb image-rpm
+base: image-deb image-rpm image-arch
 
 # Create the image based on ubuntu
 image-deb: image
@@ -33,6 +35,11 @@ image-rpm: image
 image-rpm: DOCKER_FILE_SOURCE = Dockerfile.rpm
 image-rpm: src = fedora
 
+# Create the image based on archlinux
+image-arch: image
+image-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
+image-arch: src = archlinux
+
 ## Make remote image form a branch make image branch=<branchName> (master default)
 image: requirements.txt docker-source
 	docker build -t $(NAME_IMAGE):$(TAG_IMAGE) -f "$(DOCKERFILE_BUILD)" .
@@ -41,7 +48,7 @@ image: requirements.txt docker-source
 
 ## We host our own copy of the image ubuntu:latest
 docker-source:
-	sed "s|IMAGE_URL_RPM|$(IMAGE_URL_RPM)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
+	sed "s|IMAGE_URL_RPM|$(IMAGE_URL_RPM)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
 
 requirements.txt:
 	@ touch requirements.txt
@@ -59,13 +66,16 @@ local: docker-source
 	@ rm -rf __SOURCE_APP || true
 local: NAME_IMAGE = proton-python-client:latest
 
-local-base: local-deb local-rpm
+local-base: local-deb local-rpm local-arch
 
 local-deb: local
 local-deb: DOCKER_FILE_SOURCE = Dockerfile.deb
 
 local-rpm: local
 local-rpm: DOCKER_FILE_SOURCE = Dockerfile.rpm
+
+local-arch: local
+local-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
 
 # Build an image from your computer and push it to our repository
 deploy-local: login-deploy build tag push
