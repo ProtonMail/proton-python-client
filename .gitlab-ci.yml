@@ -1,5 +1,5 @@
 ## Jobs to build and publish deb, rpm and arch based packages
-default:
+variables:
  image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
  PKGNAME: "python-proton-client"
  ORIGINAL_PKGNAME: "proton-python-client"
