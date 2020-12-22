@@ -87,7 +87,29 @@ login-deploy:
 ######### Not linked to the image ###############
 
 ## Run tests against the latest version of the image from your code
-test: local
+test-deb: local-deb
+	# Keep -it because with colors it's better
+	@ docker run \
+			--rm \
+			-it \
+			--privileged \
+			--volume $(PWD)/.env:/home/user/proton-python-client.env \
+			proton-python-client:latest \
+			python3 -m pytest
+
+## Run tests against the latest version of the image from your code
+test-rpm: local-rpm
+	# Keep -it because with colors it's better
+	@ docker run \
+			--rm \
+			-it \
+			--privileged \
+			--volume $(PWD)/.env:/home/user/proton-python-client.env \
+			proton-python-client:latest \
+			python3 -m pytest
+			
+## Run tests against the latest version of the image from your code
+test-arch: local-arch
 	# Keep -it because with colors it's better
 	@ docker run \
 			--rm \
