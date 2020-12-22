@@ -1,4 +1,9 @@
 ## Jobs to build and publish deb, rpm and arch based packages
+variables:
+ image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
+ PKGNAME: "python-proton-client"
+ ORIGINAL_PKGNAME: "proton-python-client"
+
 include:
  - project: 'ProtonVPN/Linux/_gitlab-ci'
    ref: public-protonvpn-repo
@@ -12,9 +17,6 @@ include:
  - project: 'agarroux/publish-github'
    ref: master
    file: '/jobs/release.gitlab-ci.yml'
-
-default:
- image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG
 
 stages:
  - image
