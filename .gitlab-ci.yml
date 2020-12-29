@@ -27,7 +27,8 @@ stages:
 
 variables:
   CI_REGISTRY_IMAGE_PROTON: "$CI_REGISTRY/infra/kubernetes/images"
-  PKGNAME: "python-proton-client"
+  PKGNAME_ARCH: "python-proton-client"
+  PKGNAME_RPM: "python3-proton-client"
   ORIGINAL_PKGNAME: "proton-python-client"
 
 
