@@ -6,7 +6,7 @@ import requests
 
 from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
-from .constants import DEFAULT_TIMEOUT
+from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY
 
 
 class ProtonError(Exception):
@@ -28,18 +28,6 @@ class Session:
         "x-pm-apiversion": "3",
         "Accept": "application/vnd.protonmail.v1+json"
     }
-
-    _srp_modulus_key = """-----BEGIN PGP PUBLIC KEY BLOCK-----
-xjMEXAHLgxYJKwYBBAHaRw8BAQdAFurWXXwjTemqjD7CXjXVyKf0of7n9Ctm
-L8v9enkzggHNEnByb3RvbkBzcnAubW9kdWx1c8J3BBAWCgApBQJcAcuDBgsJ
-BwgDAgkQNQWFxOlRjyYEFQgKAgMWAgECGQECGwMCHgEAAPGRAP9sauJsW12U
-MnTQUZpsbJb53d0Wv55mZIIiJL2XulpWPQD/V6NglBd96lZKBmInSXX/kXat
-Sv+y0io+LR8i2+jV+AbOOARcAcuDEgorBgEEAZdVAQUBAQdAeJHUz1c9+KfE
-kSIgcBRE3WuXC4oj5a2/U3oASExGDW4DAQgHwmEEGBYIABMFAlwBy4MJEDUF
-hcTpUY8mAhsMAAD/XQD8DxNI6E78meodQI+wLsrKLeHn32iLvUqJbVDhfWSU
-WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
-=Y4Mw
------END PGP PUBLIC KEY BLOCK-----"""
 
     @staticmethod
     def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT):
@@ -82,7 +70,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
         # Verify modulus
         self.__gnupg = gnupg.GPG()
-        self.__gnupg.import_keys(self._srp_modulus_key)
+        self.__gnupg.import_keys(SRP_MODULUS_KEY)
 
         self._session_data = {}
 
@@ -136,6 +124,17 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
         return ret
 
+
+    def verify_modulus(self, armored_modulus):
+        # gpg.decrypt verifies the signature too, and returns the parsed data.
+        # By using gpg.verify the data is not returned
+        verified = self.__gnupg.decrypt(armored_modulus)
+
+        if not verified.valid:
+            raise ValueError('Invalid modulus')
+
+        return base64.b64decode(verified.data.strip())
+
     def authenticate(self, username, password):
         self.logout()
 
@@ -143,20 +142,15 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if self.__clientsecret:
             payload['ClientSecret'] = self.__clientsecret
         info_response = self.api_request("/auth/info", payload)
-        d = self.__gnupg.decrypt(info_response['Modulus'])
 
-        if not d.valid:
-            raise ValueError('Invalid modulus')
-
-        modulus = base64.b64decode(d.data.strip())
-        challenge = base64.b64decode(info_response["ServerEphemeral"])
+        modulus = self.verify_modulus(info_response['Modulus'])
+        server_challenge = base64.b64decode(info_response["ServerEphemeral"])
         salt = base64.b64decode(info_response["Salt"])
-        session = info_response["SRPSession"]
         version = info_response["Version"]
 
         usr = PmsrpUser(password, modulus)
-        A = usr.get_challenge()
-        M = usr.process_challenge(salt, challenge, version)
+        client_challenge = usr.get_challenge()
+        client_proof = usr.process_challenge(salt, server_challenge, version)
 
         if M is None:
             raise ValueError('Invalid challenge')
@@ -164,9 +158,9 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         # Send response
         payload = {
             "Username": username,
-            "ClientEphemeral": base64.b64encode(A).decode('utf8'),
-            "ClientProof": base64.b64encode(M).decode('utf8'),
-            "SRPSession": session,
+            "ClientEphemeral": base64.b64encode(client_challenge).decode('utf8'),
+            "ClientProof": base64.b64encode(client_proof).decode('utf8'),
+            "SRPSession": info_response["SRPSession"],
         }
         if self.__clientsecret:
             payload['ClientSecret'] = self.__clientsecret

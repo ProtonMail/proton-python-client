@@ -1,18 +1,19 @@
 import unittest
 
 import base64
-from testdata import instances
+from testdata import srp_instances, modulus_instances
 from testserver import TestServer
 from proton.srp.util import PM_VERSION
 from proton.srp._ctsrp import User as CTUser
 from proton.srp._pysrp import User as PYUser
+from proton.api import Session
 
 
 class SRPTestCases:
     class SRPTestBase(unittest.TestCase):
         def test_invalid_version(self):
-            modulus = bytes.fromhex(instances[0]['Modulus'])
-            salt = base64.b64decode(instances[0]['Salt'])
+            modulus = bytes.fromhex(srp_instances[0]['Modulus'])
+            salt = base64.b64decode(srp_instances[0]['Salt'])
 
             with self.assertRaises(ValueError):
                 usr = self.user('pass', modulus)
@@ -23,7 +24,7 @@ class SRPTestCases:
                 salt, usr.compute_v(salt, 5)
 
         def test_compute_v(self):
-            for instance in instances:
+            for instance in srp_instances:
                 if instance["Exception"] is not None:
                     with self.assertRaises(instance['Exception']):
                         usr = self.user(
@@ -57,7 +58,7 @@ class SRPTestCases:
                     )
 
         def test_generate_v(self):
-            for instance in instances:
+            for instance in srp_instances:
                 if instance["Exception"] is not None:
                     continue
 
@@ -84,7 +85,7 @@ class SRPTestCases:
                 )
 
         def test_srp(self):
-            for instance in instances:
+            for instance in srp_instances:
                 if instance["Exception"]:
                     continue
 
@@ -153,6 +154,21 @@ class TestCTSRPClass(SRPTestCases.SRPTestBase):
 class TestPYSRPClass(SRPTestCases.SRPTestBase):
     def setUp(self):
         self.user = PYUser
+
+
+class TestModulus(unittest.TestCase):
+    def test_modulus_verification(self):
+        session = Session('dummy')
+        for instance in modulus_instances:
+            if instance["Exception"] is not None:
+                with self.assertRaises(instance['Exception']):
+                    session.verify_modulus(instance["SignedModulus"])
+            else:
+                self.assertEqual(
+                    base64.b64decode(instance["Decoded"]),
+                    session.verify_modulus(instance["SignedModulus"]),
+                    "Error verifying modulus in instance: " + str(instance)[:30] + "..."
+                )
 
 
 if __name__ == '__main__':

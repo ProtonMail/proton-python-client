@@ -147,7 +147,7 @@ def bn_hash_k(hash_class, dest, g, N, width):
 
 def calculate_x(hash_class, dest, salt, password, modulus, version):
     exp = hash_password(
-        hash_class, password, bn_to_bytes(salt), bn_to_bytes(modulus), version
+        hash_class, password, salt, bn_to_bytes(modulus), version
     )
     bytes_to_bn(dest, exp)
 
@@ -196,7 +196,6 @@ class User(object):
         self.a = BN_new() # noqa
         self.A = BN_new() # noqa
         self.B = BN_new() # noqa
-        self.s = BN_new() # noqa
         self.S = BN_new() # noqa
         self.u = BN_new() # noqa
         self.x = BN_new() # noqa
@@ -209,6 +208,7 @@ class User(object):
         self.K = None
         self.expected_server_proof = None
         self._authenticated = False
+        self.bytes_s = None
 
         self.hash_class = pmhash
         self.N, self.g, self.k = get_ngk(self.hash_class, n_bin, g_hex, self.ctx) # noqa
@@ -229,7 +229,6 @@ class User(object):
         BN_free(self.a) # noqa
         BN_free(self.A) # noqa
         BN_free(self.B) # noqa
-        BN_free(self.s) # noqa
         BN_free(self.S) # noqa
         BN_free(self.u) # noqa
         BN_free(self.x) # noqa
@@ -258,7 +257,7 @@ class User(object):
     def process_challenge(
         self, bytes_s, bytes_server_challenge, version=PM_VERSION
     ):
-        bytes_to_bn(self.s, bytes_s)
+        self.bytes_s = bytes_s
         bytes_to_bn(self.B, bytes_server_challenge)
 
         # SRP-6a safety check
@@ -272,9 +271,8 @@ class User(object):
             return None
 
         calculate_x(
-            self.hash_class, self.x, self.s, self.password, self.N, version
+            self.hash_class, self.x, self.bytes_s, self.password, self.N, version
         )
-
         BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)  # noqa
 
         # S = (B - k*(g^x)) ^ (a + ux)
@@ -301,15 +299,17 @@ class User(object):
 
     def compute_v(self, bytes_s=None, version=PM_VERSION):
         if bytes_s is None:
-            BN_rand(self.s, 10*8, 0, 0) # noqa
+            salt = BN_new()
+            BN_rand(salt, 10*8, 0, 0) # noqa
+            self.bytes_s = bn_to_bytes(salt)
         else:
-            bytes_to_bn(self.s, bytes_s)
+            self.bytes_s = bytes_s
 
         calculate_x(
-            self.hash_class, self.x, self.s, self.password, self.N, version
+            self.hash_class, self.x, self.bytes_s, self.password, self.N, version
         )
-        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx) # noqa
-        return bn_to_bytes(self.s), bn_to_bytes(self.v)
+        BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)
+        return self.bytes_s, bn_to_bytes(self.v)
 
 # ---------------------------------------------------------
 # Init

@@ -1,8 +1,8 @@
 %define unmangled_name proton-client
-%define version 0.1.0
+%define version 0.2.0
 %define release 1
 
-Summary: Proton Technologies API wrapper
+Summary: Safely login with ProtonVPN credentials to connect to Proton.
 Name: python3-proton-client
 Version: %{version}
 Release: %{release}
