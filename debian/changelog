@@ -1,3 +1,9 @@
+proton-python-client (0.2.0-1) UNRELEASED; urgency=medium
+	
+  * Bugfix: invalid modulus
+
+ -- Proton Technologies AG <opensource@proton.me>  Thu, 30 Nov 2020 09:05:29 +0000
+
 proton-python-client (0.1.0-1) UNRELEASED; urgency=medium
 	
   * Project is flake8 compatible

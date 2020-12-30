@@ -1,8 +1,8 @@
 # Maintainer: Proton Technologies AG <opensource@proton.me>
 pkgname=python-proton-client
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
-pkgdesc="Proton Technologies API wrapper"
+pkgdesc="Safely login with ProtonVPN credentials to connect to Proton."
 arch=("any")
 url="https://github.com/ProtonMail/proton-python-client"
 license=("GPL3")

@@ -31,8 +31,7 @@ def hash_k(hash_class, g, modulus, width):
 
 def calculate_x(hash_class, salt, password, modulus, version):
     exp = hash_password(
-        hash_class, password, long_to_bytes(salt),
-        long_to_bytes(modulus), version
+        hash_class, password, salt, long_to_bytes(modulus), version
     )
     return bytes_to_long(exp)
 
@@ -82,7 +81,7 @@ class User(object):
         self.K = None
         self.expected_server_proof = None
         self._authenticated = False
-        self.s = None
+        self.bytes_s = None
         self.S = None
         self.B = None
         self.u = None
@@ -104,7 +103,7 @@ class User(object):
     def process_challenge(
         self, bytes_s, bytes_server_challenge, version=PM_VERSION
     ):
-        self.s = bytes_to_long(bytes_s)
+        self.bytes_s = bytes_s
         self.B = bytes_to_long(bytes_server_challenge)
 
         # SRP-6a safety check
@@ -117,7 +116,7 @@ class User(object):
         if self.u == 0:
             return None
 
-        self.x = calculate_x(self.hash_class, self.s, self.p, self.N, version)
+        self.x = calculate_x(self.hash_class, self.bytes_s, self.p, self.N, version)
 
         self.v = pow(self.g, self.x, self.N)
 
@@ -138,7 +137,7 @@ class User(object):
             self._authenticated = True
 
     def compute_v(self, bytes_s=None, version=PM_VERSION):
-        self.s = get_random_of_length(10) if bytes_s is None else bytes_to_long(bytes_s) # noqa
-        self.x = calculate_x(self.hash_class, self.s, self.p, self.N, version)
+        self.bytes_s = long_to_bytes(get_random_of_length(10)) if bytes_s is None else bytes_s # noqa
+        self.x = calculate_x(self.hash_class, self.bytes_s, self.p, self.N, version)
 
-        return long_to_bytes(self.s), long_to_bytes(pow(self.g, self.x, self.N)) # noqa
+        return self.bytes_s, long_to_bytes(pow(self.g, self.x, self.N)) # noqa
