@@ -124,7 +124,6 @@ class Session:
 
         return ret
 
-
     def verify_modulus(self, armored_modulus):
         # gpg.decrypt verifies the signature too, and returns the parsed data.
         # By using gpg.verify the data is not returned
@@ -152,13 +151,15 @@ class Session:
         client_challenge = usr.get_challenge()
         client_proof = usr.process_challenge(salt, server_challenge, version)
 
-        if M is None:
+        if client_proof is None:
             raise ValueError('Invalid challenge')
 
         # Send response
         payload = {
             "Username": username,
-            "ClientEphemeral": base64.b64encode(client_challenge).decode('utf8'),
+            "ClientEphemeral": base64.b64encode(client_challenge).decode(
+                'utf8'
+            ),
             "ClientProof": base64.b64encode(client_proof).decode('utf8'),
             "SRPSession": info_response["SRPSession"],
         }

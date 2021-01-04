@@ -1,8 +1,9 @@
-proton-python-client (0.2.0-1) UNRELEASED; urgency=medium
+proton-python-client (0.2.0-2) UNRELEASED; urgency=medium
 	
-  * Bugfix: invalid modulus
+  * Bugfix: Invalid modulus
+  * Bugfix: Undefined variable M
 
- -- Proton Technologies AG <opensource@proton.me>  Thu, 30 Nov 2020 09:05:29 +0000
+ -- Proton Technologies AG <opensource@proton.me>  Mon, 04 Jan 2021 10:0:04 +0000
 
 proton-python-client (0.1.0-1) UNRELEASED; urgency=medium
 	
