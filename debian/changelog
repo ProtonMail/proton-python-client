@@ -1,4 +1,10 @@
-proton-python-client (0.2.0-3) unstable; urgency=medium
+proton-python-client (0.3.0-1) unstable; urgency=medium
+
+  * Set flags to BNs in the openssl implementation using BN_set_flags and BN_FLAG_CONSTTIME
+
+ -- Proton Technologies AG <opensource@proton.me>  Wed, 27 Jan 2021 12:12:23 +0000
+ 
+ proton-python-client (0.2.0-3) unstable; urgency=medium
 
   * Bugfix: Invalid modulus
   * Bugfix: Invalid salt

@@ -77,6 +77,7 @@ def load_func(name, args, returns=ctypes.c_int):
 load_func('BN_new', [], BIGNUM)
 load_func('BN_free', [BIGNUM], None)
 load_func('BN_clear', [BIGNUM], None)
+load_func('BN_set_flags', [BIGNUM, ctypes.c_int], None)
 
 load_func('BN_CTX_new', [], BN_CTX)
 load_func('BN_CTX_free', [BN_CTX], None)
@@ -102,6 +103,12 @@ load_func('BN_bn2hex', [BIGNUM], ctypes.c_char_p)
 load_func('CRYPTO_free', [ctypes.c_char_p])
 
 load_func('RAND_seed', [ctypes.c_char_p, ctypes.c_int])
+
+
+def new_bn():
+    bn = BN_new()
+    BN_set_flags(bn, 0x04)  # BN_FLAG_CONSTTIME
+    return bn
 
 
 def bn_num_bytes(a):
@@ -173,9 +180,9 @@ def calculate_server_challenge(hash_class, A, M, K):
 
 
 def get_ngk(hash_class, n_bin, g_hex, ctx):
-    N = BN_new() # noqa
-    g = BN_new() # noqa
-    k = BN_new() # noqa
+    N = new_bn() # noqa
+    g = new_bn() # noqa
+    k = new_bn() # noqa
 
     bytes_to_bn(N, n_bin)
     BN_hex2bn(g, g_hex) # noqa
@@ -193,16 +200,16 @@ class User(object):
             raise ValueError("Invalid password")
 
         self.password = password.encode()
-        self.a = BN_new() # noqa
-        self.A = BN_new() # noqa
-        self.B = BN_new() # noqa
-        self.S = BN_new() # noqa
-        self.u = BN_new() # noqa
-        self.x = BN_new() # noqa
-        self.v = BN_new() # noqa
-        self.tmp1 = BN_new() # noqa
-        self.tmp2 = BN_new() # noqa
-        self.tmp3 = BN_new() # noqa
+        self.a = new_bn() # noqa
+        self.A = new_bn() # noqa
+        self.B = new_bn() # noqa
+        self.S = new_bn() # noqa
+        self.u = new_bn() # noqa
+        self.x = new_bn() # noqa
+        self.v = new_bn() # noqa
+        self.tmp1 = new_bn() # noqa
+        self.tmp2 = new_bn() # noqa
+        self.tmp3 = new_bn() # noqa
         self.ctx = BN_CTX_new() # noqa
         self.M = None
         self.K = None
@@ -299,7 +306,7 @@ class User(object):
 
     def compute_v(self, bytes_s=None, version=PM_VERSION):
         if bytes_s is None:
-            salt = BN_new()
+            salt = new_bn()
             BN_rand(salt, 10*8, 0, 0) # noqa
             self.bytes_s = bn_to_bytes(salt)
         else:
