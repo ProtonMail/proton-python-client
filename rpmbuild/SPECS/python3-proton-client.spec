@@ -1,19 +1,24 @@
 %define unmangled_name proton-client
 %define version 0.2.0
-%define release 1
+%define release 4
 
-Summary: Safely login with ProtonVPN credentials to connect to Proton.
+Prefix: %{_prefix}
+
 Name: python3-proton-client
 Version: %{version}
 Release: %{release}
-Source0: %{unmangled_name}-%{version}.tar.gz
-License: MIT
-Group: Development/Libraries
-BuildRoot: %{_tmppath}/%{unmangled_name}-%{version}-%{release}-buildroot
-Prefix: %{_prefix}
-BuildArch: noarch
-Vendor: Proton Technologies AG <contact@protonmail.com>
+Summary: Safely login with ProtonVPN credentials to connect to Proton.
+
+Group: ProtonVPN
+License: GPLv3
 Url: https://github.com/ProtonMail/proton-python-client
+Vendor: Proton Technologies AG <contact@protonmail.com>
+Source0: %{unmangled_name}-%{version}.tar.gz
+BuildArch: noarch
+BuildRoot: %{_tmppath}/%{unmangled_name}-%{version}-%{release}-buildroot
+
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
 Requires: python3-requests
 Requires: python3-pyOpenSSL
 Requires: python3-bcrypt
@@ -23,20 +28,25 @@ Requires: python3-gnupg
 
 %description
 This package, originally forked from python-srp module implements a simple
-wrapper to the Proton Technologies API, abstracting from the SRP authentication.
-
+wrapper to Proton Technologies API, abstracting from the SRP authentication.
 
 %prep
-%setup -n %{unmangled_name}-%{version} -n %{unmangled_name}-%{version}
+%setup -q -n %{unmangled_name}-%{version} -n %{unmangled_name}-%{version}
 
 %build
-python3 setup.py build
+%{python3} setup.py build
 
 %install
-python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+%{python3} setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
+%{python3_sitelib}/proton/
+%{python3_sitelib}/proton_client-%{version}*.egg-info/
 %defattr(-,root,root)
+
+%changelog
+* Tue Jan 26 2021 Proton Technologies AG <opensource@proton.me> 0.2.0-4
+- Update .spec file for public release

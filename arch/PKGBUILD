@@ -6,6 +6,7 @@ pkgdesc="Safely login with ProtonVPN credentials to connect to Proton."
 arch=("any")
 url="https://github.com/ProtonMail/proton-python-client"
 license=("GPL3")
+groups=("ProtonVPN")
 depends=("python-requests" "python-bcrypt" "python-gnupg" "python-pyopenssl")
 makedepends=("python-setuptools")
 source=("$pkgname.tar.gz")

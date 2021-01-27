@@ -8,6 +8,8 @@ X-Python3-Version: >= 3.5
 
 Package: python3-proton-client
 Architecture: all
+Homepage: https://github.com/ProtonMail/proton-python-client
+Section: net
 Depends: ${python3:Depends}, ${misc:Depends}, python3-bcrypt, python3-gnupg, python3-openssl, python3-requests (>= 2.16.0)
 Description: Proton SRP (Python 3)
  Safely login with ProtonVPN credentials to connect to Proton.
