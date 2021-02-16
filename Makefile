@@ -12,15 +12,9 @@ ifeq ($(branch), latest)
 	TAG_IMAGE=latest
 endif
 
-
-IMAGE_URL_DEB ?= $(CI_REGISTRY_IMAGE_PROTON)/ubuntu:latest
-IMAGE_URL_RPM ?= $(CI_REGISTRY_IMAGE_PROTON)/fedora:latest
-IMAGE_URL_ARCH ?= $(CI_REGISTRY_IMAGE_PROTON)/archlinux:latest
-ifndef CI_REGISTRY_IMAGE_PROTON
- 	IMAGE_URL_DEB = ubuntu:latest
-  	IMAGE_URL_RPM = fedora:latest
-  	IMAGE_URL_ARCH = archlinux:latest
-endif
+IMAGE_URL_DEB = ubuntu:latest
+IMAGE_URL_RPM = fedora:latest
+IMAGE_URL_ARCH = archlinux:base-devel-20210131.0.14634
 
 # Run make base to build both images based on ubuntu and fedora
 base: image-deb image-rpm image-arch
