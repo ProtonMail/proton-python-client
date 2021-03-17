@@ -63,7 +63,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True, ClientSecret=None):
+    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True, ClientSecret=None, proxies=None):
         self.__api_url = api_url
         self.__appversion = appversion
         self.__user_agent = user_agent
@@ -76,6 +76,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         self._session_data = {}
 
         self.s = requests.Session()
+        self.s.proxies.update(proxies)
         if TLSPinning:
             self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
