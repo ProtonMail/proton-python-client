@@ -1,6 +1,6 @@
 # Maintainer: Proton Technologies AG <opensource@proton.me>
 pkgname=python-proton-client
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc="Safely login with ProtonVPN credentials to connect to Proton."
 arch=("any")

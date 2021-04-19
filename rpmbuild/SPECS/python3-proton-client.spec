@@ -1,5 +1,5 @@
 %define unmangled_name proton-client
-%define version 0.3.0
+%define version 0.4.0
 %define release 1
 
 Prefix: %{_prefix}
@@ -48,6 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Mon Apr 19 2021 Proton Technologies AG <opensource@proton.me> 0.4.0-1
+- Add proxy support
+
 * Tue Jan 26 2021 Proton Technologies AG <opensource@proton.me> 0.3.0-1
 - Set flags to BNs in the openssl implementation using BN_set_flags and BN_FLAG_CONSTTIME
 

@@ -30,7 +30,7 @@ class Session:
     }
 
     @staticmethod
-    def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT):
+    def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT, proxies=None):
         api_url = dump['api_url']
         appversion = dump['appversion']
         user_agent = dump['User-Agent']
@@ -40,7 +40,8 @@ class Session:
             appversion=appversion,
             user_agent=user_agent,
             TLSPinning=TLSPinning,
-            timeout=timeout
+            timeout=timeout,
+            proxies=proxies
         )
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
         s._session_data = dump['session_data']
@@ -60,7 +61,8 @@ class Session:
 
     def __init__(
         self, api_url, appversion="Other", user_agent="None",
-        TLSPinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT
+        TLSPinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT,
+        proxies=None
     ):
         self.__api_url = api_url
         self.__appversion = appversion
@@ -75,6 +77,9 @@ class Session:
         self._session_data = {}
 
         self.s = requests.Session()
+        if proxies:
+            self.s.proxies.update(proxies)
+
         if TLSPinning:
             self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
