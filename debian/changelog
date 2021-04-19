@@ -1,4 +1,10 @@
-proton-python-client (0.3.0-1) unstable; urgency=medium
+proton-python-client (0.4.0-1) unstable; urgency=medium
+
+  * Add proxy support
+
+ -- Proton Technologies AG <opensource@proton.me>  Mon, 19 Apr 2021 10:50:00 +0100
+ 
+ proton-python-client (0.3.0-1) unstable; urgency=medium
 
   * Set flags to BNs in the openssl implementation using BN_set_flags and BN_FLAG_CONSTTIME
 
