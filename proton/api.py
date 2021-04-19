@@ -6,7 +6,7 @@ import requests
 
 from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
-from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY
+from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY, SRP_MODULUS_KEY_FINGERPRINT
 
 
 class ProtonError(Exception):
@@ -134,7 +134,7 @@ class Session:
         # By using gpg.verify the data is not returned
         verified = self.__gnupg.decrypt(armored_modulus)
 
-        if not verified.valid:
+        if not (verified.valid and verified.fingerprint.lower() == SRP_MODULUS_KEY_FINGERPRINT):
             raise ValueError('Invalid modulus')
 
         return base64.b64decode(verified.data.strip())

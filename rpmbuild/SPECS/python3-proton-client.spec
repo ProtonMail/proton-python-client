@@ -50,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Apr 19 2021 Proton Technologies AG <opensource@proton.me> 0.4.0-1
 - Add proxy support
+- Verify fingerprint of signer key
 
 * Tue Jan 26 2021 Proton Technologies AG <opensource@proton.me> 0.3.0-1
 - Set flags to BNs in the openssl implementation using BN_set_flags and BN_FLAG_CONSTTIME

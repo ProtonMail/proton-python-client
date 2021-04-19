@@ -1,6 +1,7 @@
 proton-python-client (0.4.0-1) unstable; urgency=medium
 
   * Add proxy support
+  * Verify fingerprint of signer key
 
  -- Proton Technologies AG <opensource@proton.me>  Mon, 19 Apr 2021 10:50:00 +0100
  
