@@ -6,6 +6,7 @@ import requests
 
 from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
+from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY, SRP_MODULUS_KEY_FINGERPRINT
 
 
 class ProtonError(Exception):
@@ -28,25 +29,20 @@ class Session:
         "Accept": "application/vnd.protonmail.v1+json"
     }
 
-    _srp_modulus_key = """-----BEGIN PGP PUBLIC KEY BLOCK-----
-xjMEXAHLgxYJKwYBBAHaRw8BAQdAFurWXXwjTemqjD7CXjXVyKf0of7n9Ctm
-L8v9enkzggHNEnByb3RvbkBzcnAubW9kdWx1c8J3BBAWCgApBQJcAcuDBgsJ
-BwgDAgkQNQWFxOlRjyYEFQgKAgMWAgECGQECGwMCHgEAAPGRAP9sauJsW12U
-MnTQUZpsbJb53d0Wv55mZIIiJL2XulpWPQD/V6NglBd96lZKBmInSXX/kXat
-Sv+y0io+LR8i2+jV+AbOOARcAcuDEgorBgEEAZdVAQUBAQdAeJHUz1c9+KfE
-kSIgcBRE3WuXC4oj5a2/U3oASExGDW4DAQgHwmEEGBYIABMFAlwBy4MJEDUF
-hcTpUY8mAhsMAAD/XQD8DxNI6E78meodQI+wLsrKLeHn32iLvUqJbVDhfWSU
-WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
-=Y4Mw
------END PGP PUBLIC KEY BLOCK-----"""
-
     @staticmethod
-    def load(dump, TLSPinning=True):
+    def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT, proxies=None):
         api_url = dump['api_url']
         appversion = dump['appversion']
         user_agent = dump['User-Agent']
         cookies = dump.get('cookies', {})
-        s = Session(api_url, appversion, user_agent, TLSPinning=TLSPinning)
+        s = Session(
+            api_url=api_url,
+            appversion=appversion,
+            user_agent=user_agent,
+            TLSPinning=TLSPinning,
+            timeout=timeout,
+            proxies=proxies
+        )
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
         s._session_data = dump['session_data']
         if s.UID is not None:
@@ -63,25 +59,35 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
             'session_data': self._session_data
         }
 
-    def __init__(self, api_url, appversion="Other", user_agent="None", TLSPinning=True, ClientSecret=None):
+    def __init__(
+        self, api_url, appversion="Other", user_agent="None",
+        TLSPinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT,
+        proxies=None
+    ):
         self.__api_url = api_url
         self.__appversion = appversion
         self.__user_agent = user_agent
         self.__clientsecret = ClientSecret
+        self.__timeout = timeout
 
-        ## Verify modulus
+        # Verify modulus
         self.__gnupg = gnupg.GPG()
-        self.__gnupg.import_keys(self._srp_modulus_key)
+        self.__gnupg.import_keys(SRP_MODULUS_KEY)
 
         self._session_data = {}
 
         self.s = requests.Session()
+        if proxies:
+            self.s.proxies.update(proxies)
+
         if TLSPinning:
             self.s.mount(self.__api_url, TLSPinningAdapter())
         self.s.headers['x-pm-appversion'] = appversion
         self.s.headers['User-Agent'] = user_agent
 
-    def api_request(self, endpoint, jsondata=None, additional_headers=None, method=None):
+    def api_request(
+        self, endpoint, jsondata=None, additional_headers=None, method=None
+    ):
         fct = self.s.post
         if method is None:
             if jsondata is None:
@@ -100,11 +106,11 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
-
         ret = fct(
             self.__api_url + endpoint,
-            headers = additional_headers,
-            json = jsondata
+            headers=additional_headers,
+            json=jsondata,
+            timeout=self.__timeout
         )
 
         try:
@@ -123,6 +129,15 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
         return ret
 
+    def verify_modulus(self, armored_modulus):
+        # gpg.decrypt verifies the signature too, and returns the parsed data.
+        # By using gpg.verify the data is not returned
+        verified = self.__gnupg.decrypt(armored_modulus)
+
+        if not (verified.valid and verified.fingerprint.lower() == SRP_MODULUS_KEY_FINGERPRINT):
+            raise ValueError('Invalid modulus')
+
+        return base64.b64decode(verified.data.strip())
 
     def authenticate(self, username, password):
         self.logout()
@@ -131,30 +146,27 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if self.__clientsecret:
             payload['ClientSecret'] = self.__clientsecret
         info_response = self.api_request("/auth/info", payload)
-        d = self.__gnupg.decrypt(info_response['Modulus'])
 
-        if not d.valid:
-            raise ValueError('Invalid modulus')
+        modulus = self.verify_modulus(info_response['Modulus'])
+        server_challenge = base64.b64decode(info_response["ServerEphemeral"])
+        salt = base64.b64decode(info_response["Salt"])
+        version = info_response["Version"]
 
-        modulus   = base64.b64decode(d.data.strip())
-        challenge = base64.b64decode(info_response["ServerEphemeral"])
-        salt      = base64.b64decode(info_response["Salt"])
-        session   = info_response["SRPSession"]
-        version   = info_response["Version"]
+        usr = PmsrpUser(password, modulus)
+        client_challenge = usr.get_challenge()
+        client_proof = usr.process_challenge(salt, server_challenge, version)
 
-        usr        = PmsrpUser(password, modulus)
-        A          = usr.get_challenge()
-        M          = usr.process_challenge(salt, challenge, version)
-
-        if M is None:
+        if client_proof is None:
             raise ValueError('Invalid challenge')
 
-        ## Send response
+        # Send response
         payload = {
             "Username": username,
-            "ClientEphemeral" : base64.b64encode(A).decode('utf8'),
-            "ClientProof" : base64.b64encode(M).decode('utf8'),
-            "SRPSession": session,
+            "ClientEphemeral": base64.b64encode(client_challenge).decode(
+                'utf8'
+            ),
+            "ClientProof": base64.b64encode(client_proof).decode('utf8'),
+            "SRPSession": info_response["SRPSession"],
         }
         if self.__clientsecret:
             payload['ClientSecret'] = self.__clientsecret
@@ -163,7 +175,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
         if "ServerProof" not in auth_response:
             raise ValueError("Invalid password")
 
-        usr.verify_session( base64.b64decode(auth_response["ServerProof"]))
+        usr.verify_session(base64.b64decode(auth_response["ServerProof"]))
         if not usr.authenticated():
             raise ValueError('Invalid server proof')
 
@@ -190,7 +202,7 @@ WO4BAMcm1u02t4VKw++ttECPt+HUgPUq5pqQWe5Q2cW4TMsE
 
     def logout(self):
         if self._session_data:
-            self.api_request('/auth',method='DELETE')
+            self.api_request('/auth', method='DELETE')
             del self.s.headers['Authorization']
             del self.s.headers['x-pm-uid']
             self._session_data = {}

@@ -6,3 +6,4 @@ MANIFEST
 .vscode/
 *.lock
 __SOURCE_APP
+.env
