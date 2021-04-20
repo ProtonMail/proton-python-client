@@ -10,7 +10,7 @@ Proton API Python Client
 | [pyopenssl](https://www.pyopenssl.org/en/stable/) | python3-openssl | python3-pyOpenSSL | python-pyopenssl    |
 
 
-**\*** versions lower than 2.16 of the Python Requests lirary are not officially supported due to the missing support for TLS pinning, which is required in order to properly verify and trust the connection to the Proton API. It is possible disable TLS pinning (ie: to run with lower requests versions), but be aware of the risk.
+**\*** versions lower than 2.16 of the Python Requests library are not officially supported due to the missing support for TLS pinning, which is required in order to properly verify and trust the connection to the Proton API. It is possible disable TLS pinning (ie: to run with lower requests versions), but be aware of the risk.
 
 ## Table of Contents
 - [Install](#install)
@@ -103,7 +103,7 @@ Now we're able to start using our `proton_session` object to make API calls. Mor
 ## Refresh Session
 As previously introduced in the [Store session](#store-session) chapter, `AccessToken` and `RefreshToken` are two tokens that identify us against the API. As their names imply, `AccessToken` is used to give us access to the API while `RefreshToken` is used to refresh the `AccessToken` whenever this one is invalidated by the servers. An `AccessToken` can be invalidated for the following reasons:
 - When the session is removed via the webclient
-- When a `.logout()` is executed
+- When a `logout()` is executed
 - When the session has expired
 
 If for any reason the API responds with error 401, then it means that the `AccessToken` is invalid and it needs to be refreshed (assuming that the `RefreshToken` is valid). To refresh the tokens **\*** we can use the following method:
