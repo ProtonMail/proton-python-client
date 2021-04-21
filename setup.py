@@ -3,12 +3,6 @@
 from setuptools import setup, find_packages
 from proton.constants import VERSION
 
-long_description = """
-
-This package, originally forked from python-srp module implements a simple
-wrapper to the Proton Technologies API, abstracting from the SRP authentication.
-""" # noqa
-
 setup(
     name="proton-client",
     version=VERSION,
@@ -16,7 +10,6 @@ setup(
     author="Proton Technologies",
     author_email="contact@protonmail.com",
     url="https://github.com/ProtonMail/proton-python-client",
-    long_description=long_description,
     install_requires=["requests", "bcrypt", "python-gnupg", "pyopenssl"],
     packages=find_packages(),
     include_package_data=True,
