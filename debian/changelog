@@ -1,4 +1,10 @@
-proton-python-client (0.4.0-1) unstable; urgency=medium
+proton-python-client (0.4.1-1) unstable; urgency=medium
+
+  * Add long description to setup.py
+
+ -- Proton Technologies AG <opensource@proton.me>  Wed, 21 Apr 2021 13:45:00 +0100
+ 
+ proton-python-client (0.4.0-1) unstable; urgency=medium
 
   * Add proxy support
   * Verify fingerprint of signer key

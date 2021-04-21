@@ -1,5 +1,5 @@
 %define unmangled_name proton-client
-%define version 0.4.0
+%define version 0.4.1
 %define release 1
 
 Prefix: %{_prefix}
@@ -48,6 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Apr 21 2021 Proton Technologies AG <opensource@proton.me> 0.4.1-1
+- Add long description to setup.py
+
 * Mon Apr 19 2021 Proton Technologies AG <opensource@proton.me> 0.4.0-1
 - Add proxy support
 - Verify fingerprint of signer key
