@@ -1,5 +1,5 @@
 
-VERSION = "0.4.1"
+VERSION = "0.5.0"
 DEFAULT_TIMEOUT = (10, 30)
 PUBKEY_HASH_DICT = {
     "api.protonvpn.ch": [

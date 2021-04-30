@@ -1,26 +1,12 @@
 import base64
 import json
-
 import gnupg
 import requests
 
 from .cert_pinning import TLSPinningAdapter
 from .srp import User as PmsrpUser
 from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY, SRP_MODULUS_KEY_FINGERPRINT
-
-
-class ProtonError(Exception):
-    def __init__(self, ret):
-        self.code = ret['Code']
-        self.error = ret['Error']
-        try:
-            self.headers = ret["Headers"]
-        except KeyError:
-            self.headers = ""
-
-        super().__init__("[{}] {} {}".format(
-            self.code, self.error, self.headers
-        ))
+from .exceptions import ProtonError, TLSPinningError, NewConnectionError, UnknownConnectionError
 
 
 class Session:
@@ -106,12 +92,19 @@ class Session:
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
-        ret = fct(
-            self.__api_url + endpoint,
-            headers=additional_headers,
-            json=jsondata,
-            timeout=self.__timeout
-        )
+        try:
+            ret = fct(
+                self.__api_url + endpoint,
+                headers=additional_headers,
+                json=jsondata,
+                timeout=self.__timeout
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise NewConnectionError(e)
+        except TLSPinningError as e:
+            raise TLSPinningError(e)
+        except (Exception, requests.exceptions.BaseHTTPError) as e:
+            raise UnknownConnectionError(e)
 
         try:
             ret = ret.json()

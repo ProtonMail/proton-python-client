@@ -2,20 +2,13 @@ import base64
 import hashlib
 from ssl import DER_cert_to_PEM_cert
 
-import requests
 from OpenSSL import crypto
 from requests.adapters import HTTPAdapter
 from urllib3.connectionpool import HTTPSConnectionPool
 from urllib3.poolmanager import PoolManager
 from urllib3.util.timeout import Timeout
-
+from .exceptions import TLSPinningError
 from .constants import PUBKEY_HASH_DICT
-
-
-class TLSPinningError(requests.exceptions.SSLError):
-    def __init__(self, strerror):
-        self.strerror = strerror
-        super(TLSPinningError, self).__init__(strerror)
 
 
 class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):

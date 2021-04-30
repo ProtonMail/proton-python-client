@@ -1,4 +1,11 @@
-proton-python-client (0.4.1-1) unstable; urgency=medium
+proton-python-client (0.5.0-1) unstable; urgency=medium
+
+  * Add new exceptions
+  * Throw custom exceptions in case of network errors, abstracting from the package that is being used for requests
+
+ -- Proton Technologies AG <opensource@proton.me>  Fri, 30 Apr 2021 18:15:00 +0100
+ 
+ proton-python-client (0.4.1-1) unstable; urgency=medium
 
   * Add long description to setup.py
 
