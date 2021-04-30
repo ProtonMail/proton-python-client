@@ -1,5 +1,5 @@
 %define unmangled_name proton-client
-%define version 0.4.1
+%define version 0.5.0
 %define release 1
 
 Prefix: %{_prefix}
@@ -48,6 +48,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Apr 21 2021 Proton Technologies AG <opensource@proton.me> 0.5.0-1
+- Add new exceptions
+- Throw custom exceptions in case of network errors, abstracting from the package that is being used for requests
+
 * Wed Apr 21 2021 Proton Technologies AG <opensource@proton.me> 0.4.1-1
 - Add long description to setup.py
 
