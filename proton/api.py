@@ -1,12 +1,15 @@
 import base64
 import json
+
 import gnupg
 import requests
 
 from .cert_pinning import TLSPinningAdapter
+from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
+                        SRP_MODULUS_KEY_FINGERPRINT)
+from .exceptions import (ConnectionTimeOutError, NewConnectionError,
+                         ProtonError, TLSPinningError, UnknownConnectionError)
 from .srp import User as PmsrpUser
-from .constants import DEFAULT_TIMEOUT, SRP_MODULUS_KEY, SRP_MODULUS_KEY_FINGERPRINT
-from .exceptions import ProtonError, TLSPinningError, NewConnectionError, UnknownConnectionError
 
 
 class Session:
@@ -101,6 +104,8 @@ class Session:
             )
         except requests.exceptions.ConnectionError as e:
             raise NewConnectionError(e)
+        except requests.exceptions.Timeout as e:
+            raise ConnectionTimeOutError(e)
         except TLSPinningError as e:
             raise TLSPinningError(e)
         except (Exception, requests.exceptions.BaseHTTPError) as e:
