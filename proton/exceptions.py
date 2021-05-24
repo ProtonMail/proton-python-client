@@ -25,5 +25,9 @@ class NewConnectionError(ProtonNetworkError):
     """Network Error"""
 
 
+class ConnectionTimeOutError(ProtonNetworkError):
+    """Connection Time Out Error"""
+
+
 class UnknownConnectionError(ProtonNetworkError):
     """UnknownConnectionError"""

@@ -154,9 +154,9 @@ class TLSPinningPoolManager(PoolManager):
         kwargs = self.connection_pool_kw
 
         pool = TLSPinningHTTPSConnectionPool(
-                    host=host, port=port,
-                    hash_dict=self.hash_dict, **kwargs
-                )
+            host=host, port=port,
+            hash_dict=self.hash_dict, **kwargs
+        )
 
         return pool
 
