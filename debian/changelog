@@ -1,3 +1,9 @@
+proton-python-client (0.5.1-1) unstable; urgency=medium
+
+  * Add new exceptions for improved case handling
+
+ -- Proton Technologies AG <opensource@proton.me>  Mon, 24 May 2021 11:30:00 +0100
+
 proton-python-client (0.5.0-1) unstable; urgency=medium
 
   * Add new exceptions
@@ -5,26 +11,26 @@ proton-python-client (0.5.0-1) unstable; urgency=medium
 
  -- Proton Technologies AG <opensource@proton.me>  Fri, 30 Apr 2021 18:15:00 +0100
  
- proton-python-client (0.4.1-1) unstable; urgency=medium
+proton-python-client (0.4.1-1) unstable; urgency=medium
 
   * Add long description to setup.py
 
  -- Proton Technologies AG <opensource@proton.me>  Wed, 21 Apr 2021 13:45:00 +0100
  
- proton-python-client (0.4.0-1) unstable; urgency=medium
+proton-python-client (0.4.0-1) unstable; urgency=medium
 
   * Add proxy support
   * Verify fingerprint of signer key
 
  -- Proton Technologies AG <opensource@proton.me>  Mon, 19 Apr 2021 10:50:00 +0100
  
- proton-python-client (0.3.0-1) unstable; urgency=medium
+proton-python-client (0.3.0-1) unstable; urgency=medium
 
   * Set flags to BNs in the openssl implementation using BN_set_flags and BN_FLAG_CONSTTIME
 
  -- Proton Technologies AG <opensource@proton.me>  Wed, 27 Jan 2021 12:12:23 +0000
  
- proton-python-client (0.2.0-3) unstable; urgency=medium
+proton-python-client (0.2.0-3) unstable; urgency=medium
 
   * Bugfix: Invalid modulus
   * Bugfix: Invalid salt
