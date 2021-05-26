@@ -72,7 +72,7 @@ make-image-arch:
 ######### CI Test Jobs ##########
 test-deb:
  stage: test
- image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-ubuntu
+ image: $CI_REGISTRY_IMAGE/ubuntu:branch-$CI_COMMIT_REF_SLUG
  interruptible: true
  needs:
    - job: make-image-deb
@@ -83,13 +83,13 @@ test-rpm:
  extends: test-deb
  needs:
    - job: make-image-rpm
- image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-fedora
+ image: $CI_REGISTRY_IMAGE/fedora:branch-$CI_COMMIT_REF_SLUG
  
 test-arch:
  extends: test-deb
  needs:
    - job: make-image-arch
- image: $CI_REGISTRY_IMAGE:branch-$CI_COMMIT_REF_SLUG-archlinux
+ image: $CI_REGISTRY_IMAGE/archlinux:branch-$CI_COMMIT_REF_SLUG
 
 
 ## Jobs to publish commits + tags from master to github

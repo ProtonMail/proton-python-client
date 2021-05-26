@@ -4,8 +4,8 @@
 
 branch ?= master
 DOCKERFILE_BUILD=/tmp/Dockerfile.image
-NAME_IMAGE ?= "$(CI_REGISTRY_IMAGE)"
-TAG_IMAGE := branch-$(subst /,-,$(branch))-$(src)
+NAME_IMAGE ?= "$(CI_REGISTRY_IMAGE)/$(src)"
+TAG_IMAGE := branch-$(subst /,-,$(branch))
 
 # We use :latest so we can use somewhere else, but it's the same as branch-master the other one is for CI
 ifeq ($(branch), latest)
