@@ -1,5 +1,15 @@
-Proton API Python Client
-=============
+# Proton API Python Client
+
+Copyright (c) 2021 Proton Technologies AG
+
+This repository holds the Proton Python Client.
+For licensing information see [COPYING](COPYING.md).
+For contribution policy see [CONTRIBUTING](CONTRIBUTING.md).
+
+## Description
+The Python Proton Client is intended for every Proton service user.
+
+You can download the latest stable release, either from our official repositories or directly on the [official GitHub repository](https://github.com/ProtonMail/proton-python-client/releases/latest).
 
 ## Dependencies
 | **Python** | **Debian** | **Fedora** | **Arch** |
