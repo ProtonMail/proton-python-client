@@ -1,4 +1,4 @@
-proton-python-client (0.5.1-1) unstable; urgency=medium
+proton-python-client (0.5.1-2) unstable; urgency=medium
 
   * Add new exceptions for improved case handling
 

@@ -1,6 +1,6 @@
 %define unmangled_name proton-client
 %define version 0.5.1
-%define release 1
+%define release 2
 
 Prefix: %{_prefix}
 
@@ -48,7 +48,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Mon May 24 2021 Proton Technologies AG <opensource@proton.me> 0.5.1-1
+* Mon May 24 2021 Proton Technologies AG <opensource@proton.me> 0.5.1-2
 - Add new exceptions for improved case handling
 
 * Fri Apr 30 2021 Proton Technologies AG <opensource@proton.me> 0.5.0-1
