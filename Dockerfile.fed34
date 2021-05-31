@@ -1,0 +1,46 @@
+FROM IMAGE_URL_FED34
+RUN dnf update -y
+
+# RUN yum -y install epel-release && yum repolist
+
+RUN dnf install -y \
+    gcc \
+    sudo \
+    rpm-build \
+    rpm-devel \
+    rpmlint \
+    make \
+    python3 \
+    python3-pip \
+    bash \
+    coreutils \
+    diffutils \
+    patch \
+    rpmdevtools \
+    rpm-sign \
+    vim \
+    openssl-devel \
+    openssl-libs
+
+RUN dnf install -y \
+    python3-requests \
+    python3-pyOpenSSL \
+    python3-bcrypt \
+    python3-gnupg
+
+RUN dnf install -y \
+    python3-pytest \
+    python3-pytest-cov
+
+RUN useradd -ms /bin/bash user
+RUN usermod -a -G wheel user
+RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+COPY docker_entry.sh /usr/local/bin
+COPY . /home/user/proton-python-client
+
+RUN chown -R user:user /home/user/
+USER user
+WORKDIR /home/user/proton-python-client
+
+ENTRYPOINT ["/usr/local/bin/docker_entry.sh"]
