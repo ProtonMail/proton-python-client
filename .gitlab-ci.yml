@@ -40,6 +40,8 @@ variables:
 
 ######### Manage the Image ##########
 .common-image:
+  tags:
+   - medium
   image: $CI_REGISTRY/infra/kubernetes/images/docker:stable
   interruptible: true
   variables:
@@ -53,6 +55,8 @@ variables:
 
 make-image-deb:
  stage: image
+ tags:
+   - medium
  extends: .common-image
  except:
    - schedules
@@ -105,6 +109,8 @@ make-image-fed34:
 
 ######## CI Test Jobs ##########
 test-deb:
+ tags:
+   - medium
  stage: test
  image: $CI_REGISTRY_IMAGE/ubuntu:branch-$CI_COMMIT_REF_SLUG
  interruptible: true
