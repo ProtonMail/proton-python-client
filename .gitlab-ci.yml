@@ -166,6 +166,7 @@ release-publish-github:
    - job: build-fed32
    - job: build-fed33
    - job: build-fed34
+   - job: build-centos8
  when: manual
  variables:
    RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
@@ -181,6 +182,7 @@ release-publish-github-tags:
    - job: build-fed32
    - job: build-fed33
    - job: build-fed34
+   - job: build-centos8
  when: manual
  variables:
    RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
