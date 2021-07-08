@@ -26,6 +26,7 @@ RUN dnf install -y \
     python3-requests \
     python3-pyOpenSSL \
     python3-bcrypt \
+    python3-dnspython \
     python3-gnupg
 
 RUN dnf install -y \

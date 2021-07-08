@@ -108,12 +108,14 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
     def is_hash_valid(self, cert_hash, hash_dict):
         """Validate the hash against a known list of hashes/pins"""
+
         try:
             hash_dict[self.host].index(cert_hash)
         except (ValueError, KeyError, TypeError):
-            return False
-        else:
-            return True
+            if cert_hash not in hash_dict["alt_routing"]:
+                return False
+
+        return True
 
     def get_certificate(self, sock):
         """Extract and convert certificate to PEM format"""
@@ -149,7 +151,7 @@ class TLSPinningPoolManager(PoolManager):
         if scheme != 'https':
             return super(TLSPinningPoolManager, self)._new_pool(
                 scheme, host, port, request_context
-                )
+            )
 
         kwargs = self.connection_pool_kw
 

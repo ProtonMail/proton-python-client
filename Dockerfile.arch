@@ -18,6 +18,7 @@ RUN pacman -Syu --noconfirm \
     python-bcrypt \
     python-gnupg \
     python-pytest \
+    python-dnspython \
     python-pytest-cov \
     && useradd -ms /bin/bash user \
     && usermod -a -G wheel user \

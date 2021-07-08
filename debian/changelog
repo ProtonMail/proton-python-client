@@ -1,3 +1,9 @@
+proton-python-client (0.6.0-1) unstable; urgency=medium
+
+  * Feature: Alternative Routing
+
+ -- Proton Technologies AG <opensource@proton.me>  Thu, 08 Jul 2021 17:30:00 +0100
+
 proton-python-client (0.5.1-3) unstable; urgency=medium
 
   * Add new exceptions for improved case handling

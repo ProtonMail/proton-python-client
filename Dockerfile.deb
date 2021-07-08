@@ -27,6 +27,7 @@ RUN apt-get install -y \
     python3-bcrypt \
     python3-gnupg \
     python3-openssl \
+    python3-dnspython \
     python3-requests >= 2.16.0
 
 RUN apt-get install -y \

@@ -3,12 +3,21 @@ import json
 
 import gnupg
 import requests
+import urllib3
+
+urllib3.disable_warnings()
+
+from concurrent.futures import ThreadPoolExecutor
+
+import dns.message
 
 from .cert_pinning import TLSPinningAdapter
 from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
                         SRP_MODULUS_KEY_FINGERPRINT)
-from .exceptions import (ConnectionTimeOutError, NewConnectionError,
-                         ProtonError, TLSPinningError, UnknownConnectionError)
+from .exceptions import (ConnectionTimeOutError,
+                         EmptyAlternativeRoutesListError, NewConnectionError,
+                         ProtonAPIError, TLSPinningError,
+                         UnknownConnectionError, TLSPinningDisabledError)
 from .srp import User as PmsrpUser
 
 
@@ -17,6 +26,14 @@ class Session:
         "x-pm-apiversion": "3",
         "Accept": "application/vnd.protonmail.v1+json"
     }
+    __ssl_verification = True
+
+    __DNS_HOSTS = ["https://dns11.quad9.net/dns-query", "https://dns.google/dns-query"]
+    __ENCODED_URLS = [
+        "dMFYGSLTQOJXXI33OOZYG4LTDNA.protonpro.xyz",
+        "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
+    ]
+    __tls_pinning_enabled = False
 
     @staticmethod
     def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT, proxies=None):
@@ -66,11 +83,13 @@ class Session:
         self._session_data = {}
 
         self.s = requests.Session()
-        if proxies:
-            self.s.proxies.update(proxies)
+
+        self.s.proxies = proxies
 
         if TLSPinning:
+            self.__tls_pinning_enabled = True
             self.s.mount(self.__api_url, TLSPinningAdapter())
+
         self.s.headers['x-pm-appversion'] = appversion
         self.s.headers['User-Agent'] = user_agent
 
@@ -100,7 +119,8 @@ class Session:
                 self.__api_url + endpoint,
                 headers=additional_headers,
                 json=jsondata,
-                timeout=self.__timeout
+                timeout=self.__timeout,
+                verify=self.__ssl_verification
             )
         except requests.exceptions.ConnectionError as e:
             raise NewConnectionError(e)
@@ -111,10 +131,12 @@ class Session:
         except (Exception, requests.exceptions.BaseHTTPError) as e:
             raise UnknownConnectionError(e)
 
+        # print(ret.content)
+
         try:
             ret = ret.json()
         except json.decoder.JSONDecodeError:
-            raise ProtonError(
+            raise ProtonAPIError(
                 {
                     "Code": ret.status_code,
                     "Error": ret.reason,
@@ -123,7 +145,7 @@ class Session:
             )
 
         if ret['Code'] != 1000:
-            raise ProtonError(ret)
+            raise ProtonAPIError(ret)
 
         return ret
 
@@ -215,6 +237,138 @@ class Session:
         self._session_data['AccessToken'] = refresh_response["AccessToken"]
         self._session_data['RefreshToken'] = refresh_response["RefreshToken"]
         self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
+
+    def get_alternative_routes(self, callback=None):
+        """Get alterntive routes to circumvent firewalls and api restrictions.
+
+        Args:
+            callback (func): a callback method to be called
+            Might be usefull for multi-threading.
+
+        This method leverages the power of ThreadPoolExecutor to async
+        check if the provided dns hosts can be reached, and if so, collect the
+        alternatives routes provided by them.
+        The encoded url are done sync because most often one of the two should work,
+        as it should provide the data as quick as possible.
+
+        If callback is passed then the method does not return any value, otherwise it
+        returns a set().
+        """
+        routes = None
+
+        if not self.__tls_pinning_enabled:
+            raise TLSPinningDisabledError(
+                "TLS pinning should be enabled when using alternative routing"
+            )
+
+        for encoded_url in self.__ENCODED_URLS:
+            dns_query, dns_encoded_data = self.__generate_dns_message(encoded_url)
+            dns_hosts_response = []
+
+            host_and_dns = [(host, dns_encoded_data) for host in self.__DNS_HOSTS]
+
+            with ThreadPoolExecutor(max_workers=len(self.__DNS_HOSTS)) as executor:
+                dns_hosts_response = list(
+                    executor.map(self.__query_for_dns_data, host_and_dns, timeout=20)
+                )
+
+            if len(dns_hosts_response) == 0:
+                continue
+
+            for response in dns_hosts_response:
+                routes = self.__extract_dns_answer(response, dns_query)
+
+            if routes:
+                break
+
+        if not routes:
+            raise EmptyAlternativeRoutesListError("No alternative routes were found")
+
+        if not callback:
+            return routes
+
+        callback(routes)
+
+    def __generate_dns_message(self, encoded_url):
+        """Generate DNS object.
+
+        Args:
+            encoded_url (string): encoded url as per documentation
+
+        Returns:
+            tuple():
+                dns_query (dns.message.Message): output of dns.message.make_query
+                base64_dns_message (base64): encode bytes
+        """
+        dns_query = dns.message.make_query(encoded_url, dns.rdatatype.TXT)
+        dns_wire = dns_query.to_wire()
+        base64_dns_message = base64.urlsafe_b64encode(dns_wire).rstrip(b"=")
+
+        return dns_query, base64_dns_message
+
+    def __query_for_dns_data(self, dns_settings):
+        """Query for DNS host for data.
+
+        Args:
+            dns_settings (tuple):
+                host_url (str): http/https url
+                dns_encoded_data (str): base64 output
+                generate by __generate_dns_message()
+
+        This method uses requests.get to query the url
+        for dns data.
+
+        Returns:
+            bytes: content of the response
+        """
+        dns_host, dns_encoded_data = dns_settings[0], dns_settings[1]
+        response = requests.get(
+            dns_host,
+            headers={"accept": "application/dns-message"},
+            timeout=(3.05, 16.95),
+            params={"dns": dns_encoded_data}
+        )
+
+        return response.content
+
+    def __extract_dns_answer(self, query_content, dns_query):
+        """Extract alternative URL from dns message.
+
+        Args:
+            query_content (bytes): content of the response
+            dns_query (dns.message.Message): output of dns.message.make_query
+
+        Returns:
+            set(): alternative url for API
+        """
+        r = dns.message.from_wire(
+            query_content,
+            keyring=dns_query.keyring,
+            request_mac=dns_query.request_mac,
+            one_rr_per_rrset=False,
+            ignore_trailing=False
+        )
+        routes = set()
+        for route in r.answer:
+            routes = set([str(url).strip("\"") for url in route])
+
+        return routes
+
+    @property
+    def api_url(self):
+        return self.__api_url
+
+    @api_url.setter
+    def api_url(self, newvalue):
+        self.__api_url = newvalue
+
+    @property
+    def ssl_verify(self):
+        return self.__ssl_verification
+
+    @ssl_verify.setter
+    def ssl_verify(self, newvalue):
+        self.__ssl_verification = newvalue
 
     @property
     def UID(self):

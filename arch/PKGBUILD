@@ -1,13 +1,13 @@
 # Maintainer: Proton Technologies AG <opensource@proton.me>
 pkgname=python-proton-client
-pkgver=0.5.1
-pkgrel=3
+pkgver=0.6.0
+pkgrel=1
 pkgdesc="Safely login with ProtonVPN credentials to connect to Proton."
 arch=("any")
 url="https://github.com/ProtonMail/proton-python-client"
 license=("GPL3")
 groups=("ProtonVPN")
-depends=("python-requests" "python-bcrypt" "python-gnupg" "python-pyopenssl")
+depends=("python-requests" "python-bcrypt" "python-gnupg" "python-pyopenssl", "python-dnspython")
 makedepends=("python-setuptools")
 source=("$pkgname.tar.gz")
 sha256sums=(.)
