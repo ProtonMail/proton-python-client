@@ -45,5 +45,5 @@ class EmptyAlternativeRoutesListError(ProtonError):
     """List with alterntive routes is empty."""
 
 
-class TLSPinningDisabledError(ProtonAPIError):
+class TLSPinningDisabledError(ProtonError):
     """TLS Pinning is disabled."""
