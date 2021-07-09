@@ -23,7 +23,6 @@ Requires: python3-requests
 Requires: python3-pyOpenSSL
 Requires: python3-bcrypt
 Requires: python3-gnupg
-Requires: python3-dnspython
 
 %{?python_disable_dependency_generator}
 

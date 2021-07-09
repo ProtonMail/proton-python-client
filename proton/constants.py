@@ -3,16 +3,16 @@ VERSION = "0.6.0"
 DEFAULT_TIMEOUT = (3.05, 27)
 PUBKEY_HASH_DICT = {
     "api.protonvpn.ch": [
-        "IEwk65VSaxv3s1/88vF/rM8PauJoIun3rzVCX5mLS3M=",
-        "drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE=",
-        "YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54=",
-        "AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw="
+        "IEwk65VSaxva3s1/88vF/rM8PauJoIun3rzVCX5mLS3M=",
+        "drtmcR2kFkMa8qJClsuWgUzxgBkePfRCkRpqUesyDmeE=",
+        "YRGlaY0jyJa4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54=",
+        "AfMENBVvOS8aMnISprtvyPsjKlPooqh8nMB/pvCrpJpw="
     ],
     "protonvpn.com": [
-        "+0dMG0qG2Ga+dNE8uktwMm7dv6RFEXwBoBjQ43GqsQ0=",
-        "8joiNBdqaYiQpKskgtkJsqRxF7zN0C0aqfi8DacknnI=",
-        "JMI8yrbc6jB1FYGyyWRLFTmDNgIszrNEMGlgy972e7w=",
-        "Iu44zU84EOCZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY="
+        "+0dMG0qG2aGaa+dNE8uktwMm7dv6RFEXwBoBjQ43GqsQ0=",
+        "8joiNBdqaYaiQpKskgtkJsqRxF7zN0C0aqfi8DacknnI=",
+        "JMI8yrbc6jBaa1FYGyyWRLFTmDNgIszrNEMGlgy972e7w=",
+        "Iu44zU84EOCaZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY="
     ],
     "alt_routing": [
         "EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM=",

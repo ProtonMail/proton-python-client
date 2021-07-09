@@ -9,7 +9,12 @@ urllib3.disable_warnings()
 
 from concurrent.futures import ThreadPoolExecutor
 
-import dns.message
+try:
+    from dns import message
+    from dns.rdatatype import TXT
+except ModuleNotFoundError:
+    from .dns import message
+    from .dns.rdatatype import TXT
 
 from .cert_pinning import TLSPinningAdapter
 from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
@@ -300,7 +305,7 @@ class Session:
                 dns_query (dns.message.Message): output of dns.message.make_query
                 base64_dns_message (base64): encode bytes
         """
-        dns_query = dns.message.make_query(encoded_url, dns.rdatatype.TXT)
+        dns_query = message.make_query(encoded_url, TXT)
         dns_wire = dns_query.to_wire()
         base64_dns_message = base64.urlsafe_b64encode(dns_wire).rstrip(b"=")
 
@@ -341,7 +346,7 @@ class Session:
         Returns:
             set(): alternative url for API
         """
-        r = dns.message.from_wire(
+        r = message.from_wire(
             query_content,
             keyring=dns_query.keyring,
             request_mac=dns_query.request_mac,
