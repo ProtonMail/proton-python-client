@@ -5,6 +5,12 @@ import gnupg
 import requests
 import urllib3
 
+"""
+When using alternative routing, we want to verify as little data as possible. Thus we'll
+end up relying mostly on tls key pinning. If we don't disable warnings, a warning will be
+constantly popping on the terminal informing the user about it.
+https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+"""
 urllib3.disable_warnings()
 
 from concurrent.futures import ThreadPoolExecutor
@@ -18,7 +24,7 @@ except ModuleNotFoundError:
 
 from .cert_pinning import TLSPinningAdapter
 from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
-                        SRP_MODULUS_KEY_FINGERPRINT)
+                        SRP_MODULUS_KEY_FINGERPRINT, DNS_HOSTS, ENCODED_URLS)
 from .exceptions import (ConnectionTimeOutError,
                          EmptyAlternativeRoutesListError, NewConnectionError,
                          ProtonAPIError, TLSPinningError,
@@ -31,13 +37,7 @@ class Session:
         "x-pm-apiversion": "3",
         "Accept": "application/vnd.protonmail.v1+json"
     }
-    __ssl_verification = True
-
-    __DNS_HOSTS = ["https://dns11.quad9.net/dns-query", "https://dns.google/dns-query"]
-    __ENCODED_URLS = [
-        "dMFYGSLTQOJXXI33OOZYG4LTDNA.protonpro.xyz",
-        "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
-    ]
+    __tls_verification = True
     __tls_pinning_enabled = False
 
     @staticmethod
@@ -125,7 +125,7 @@ class Session:
                 headers=additional_headers,
                 json=jsondata,
                 timeout=self.__timeout,
-                verify=self.__ssl_verification
+                verify=self.__tls_verification
             )
         except requests.exceptions.ConnectionError as e:
             raise NewConnectionError(e)
@@ -135,8 +135,6 @@ class Session:
             raise TLSPinningError(e)
         except (Exception, requests.exceptions.BaseHTTPError) as e:
             raise UnknownConnectionError(e)
-
-        # print(ret.content)
 
         try:
             ret = ret.json()
@@ -244,7 +242,7 @@ class Session:
         self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
 
     def get_alternative_routes(self, callback=None):
-        """Get alterntive routes to circumvent firewalls and api restrictions.
+        """Get alternative routes to circumvent firewalls and api restrictions.
 
         Args:
             callback (func): a callback method to be called
@@ -266,13 +264,13 @@ class Session:
                 "TLS pinning should be enabled when using alternative routing"
             )
 
-        for encoded_url in self.__ENCODED_URLS:
+        for encoded_url in ENCODED_URLS:
             dns_query, dns_encoded_data = self.__generate_dns_message(encoded_url)
             dns_hosts_response = []
 
-            host_and_dns = [(host, dns_encoded_data) for host in self.__DNS_HOSTS]
+            host_and_dns = [(host, dns_encoded_data) for host in DNS_HOSTS]
 
-            with ThreadPoolExecutor(max_workers=len(self.__DNS_HOSTS)) as executor:
+            with ThreadPoolExecutor(max_workers=len(DNS_HOSTS)) as executor:
                 dns_hosts_response = list(
                     executor.map(self.__query_for_dns_data, host_and_dns, timeout=20)
                 )
@@ -368,12 +366,12 @@ class Session:
         self.__api_url = newvalue
 
     @property
-    def ssl_verify(self):
-        return self.__ssl_verification
+    def tls_verify(self):
+        return self.__tls_verification
 
-    @ssl_verify.setter
-    def ssl_verify(self, newvalue):
-        self.__ssl_verification = newvalue
+    @tls_verify.setter
+    def tls_verify(self, newvalue):
+        self.__tls_verification = newvalue
 
     @property
     def UID(self):
