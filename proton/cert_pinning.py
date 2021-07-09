@@ -38,8 +38,11 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         **conn_kw
     ):
         self.hash_dict = hash_dict
+
+        # try/except is needed for multi-version compatibility,
+        # as number of args chane from version 16/18 to 20.
         try:
-            super(TLSPinningHTTPSConnectionPool, self).__init__(
+            super().__init__(
                 host,
                 port,
                 strict,
@@ -62,7 +65,7 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
                 **conn_kw
             )
         except TypeError:
-            super(TLSPinningHTTPSConnectionPool, self).__init__(
+            super().__init__(
                 host,
                 port,
                 strict,
@@ -85,17 +88,20 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
             )
 
     def _validate_conn(self, conn):
-        r = super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
+        """Validate connection."""
+        if conn.is_verified:
+            super()._validate_conn(conn)
 
-        sock = conn.sock
+        pem_certificate = self.get_certificate(conn.sock)
+        self.ensure_session_secure(pem_certificate, conn, self.hash_dict)
 
-        pem_certificate = self.get_certificate(sock)
+    def get_certificate(self, sock):
+        """Extract and convert certificate to PEM format"""
+        certificate_binary_form = sock.getpeercert(binary_form=True)
+        return DER_cert_to_PEM_cert(certificate_binary_form)
 
-        if self.is_session_secure(pem_certificate, conn, self.hash_dict):
-            return r
-
-    def is_session_secure(self, cert, conn, hash_dict):
-        """Check if connection is secure"""
+    def ensure_session_secure(self, cert, conn, hash_dict):
+        """Ensure that connection is secure."""
 
         cert_hash = self.extract_hash(cert)
 
@@ -104,7 +110,15 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
             conn.close()
             raise TLSPinningError("Insecure connection")
 
-        return True
+    def extract_hash(self, cert):
+        """Extract encrypted hash from the certificate"""
+        cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
+        pubkey_obj = cert_obj.get_pubkey()
+        pubkey = crypto.dump_publickey(crypto.FILETYPE_ASN1, pubkey_obj)
+
+        spki_hash = hashlib.sha256(pubkey).digest()
+        cert_hash = base64.b64encode(spki_hash).decode('utf-8')
+        return cert_hash
 
     def is_hash_valid(self, cert_hash, hash_dict):
         """Validate the hash against a known list of hashes/pins"""
@@ -117,21 +131,6 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
         return True
 
-    def get_certificate(self, sock):
-        """Extract and convert certificate to PEM format"""
-        certificate_binary_form = sock.getpeercert(True)
-        return DER_cert_to_PEM_cert(certificate_binary_form)
-
-    def extract_hash(self, cert):
-        """Extract encrypted hash from the certificate"""
-        cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-        pubkey_obj = cert_obj.get_pubkey()
-        pubkey = crypto.dump_publickey(crypto.FILETYPE_ASN1, pubkey_obj)
-
-        spki_hash = hashlib.sha256(pubkey).digest()
-        cert_hash = base64.b64encode(spki_hash).decode('utf-8')
-        return cert_hash
-
 
 class TLSPinningPoolManager(PoolManager):
     """Attach TLSPinningHTTPSConnectionPool to TLSPinningPoolManager"""
@@ -143,13 +142,15 @@ class TLSPinningPoolManager(PoolManager):
         **connection_pool_kw
     ):
         self.hash_dict = hash_dict
-        super(TLSPinningPoolManager, self).__init__(
-            num_pools=10, headers=None, **connection_pool_kw
+        super().__init__(
+            num_pools=10,
+            headers=None,
+            **connection_pool_kw
         )
 
     def _new_pool(self, scheme, host, port, request_context):
         if scheme != 'https':
-            return super(TLSPinningPoolManager, self)._new_pool(
+            return super()._new_pool(
                 scheme, host, port, request_context
             )
 
@@ -167,7 +168,7 @@ class TLSPinningAdapter(HTTPAdapter):
     """Attach TLSPinningPoolManager to TLSPinningAdapter"""
     def __init__(self, hash_dict=PUBKEY_HASH_DICT):
         self.hash_dict = hash_dict
-        super(TLSPinningAdapter, self).__init__()
+        super().__init__()
 
     def init_poolmanager(
         self,
