@@ -3,27 +3,22 @@ from proton import cert_pinning
 import pytest
 from proton import exceptions
 import urllib3
-import os
 
 
 failing_hash = {
-    "api.protonvpn.ch": [],
-    "protonvpn.com": [],
+    "api.protonvpn.ch": [""],
+    "protonvpn.com": [""],
     "alt_routing": ["EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM="],
 }
 working_hash1 = {
-    "api.protonvpn.ch": [],
-    "protonvpn.com": [],
-    "alt_routing": [
-        "W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ=",
-    ],
+    "api.protonvpn.ch": [""],
+    "protonvpn.com": [""],
+    "alt_routing": ["W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="],
 }
 working_hash2 = {
-    "api.protonvpn.ch": [],
-    "protonvpn.com": [],
-    "alt_routing": [
-        "9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="
-    ],
+    "api.protonvpn.ch": [""],
+    "protonvpn.com": [""],
+    "alt_routing": ["9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="],
 }
 
 
