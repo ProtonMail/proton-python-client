@@ -147,7 +147,7 @@ class Session:
                 }
             )
 
-        if ret['Code'] != 1000:
+        if ret['Code'] not in [1000, 1001]:
             raise ProtonAPIError(ret)
 
         return ret
