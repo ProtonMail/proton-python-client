@@ -10,7 +10,7 @@ setup(
     author="Proton Technologies",
     author_email="contact@protonmail.com",
     url="https://github.com/ProtonMail/proton-python-client",
-    install_requires=["requests", "bcrypt", "python-gnupg", "pyopenssl"],
+    install_requires=["requests>=2.16", "bcrypt", "python-gnupg", "pyopenssl"],
     packages=find_packages(),
     include_package_data=True,
     license="GPLv3",
