@@ -114,7 +114,6 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
     def __validate_hash(self, cert_hash):
         """Validate the hash against a known list of hashes/pins"""
         # host is passed in __init__
-
         try:
             self.hash_dict[self.host].index(cert_hash)
         except (ValueError, KeyError, TypeError):
@@ -144,7 +143,6 @@ class TLSPinningPoolManager(PoolManager):
         )
 
     def _new_pool(self, scheme, host, port, request_context):
-        # print("Creating new custom pool")
         if scheme != 'https':
             return super(TLSPinningPoolManager, self)._new_pool(
                 scheme, host, port, request_context

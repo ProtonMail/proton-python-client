@@ -364,6 +364,8 @@ class Session:
     @api_url.setter
     def api_url(self, newvalue):
         self.__api_url = newvalue
+        if self.__tls_pinning_enabled:
+            self.s.mount(newvalue, TLSPinningAdapter())
 
     @property
     def tls_verify(self):
