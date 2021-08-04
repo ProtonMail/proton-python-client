@@ -96,13 +96,13 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
 
         cert_hash = self.__extract_hash(cert)
 
-        if not self.__validate_hash(cert_hash):
+        if not self.__is_hash_valid(cert_hash):
             # Also generate a report
             conn.close()
             raise TLSPinningError("Insecure connection")
 
     def __extract_hash(self, cert):
-        """Extract encrypted hash from the certificate"""
+        """Extract encrypted hash from the certificate."""
         cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
         pubkey_obj = cert_obj.get_pubkey()
         pubkey = crypto.dump_publickey(crypto.FILETYPE_ASN1, pubkey_obj)
@@ -111,8 +111,13 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         cert_hash = base64.b64encode(spki_hash).decode('utf-8')
         return cert_hash
 
-    def __validate_hash(self, cert_hash):
-        """Validate the hash against a known list of hashes/pins"""
+    def __is_hash_valid(self, cert_hash):
+        """Validate the hash against a known list of hashes/pins.
+
+        Returns:
+            bool: False if hash is not valid
+                  True if hash is valid
+        """
         # host is passed in __init__
         try:
             self.hash_dict[self.host].index(cert_hash)

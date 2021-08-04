@@ -1,7 +1,5 @@
 import requests
 from proton import cert_pinning
-import pytest
-from proton import exceptions
 import urllib3
 
 
@@ -21,11 +19,9 @@ working_hash2 = {
     "alt_routing": ["9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="],
 }
 
-s = requests.Session()
-
 
 def test_failling_hash():
-    # s = requests.Session()
+    s = requests.Session()
     urllib3.disable_warnings()
     url = 'https://rsa4096.badssl.com/'
     s.mount(url, cert_pinning.TLSPinningAdapter(failing_hash))
@@ -33,7 +29,7 @@ def test_failling_hash():
 
 
 def test_working_hash1():
-    # s = requests.Session()
+    s = requests.Session()
     urllib3.disable_warnings()
     url = 'https://rsa4096.badssl.com/'
     s.mount(url, cert_pinning.TLSPinningAdapter(working_hash1))
@@ -41,25 +37,26 @@ def test_working_hash1():
 
 
 def test_working_hash2():
-    # s = requests.Session()
+    s = requests.Session()
     urllib3.disable_warnings()
     url = 'https://self-signed.badssl.com/'
     s.mount(url, cert_pinning.TLSPinningAdapter(working_hash2))
     s.get(url, verify=False)
 
-
 try:
     test_failling_hash()
+    # test_working_hash1()
+    # test_working_hash2()
 except:
     print("Failed failling hash")
 
 # try:
-#    test_working_hash1()
+#     test_working_hash1()
 # except:
-#    print("Failed working1 hash")
+#     print("Failed working1 hash")
 
 
 # try:
-#    test_working_hash2()
+#     test_working_hash2()
 # except:
-#    print("Failed working2 hash")
+#     print("Failed working2 hash")
