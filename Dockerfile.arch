@@ -28,7 +28,6 @@ COPY docker_entry.sh /usr/local/bin
 COPY . /home/user/$pkgname
 
 RUN chown -R user:user /home/user/
-USER user
 WORKDIR /home/user/$pkgname
 
 ENTRYPOINT ["/usr/local/bin/docker_entry.sh"]
