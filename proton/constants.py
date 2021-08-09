@@ -1,20 +1,30 @@
 
-VERSION = "0.5.1"
-DEFAULT_TIMEOUT = (10, 30)
+VERSION = "0.6.0"
+DEFAULT_TIMEOUT = (3.05, 27)
 PUBKEY_HASH_DICT = {
     "api.protonvpn.ch": [
-        "IEwk65VSaxv3s1/88vF/rM8PauJoIun3rzVCX5mLS3M=",
         "drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE=",
         "YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54=",
-        "AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw="
+        "AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw=",
     ],
     "protonvpn.com": [
-        "+0dMG0qG2Ga+dNE8uktwMm7dv6RFEXwBoBjQ43GqsQ0=",
         "8joiNBdqaYiQpKskgtkJsqRxF7zN0C0aqfi8DacknnI=",
         "JMI8yrbc6jB1FYGyyWRLFTmDNgIszrNEMGlgy972e7w=",
-        "Iu44zU84EOCZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY="
+        "Iu44zU84EOCZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY=",
+    ],
+    "alt_routing": [
+        "EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM=",
+        "iKPIHPnDNqdkvOnTClQ8zQAIKG0XavaPkcEo0LBAABA=",
+        "MSlVrBCdL0hKyczvgYVSRNm88RicyY04Q2y5qrBt0xA=",
+        "C2UxW0T1Ckl9s+8cXfjXxlEqwAfPM4HiW2y3UdtBeCw="
     ]
 }
+
+DNS_HOSTS = ["https://dns11.quad9.net/dns-query", "https://dns.google/dns-query"]
+ENCODED_URLS = [
+    "dMFYGSLTQOJXXI33OOZYG4LTDNA.protonpro.xyz",
+    "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
+]
 
 SRP_MODULUS_KEY = """-----BEGIN PGP PUBLIC KEY BLOCK-----
 

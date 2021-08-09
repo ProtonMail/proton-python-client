@@ -38,6 +38,8 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         **conn_kw
     ):
         self.hash_dict = hash_dict
+        # try/except is needed for multi-version compatibility,
+        # as number of args chane from version 16/18 to 20.
         try:
             super(TLSPinningHTTPSConnectionPool, self).__init__(
                 host,
@@ -85,43 +87,22 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
             )
 
     def _validate_conn(self, conn):
-        r = super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
+        super(TLSPinningHTTPSConnectionPool, self)._validate_conn(conn)
+        pem_certificate = self.__get_certificate(conn.sock)
+        self.ensure_session_is_secure(pem_certificate, conn)
 
-        sock = conn.sock
-
-        pem_certificate = self.get_certificate(sock)
-
-        if self.is_session_secure(pem_certificate, conn, self.hash_dict):
-            return r
-
-    def is_session_secure(self, cert, conn, hash_dict):
+    def ensure_session_is_secure(self, cert, conn):
         """Check if connection is secure"""
 
-        cert_hash = self.extract_hash(cert)
+        cert_hash = self.__extract_hash(cert)
 
-        if not self.is_hash_valid(cert_hash, hash_dict):
+        if not self.__is_hash_valid(cert_hash):
             # Also generate a report
             conn.close()
             raise TLSPinningError("Insecure connection")
 
-        return True
-
-    def is_hash_valid(self, cert_hash, hash_dict):
-        """Validate the hash against a known list of hashes/pins"""
-        try:
-            hash_dict[self.host].index(cert_hash)
-        except (ValueError, KeyError, TypeError):
-            return False
-        else:
-            return True
-
-    def get_certificate(self, sock):
-        """Extract and convert certificate to PEM format"""
-        certificate_binary_form = sock.getpeercert(True)
-        return DER_cert_to_PEM_cert(certificate_binary_form)
-
-    def extract_hash(self, cert):
-        """Extract encrypted hash from the certificate"""
+    def __extract_hash(self, cert):
+        """Extract encrypted hash from the certificate."""
         cert_obj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
         pubkey_obj = cert_obj.get_pubkey()
         pubkey = crypto.dump_publickey(crypto.FILETYPE_ASN1, pubkey_obj)
@@ -129,6 +110,27 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         spki_hash = hashlib.sha256(pubkey).digest()
         cert_hash = base64.b64encode(spki_hash).decode('utf-8')
         return cert_hash
+
+    def __is_hash_valid(self, cert_hash):
+        """Validate the hash against a known list of hashes/pins.
+
+        Returns:
+            bool: False if hash is not valid
+                  True if hash is valid
+        """
+        # host is passed in __init__
+        try:
+            self.hash_dict[self.host].index(cert_hash)
+        except (ValueError, KeyError, TypeError):
+            if cert_hash not in self.hash_dict["alt_routing"]:
+                return False
+
+        return True
+
+    def __get_certificate(self, sock):
+        """Extract and convert certificate to PEM format"""
+        certificate_binary_form = sock.getpeercert(True)
+        return DER_cert_to_PEM_cert(certificate_binary_form)
 
 
 class TLSPinningPoolManager(PoolManager):
@@ -142,23 +144,19 @@ class TLSPinningPoolManager(PoolManager):
     ):
         self.hash_dict = hash_dict
         super(TLSPinningPoolManager, self).__init__(
-            num_pools=10, headers=None, **connection_pool_kw
+            num_pools=10, headers=headers, **connection_pool_kw
         )
 
     def _new_pool(self, scheme, host, port, request_context):
         if scheme != 'https':
             return super(TLSPinningPoolManager, self)._new_pool(
                 scheme, host, port, request_context
-                )
+            )
 
-        kwargs = self.connection_pool_kw
-
-        pool = TLSPinningHTTPSConnectionPool(
+        return TLSPinningHTTPSConnectionPool(
             host=host, port=port,
-            hash_dict=self.hash_dict, **kwargs
+            hash_dict=self.hash_dict, **self.connection_pool_kw
         )
-
-        return pool
 
 
 class TLSPinningAdapter(HTTPAdapter):

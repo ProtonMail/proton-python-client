@@ -1,2 +1,2 @@
 from .api import Session # noqa
-from .exceptions import ProtonError # noqa
+from .exceptions import ProtonAPIError # noqa
