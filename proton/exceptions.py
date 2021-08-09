@@ -1,15 +1,3 @@
-class ProtonAPIError(Exception):
-    def __init__(self, ret):
-        self.code = ret['Code']
-        self.error = ret['Error']
-        try:
-            self.headers = ret["Headers"]
-        except KeyError:
-            self.headers = ""
-
-        super().__init__("{}".format(self.error))
-
-
 class ProtonError(Exception):
     def __init__(self, message, additional_context=None):
         self.message = message
@@ -27,6 +15,23 @@ class ProtonNetworkError(ProtonError):
 
 class TLSPinningError(ProtonNetworkError):
     """TLS Pinning exception"""
+
+
+class ProtonAPIError(ProtonError):
+    def __init__(self, ret):
+        try:
+            self.code = ret['Code']
+            self.error = ret['Error']
+        except: # noqa
+            self.code = "N/A"
+            self.error = "N/A"
+
+        try:
+            self.headers = ret["Headers"]
+        except: # noqa
+            self.headers = "N/A"
+
+        super().__init__(self.error)
 
 
 class NewConnectionError(ProtonNetworkError):
