@@ -89,6 +89,9 @@ class Session:
 
         self.s = requests.Session()
 
+        if proxies and TLSPinning:
+            raise RuntimeError("Not allowed to add proxies while TLS Pinning is enabled")
+
         self.s.proxies = proxies
 
         if TLSPinning:

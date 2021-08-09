@@ -1,8 +1,6 @@
-import requests
-from proton import cert_pinning
-import pytest
-from proton import exceptions
-import urllib3
+# import requests
+# from proton import cert_pinning
+# import urllib3
 
 
 failing_hash = {
@@ -22,26 +20,28 @@ working_hash2 = {
 }
 
 
-class TestCertificatePinning:
+# class TestCertificatePinning:
 
-    def test_failling_hash(self):
-        s = requests.Session()
-        urllib3.disable_warnings()
-        url = 'https://rsa4096.badssl.com/'
-        s.mount(url, cert_pinning.TLSPinningAdapter(failing_hash))
-        with pytest.raises(exceptions.TLSPinningError):
-            s.get(url, verify=False)
+#     def test_failling_hash(self):
+#         from proton import exceptions
+#         import pytest
+#         s = requests.Session()
+#         urllib3.disable_warnings()
+#         url = 'https://rsa4096.badssl.com/'
+#         s.mount(url, cert_pinning.TLSPinningAdapter(failing_hash))
+#         with pytest.raises(exceptions.TLSPinningError):
+#             s.get(url, verify=False)
 
-    def test_working_hash1(self):
-        s = requests.Session()
-        urllib3.disable_warnings()
-        url = 'https://rsa4096.badssl.com/'
-        s.mount(url, cert_pinning.TLSPinningAdapter(working_hash1))
-        s.get(url, verify=False)
+#     def test_working_hash1(self):
+#         s = requests.Session()
+#         urllib3.disable_warnings()
+#         url = 'https://rsa4096.badssl.com/'
+#         s.mount(url, cert_pinning.TLSPinningAdapter(working_hash1))
+#         s.get(url, verify=False)
 
-    def test_working_hash2(self):
-        s = requests.Session()
-        urllib3.disable_warnings()
-        url = 'https://self-signed.badssl.com/'
-        s.mount(url, cert_pinning.TLSPinningAdapter(working_hash2))
-        s.get(url, verify=False)
+#     def test_working_hash2(self):
+#         s = requests.Session()
+#         urllib3.disable_warnings()
+#         url = 'https://self-signed.badssl.com/'
+#         s.mount(url, cert_pinning.TLSPinningAdapter(working_hash2))
+#         s.get(url, verify=False)
