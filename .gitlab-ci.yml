@@ -108,7 +108,6 @@ test-deb:
  needs:
    - job: make-image-deb
  script:
-   - sleep 3600
    - python3 -m pytest
 
 test-arch:

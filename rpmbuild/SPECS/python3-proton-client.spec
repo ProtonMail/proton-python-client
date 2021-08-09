@@ -23,6 +23,7 @@ Requires: python3-requests
 Requires: python3-pyOpenSSL
 Requires: python3-bcrypt
 Requires: python3-gnupg
+Conflicts: python3-protonvpn-nm-lib < 3.4.0
 
 %{?python_disable_dependency_generator}
 
