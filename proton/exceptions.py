@@ -48,7 +48,3 @@ class UnknownConnectionError(ProtonNetworkError):
 
 class EmptyAlternativeRoutesListError(ProtonError):
     """List with alterntive routes is empty."""
-
-
-class TLSPinningDisabledError(ProtonError):
-    """TLS Pinning is disabled."""
