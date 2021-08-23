@@ -4,6 +4,9 @@ import os
 
 PM_VERSION = 4
 
+SRP_LEN_BYTES = 256
+SALT_LEN_BYTES = 10
+
 
 def bcrypt_b64_encode(s):  # The joy of bcrypt
     bcrypt_base64 = b"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" # noqa
@@ -26,16 +29,12 @@ def hash_password(hash_class, password, salt, modulus, version):
     raise ValueError('Unsupported auth version')
 
 
-def long_length(n):
-    return (n.bit_length() + 7) // 8
-
-
 def bytes_to_long(s):
     return int.from_bytes(s, 'little')
 
 
-def long_to_bytes(n):
-    return n.to_bytes(long_length(n), 'little')
+def long_to_bytes(n, num_bytes):
+    return n.to_bytes(num_bytes, 'little')
 
 
 def get_random(nbytes):
@@ -51,7 +50,7 @@ def custom_hash(hash_class, *args, **kwargs):
     h = hash_class()
     for s in args:
         if s is not None:
-            data = long_to_bytes(s) if isinstance(s, int) else s
+            data = long_to_bytes(s, SRP_LEN_BYTES) if isinstance(s, int) else s
             h.update(data)
 
     return bytes_to_long(h.digest())

@@ -19,7 +19,7 @@ import ctypes
 import sys, os
 
 from .pmhash import pmhash
-from .util import PM_VERSION, hash_password
+from .util import PM_VERSION, SRP_LEN_BYTES, SALT_LEN_BYTES, hash_password
 
 dlls = list()
 
@@ -111,10 +111,6 @@ def new_bn():
     return bn
 
 
-def bn_num_bytes(a):
-    return ((BN_num_bits(a) + 7) // 8) # noqa
-
-
 def bn_mod(rem, m, d, ctx):
     return BN_div(None, rem, m, d, ctx) # noqa
 
@@ -123,8 +119,8 @@ def bn_is_zero(n):
     return n[0].top == 0
 
 
-def bn_to_bytes(n):
-    b = ctypes.create_string_buffer(bn_num_bytes(n))
+def bn_to_bytes(n, num_bytes):
+    b = ctypes.create_string_buffer(num_bytes)
     BN_bn2bin(n, b) # noqa
     return b.raw[::-1]
 
@@ -135,8 +131,8 @@ def bytes_to_bn(dest_bn, bytes):
 
 def bn_hash(hash_class, dest, n1, n2):
     h = hash_class()
-    h.update(bn_to_bytes(n1))
-    h.update(bn_to_bytes(n2))
+    h.update(bn_to_bytes(n1, SRP_LEN_BYTES))
+    h.update(bn_to_bytes(n2, SRP_LEN_BYTES))
     d = h.digest()
     bytes_to_bn(dest, d)
 
@@ -154,13 +150,13 @@ def bn_hash_k(hash_class, dest, g, N, width):
 
 def calculate_x(hash_class, dest, salt, password, modulus, version):
     exp = hash_password(
-        hash_class, password, salt, bn_to_bytes(modulus), version
+        hash_class, password, salt, bn_to_bytes(modulus, SRP_LEN_BYTES), version
     )
     bytes_to_bn(dest, exp)
 
 
 def update_hash(h, n):
-    h.update(bn_to_bytes(n))
+    h.update(bn_to_bytes(n, SRP_LEN_BYTES))
 
 
 def calculate_client_challenge(hash_class, A, B, K):
@@ -186,7 +182,7 @@ def get_ngk(hash_class, n_bin, g_hex, ctx):
 
     bytes_to_bn(N, n_bin)
     BN_hex2bn(g, g_hex) # noqa
-    bn_hash_k(hash_class, k, g, N, width=bn_num_bytes(N))
+    bn_hash_k(hash_class, k, g, N, width=SRP_LEN_BYTES)
 
     return N, g, k
 
@@ -252,13 +248,13 @@ class User(object):
         return self._authenticated
 
     def get_ephemeral_secret(self):
-        return bn_to_bytes(self.a)
+        return bn_to_bytes(self.a, SRP_LEN_BYTES)
 
     def get_session_key(self):
         return self.K if self._authenticated else None
 
     def get_challenge(self):
-        return bn_to_bytes(self.A)
+        return bn_to_bytes(self.A, SRP_LEN_BYTES)
 
     # Returns M or None if SRP-6a safety check is violated
     def process_challenge(
@@ -290,7 +286,7 @@ class User(object):
         BN_sub(self.tmp1, self.B, self.tmp3)  # noqa tmp1 = (B - K*(g^x))
         BN_mod_exp(self.S, self.tmp1, self.tmp2, self.N, self.ctx) # noqa
 
-        self.K = bn_to_bytes(self.S)
+        self.K = bn_to_bytes(self.S, SRP_LEN_BYTES)
         self.M = calculate_client_challenge(
             self.hash_class, self.A, self.B, self.K
         )
@@ -308,7 +304,7 @@ class User(object):
         if bytes_s is None:
             salt = new_bn()
             BN_rand(salt, 10*8, 0, 0) # noqa
-            self.bytes_s = bn_to_bytes(salt)
+            self.bytes_s = bn_to_bytes(salt, SALT_LEN_BYTES)
         else:
             self.bytes_s = bytes_s
 
@@ -316,7 +312,7 @@ class User(object):
             self.hash_class, self.x, self.bytes_s, self.password, self.N, version
         )
         BN_mod_exp(self.v, self.g, self.x, self.N, self.ctx)
-        return self.bytes_s, bn_to_bytes(self.v)
+        return self.bytes_s, bn_to_bytes(self.v, SRP_LEN_BYTES)
 
 # ---------------------------------------------------------
 # Init
