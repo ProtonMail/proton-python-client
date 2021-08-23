@@ -111,6 +111,10 @@ def new_bn():
     return bn
 
 
+def bn_num_bytes(a):
+    return ((BN_num_bits(a) + 7) // 8) # noqa
+
+
 def bn_mod(rem, m, d, ctx):
     return BN_div(None, rem, m, d, ctx) # noqa
 
@@ -120,9 +124,9 @@ def bn_is_zero(n):
 
 
 def bn_to_bytes(n, num_bytes):
-    b = ctypes.create_string_buffer(num_bytes)
+    b = ctypes.create_string_buffer(bn_num_bytes(n))
     BN_bn2bin(n, b) # noqa
-    return b.raw[::-1]
+    return b.raw[::-1].ljust(num_bytes, b'\0')
 
 
 def bytes_to_bn(dest_bn, bytes):

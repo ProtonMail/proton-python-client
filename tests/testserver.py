@@ -18,7 +18,7 @@ class TestServer:
             self.calculate_k() * self.verifier + pow(
                 self.generator, self.b, self.modulus
             )
-        )
+        ) % self.modulus
 
         self.secret = None
         self.A = None
