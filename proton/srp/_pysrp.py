@@ -63,7 +63,7 @@ class User(object):
         self.hash_class = pmhash
         self.k = hash_k(
             self.hash_class, self.g,
-            self.N, width=SRP_LEN_BYTES
+            self.N, SRP_LEN_BYTES
         )
 
         self.p = password.encode()

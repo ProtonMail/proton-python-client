@@ -182,7 +182,7 @@ def get_ngk(hash_class, n_bin, g_hex, ctx):
 
     bytes_to_bn(N, n_bin)
     BN_hex2bn(g, g_hex) # noqa
-    bn_hash_k(hash_class, k, g, N, width=SRP_LEN_BYTES)
+    bn_hash_k(hash_class, k, g, N, SRP_LEN_BYTES)
 
     return N, g, k
 
