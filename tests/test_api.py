@@ -3,14 +3,40 @@ import unittest
 import base64
 from testdata import srp_instances, modulus_instances
 from testserver import TestServer
-from proton.srp.util import PM_VERSION
+from proton.srp.util import PM_VERSION, long_to_bytes, bytes_to_long
 from proton.srp._ctsrp import User as CTUser
 from proton.srp._pysrp import User as PYUser
+from proton.srp._ctsrp import bytes_to_bn, bn_to_bytes, new_bn
 from proton.api import Session
 
 
 class SRPTestCases:
     class SRPTestBase(unittest.TestCase):
+        def test_int_to_byte_padding(self):
+            original = b'\x00abc\x00\x00'
+
+            int_val = bytes_to_long(original)
+            byte_val = long_to_bytes(int_val, len(original))
+
+            self.assertEqual(
+                original,
+                byte_val,
+                "Unable to verify int gets correctly decoded"
+            )
+
+        def test_BN_to_byte_padding(self):
+            original = b'\x00abc\x00\x00'
+
+            bn_val = new_bn()
+            bytes_to_bn(bn_val, original)
+            byte_val = bn_to_bytes(bn_val, len(original))
+
+            self.assertEqual(
+                original,
+                byte_val,
+                "Unable to verify BN gets correctly decoded"
+            )
+
         def test_invalid_version(self):
             modulus = bytes.fromhex(srp_instances[0]['Modulus'])
             salt = base64.b64decode(srp_instances[0]['Salt'])
