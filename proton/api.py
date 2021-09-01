@@ -26,7 +26,7 @@ from .cert_pinning import TLSPinningAdapter
 from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
                         SRP_MODULUS_KEY_FINGERPRINT, DNS_HOSTS, ENCODED_URLS)
 from .exceptions import (ConnectionTimeOutError,
-                         EmptyAlternativeRoutesListError, NewConnectionError,
+                         NewConnectionError,
                          ProtonAPIError, TLSPinningError,
                          UnknownConnectionError)
 from .srp import User as PmsrpUser
@@ -361,7 +361,7 @@ class Session:
         If callback is passed then the method does not return any value, otherwise it
         returns a set().
         """
-        routes = None
+        routes = set()
 
         for encoded_url in ENCODED_URLS:
             dns_query, dns_encoded_data = self.__generate_dns_message(encoded_url)
@@ -380,11 +380,8 @@ class Session:
             for response in dns_hosts_response:
                 routes = self.__extract_dns_answer(response, dns_query)
 
-            if routes:
+            if len(routes) > 0:
                 break
-
-        if not routes:
-            raise EmptyAlternativeRoutesListError("No alternative routes were found")
 
         if not callback:
             return routes

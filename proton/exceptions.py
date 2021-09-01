@@ -44,7 +44,3 @@ class ConnectionTimeOutError(ProtonNetworkError):
 
 class UnknownConnectionError(ProtonNetworkError):
     """UnknownConnectionError"""
-
-
-class EmptyAlternativeRoutesListError(ProtonError):
-    """List with alterntive routes is empty."""
