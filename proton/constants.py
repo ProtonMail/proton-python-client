@@ -1,3 +1,13 @@
+from appdirs import AppDirs
+import os
+
+dirs = AppDirs("proton-client", appauthor=False)
+
+CACHE_DIR_PATH = dirs.user_cache_dir
+LOG_DIR_PATH = dirs.user_log_dir
+API_METADATA_FILE_PATH = os.path.join(
+    CACHE_DIR_PATH, "metadata.json"
+)
 
 VERSION = "0.6.0"
 DEFAULT_TIMEOUT = (3.05, 27)
