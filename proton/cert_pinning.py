@@ -163,7 +163,7 @@ class TLSPinningPoolManager(PoolManager):
 
 class TLSPinningAdapter(HTTPAdapter):
     """Attach TLSPinningPoolManager to TLSPinningAdapter"""
-    def __init__(self, hash_dict):
+    def __init__(self, hash_dict=PUBKEY_HASH_DICT):
         self.hash_dict = hash_dict
         super(TLSPinningAdapter, self).__init__()
 

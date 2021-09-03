@@ -11,6 +11,7 @@ constantly popping on the terminal informing the user about it.
 https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
 """
 import urllib3
+
 urllib3.disable_warnings()
 
 from concurrent.futures import ThreadPoolExecutor
@@ -23,15 +24,15 @@ except ModuleNotFoundError:
     from .dns.rdatatype import TXT
 
 from .cert_pinning import TLSPinningAdapter
-from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
-                        SRP_MODULUS_KEY_FINGERPRINT, DNS_HOSTS, ENCODED_URLS, PUBKEY_HASH_DICT, ALT_HASH_DICT)
-from .exceptions import (ConnectionTimeOutError,
-                         NewConnectionError,
-                         ProtonAPIError, TLSPinningError,
-                         UnknownConnectionError, NetworkError)
+from .constants import (ALT_HASH_DICT, DEFAULT_TIMEOUT, DNS_HOSTS,
+                        ENCODED_URLS, PUBKEY_HASH_DICT, SRP_MODULUS_KEY,
+                        SRP_MODULUS_KEY_FINGERPRINT)
+from .exceptions import (ConnectionTimeOutError, NetworkError,
+                         NewConnectionError, ProtonAPIError, TLSPinningError,
+                         UnknownConnectionError)
 from .logger import logger
-from .srp import User as PmsrpUser
 from .metadata import MetadataBackend
+from .srp import User as PmsrpUser
 
 
 class Session:
@@ -153,7 +154,7 @@ class Session:
         self.s.proxies = proxies
 
         if self.__tls_pinning_enabled:
-            self.s.mount(self.__api_url, TLSPinningAdapter(PUBKEY_HASH_DICT))
+            self.s.mount(self.__api_url, TLSPinningAdapter())
 
         self.s.headers['x-pm-appversion'] = appversion
         self.s.headers['User-Agent'] = user_agent
