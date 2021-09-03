@@ -178,7 +178,7 @@ class Session:
         Returns:
             requests.Response
         """
-        exception_ = Exception
+        exception_ = None
         exception_msg = "Default exception"
         fct = self.s.post
 
@@ -295,7 +295,7 @@ class Session:
                 "Please either enable or disable it before making any requests."
             logger.info(msg)
             raise RuntimeError(msg)
-        elif not self.__allow_alternative_routes or _tmp_api_check or self.__force_skip_alternative_routing: # noqa
+        elif exception_ and (not self.__allow_alternative_routes or _tmp_api_check or self.__force_skip_alternative_routing): # noqa
             logger.info("{}: {}".format(exception_, exception_msg))
             raise exception_(exception_msg)
 
