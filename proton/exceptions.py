@@ -9,11 +9,7 @@ class NetworkError(ProtonError):
     """NetworkError"""
 
 
-class ProtonNetworkError(ProtonError):
-    """ProtonNetworkError"""
-
-
-class TLSPinningError(ProtonNetworkError):
+class TLSPinningError(ProtonError):
     """TLS Pinning exception"""
 
 
@@ -34,13 +30,13 @@ class ProtonAPIError(ProtonError):
         super().__init__(self.error)
 
 
-class NewConnectionError(ProtonNetworkError):
+class NewConnectionError(ProtonError):
     """Network Error"""
 
 
-class ConnectionTimeOutError(ProtonNetworkError):
+class ConnectionTimeOutError(ProtonError):
     """Connection Time Out Error"""
 
 
-class UnknownConnectionError(ProtonNetworkError):
+class UnknownConnectionError(ProtonError):
     """UnknownConnectionError"""

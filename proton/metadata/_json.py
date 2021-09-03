@@ -35,7 +35,7 @@ class JSONMetadata(MetadataBackend):
         self.__write_metadata_to_file(metadata)
         logger.info("Saved last API attempt with original URL")
 
-    def try_original_url(self, is_alt_routing_enabled, force_skip_alt_routing=False):
+    def try_original_url(self, is_alt_routing_enabled, force_skip_alt_routing):
         """Determine if next api call should use the original URL or not.
 
         Check API_URL constant to determine what is original URL.
@@ -50,7 +50,7 @@ class JSONMetadata(MetadataBackend):
         if (
             (time_since_last_original_api + self.ONE_DAY_IN_SECONDS) > time.time()
             and is_alt_routing_enabled is True
-            or not force_skip_alt_routing
+            and not force_skip_alt_routing
         ):
             return False
 

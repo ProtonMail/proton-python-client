@@ -120,10 +120,12 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         """
         # host is passed in __init__
         try:
-            self.hash_dict[self.host].index(cert_hash)
+            if self.host in self.hash_dict:
+                self.hash_dict[self.host].index(cert_hash)
+            else:
+                self.hash_dict["backup"].index(cert_hash)
         except (ValueError, KeyError, TypeError):
-            if cert_hash not in self.hash_dict["alt_routing"]:
-                return False
+            return False
 
         return True
 
@@ -161,7 +163,7 @@ class TLSPinningPoolManager(PoolManager):
 
 class TLSPinningAdapter(HTTPAdapter):
     """Attach TLSPinningPoolManager to TLSPinningAdapter"""
-    def __init__(self, hash_dict=PUBKEY_HASH_DICT):
+    def __init__(self, hash_dict):
         self.hash_dict = hash_dict
         super(TLSPinningAdapter, self).__init__()
 

@@ -22,7 +22,9 @@ PUBKEY_HASH_DICT = {
         "JMI8yrbc6jB1FYGyyWRLFTmDNgIszrNEMGlgy972e7w=",
         "Iu44zU84EOCZ9vx/vz67/MRVrxF1IO4i4NIa8ETwiIY=",
     ],
-    "alt_routing": [
+}
+ALT_HASH_DICT = {
+    "backup": [
         "EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM=",
         "iKPIHPnDNqdkvOnTClQ8zQAIKG0XavaPkcEo0LBAABA=",
         "MSlVrBCdL0hKyczvgYVSRNm88RicyY04Q2y5qrBt0xA=",

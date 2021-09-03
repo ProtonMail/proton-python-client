@@ -3,7 +3,6 @@ import json
 
 import gnupg
 import requests
-import urllib3
 
 """
 When using alternative routing, we want to verify as little data as possible. Thus we'll
@@ -11,6 +10,7 @@ end up relying mostly on tls key pinning. If we don't disable warnings, a warnin
 constantly popping on the terminal informing the user about it.
 https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
 """
+import urllib3
 urllib3.disable_warnings()
 
 from concurrent.futures import ThreadPoolExecutor
@@ -24,12 +24,14 @@ except ModuleNotFoundError:
 
 from .cert_pinning import TLSPinningAdapter
 from .constants import (DEFAULT_TIMEOUT, SRP_MODULUS_KEY,
-                        SRP_MODULUS_KEY_FINGERPRINT, DNS_HOSTS, ENCODED_URLS)
+                        SRP_MODULUS_KEY_FINGERPRINT, DNS_HOSTS, ENCODED_URLS, PUBKEY_HASH_DICT, ALT_HASH_DICT)
 from .exceptions import (ConnectionTimeOutError,
                          NewConnectionError,
                          ProtonAPIError, TLSPinningError,
-                         UnknownConnectionError)
+                         UnknownConnectionError, NetworkError)
+from .logger import logger
 from .srp import User as PmsrpUser
+from .metadata import MetadataBackend
 
 
 class Session:
@@ -44,6 +46,7 @@ class Session:
 
       >>> import proton
       >>> s = proton.Session("https://url-to-api.ch")
+      >>> s.enable_alternative_routing = True
       >>> s.api_request('/api/endpoint')
       <Response [200]>
     """
@@ -51,8 +54,8 @@ class Session:
         "x-pm-apiversion": "3",
         "Accept": "application/vnd.protonmail.v1+json"
     }
-    __tls_verification = True
-    __tls_pinning_enabled = False
+    __allow_alternative_routes = None
+    __force_skip_alternative_routing = False
 
     @staticmethod
     def load(dump, TLSPinning=True, timeout=DEFAULT_TIMEOUT, proxies=None):
@@ -133,6 +136,8 @@ class Session:
         self.__user_agent = user_agent
         self.__clientsecret = ClientSecret
         self.__timeout = timeout
+        self.__tls_pinning_enabled = TLSPinning
+        self.__metadata = MetadataBackend.get_backend()
 
         # Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -147,9 +152,8 @@ class Session:
 
         self.s.proxies = proxies
 
-        if TLSPinning:
-            self.__tls_pinning_enabled = True
-            self.s.mount(self.__api_url, TLSPinningAdapter())
+        if self.__tls_pinning_enabled:
+            self.s.mount(self.__api_url, TLSPinningAdapter(PUBKEY_HASH_DICT))
 
         self.s.headers['x-pm-appversion'] = appversion
         self.s.headers['User-Agent'] = user_agent
@@ -157,7 +161,7 @@ class Session:
     def api_request(
         self, endpoint,
         jsondata=None, additional_headers=None,
-        method=None, params=None
+        method=None, params=None, _tmp_api_check=False
     ):
         """Make API request.
 
@@ -174,7 +178,10 @@ class Session:
         Returns:
             requests.Response
         """
+        exception_ = Exception
+        exception_msg = "Default exception"
         fct = self.s.post
+
         if method is None:
             if jsondata is None:
                 fct = self.s.get
@@ -192,15 +199,113 @@ class Session:
         if fct is None:
             raise ValueError("Unknown method: {}".format(method))
 
+        _url = self.__api_url
+        _verify = True
+
+        if not self.__metadata.try_original_url(
+            self.__allow_alternative_routes,
+            self.__force_skip_alternative_routing
+        ):
+            _url = self.__metadata.get_alternative_url()
+            _verify = False
+
+        request_params = {
+            "url": _url,
+            "endpoint": endpoint,
+            "headers": additional_headers,
+            "json": jsondata,
+            "timeout": self.__timeout,
+            "verify": _verify,
+            "params": params
+        }
+
         try:
-            ret = fct(
-                self.__api_url + endpoint,
-                headers=additional_headers,
-                json=jsondata,
-                timeout=self.__timeout,
-                verify=self.__tls_verification,
-                params=params
+            response = self.__make_request(fct, **request_params)
+        except requests.exceptions.ConnectionError as e:
+            exception_ = NewConnectionError
+            exception_msg = e
+        except requests.exceptions.Timeout as e:
+            exception_ = ConnectionTimeOutError
+            exception_msg = e
+        except TLSPinningError as e:
+            exception_ = TLSPinningError
+            exception_msg = e
+        except (Exception, requests.exceptions.BaseHTTPError) as e:
+            logger.exception(e)
+            raise UnknownConnectionError(e)
+
+        self.__alt_routing_exception_check(_tmp_api_check, exception_, exception_msg)
+
+        if (
+            exception_ in [NewConnectionError, ConnectionTimeOutError, TLSPinningError]
+            and not self._is_api_reacheable()
+        ):
+            response = self.__try_with_alt_routing(fct, **request_params)
+
+        try:
+            json_response = response.json()
+        except json.decoder.JSONDecodeError as e:
+            logger.exception(e)
+            raise ProtonAPIError(
+                {
+                    "Code": json_response.status_code,
+                    "Error": json_response.reason,
+                    "Headers": json_response.headers
+                }
             )
+
+        if json_response['Code'] not in [1000, 1001]:
+            raise ProtonAPIError(json_response)
+
+        return json_response
+
+    def __try_with_alt_routing(self, fct, **request_params):
+        alternative_routes = self.get_alternative_routes()
+
+        request_params["verify"] = False
+        response = None
+
+        for route in alternative_routes:
+            if self.__tls_pinning_enabled:
+                self.s.mount(route, TLSPinningAdapter(ALT_HASH_DICT))
+
+            _alt_url = "https://{}".format(route)
+            request_params["url"] = _alt_url
+
+            logger.info("Trying {}".format(_alt_url))
+            try:
+                response = self.__make_request(fct, **request_params)
+            except Exception as e: # noqa
+                logger.exception(e)
+                continue
+            else:
+                logger.info("Storing alternative route: {}".format(_alt_url))
+                self.__metadata.store_alternative_route(_alt_url)
+                break
+
+        if not response:
+            logger.info("Possible network error, unable to reach API")
+            raise NetworkError("Network error")
+
+        return response
+
+    def __alt_routing_exception_check(self, _tmp_api_check, exception_, exception_msg):
+        if self.__allow_alternative_routes is None:
+            msg = "Alternative routing has not been configured before making API requests. " \
+                "Please either enable or disable it before making any requests."
+            logger.info(msg)
+            raise RuntimeError(msg)
+        elif not self.__allow_alternative_routes or _tmp_api_check or self.__force_skip_alternative_routing: # noqa
+            logger.info("{}: {}".format(exception_, exception_msg))
+            raise exception_(exception_msg)
+
+    def __make_request(self, fct, **kwargs):
+        _endpoint = kwargs.pop("endpoint")
+        _url = kwargs["url"]
+
+        kwargs["url"] = _url + _endpoint
+        try:
+            ret = fct(**kwargs)
         except requests.exceptions.ConnectionError as e:
             raise NewConnectionError(e)
         except requests.exceptions.Timeout as e:
@@ -210,21 +315,16 @@ class Session:
         except (Exception, requests.exceptions.BaseHTTPError) as e:
             raise UnknownConnectionError(e)
 
-        try:
-            ret = ret.json()
-        except json.decoder.JSONDecodeError:
-            raise ProtonAPIError(
-                {
-                    "Code": ret.status_code,
-                    "Error": ret.reason,
-                    "Headers": ret.headers
-                }
-            )
-
-        if ret['Code'] not in [1000, 1001]:
-            raise ProtonAPIError(ret)
-
         return ret
+
+    def _is_api_reacheable(self):
+        try:
+            self.api_request("/tests/ping", _tmp_api_check=True)
+        except (NewConnectionError, ConnectionTimeOutError, TLSPinningError) as e:
+            logger.exception(e)
+            return False
+
+        return True
 
     def verify_modulus(self, armored_modulus):
         # gpg.decrypt verifies the signature too, and returns the parsed data.
@@ -454,22 +554,42 @@ class Session:
         return routes
 
     @property
-    def api_url(self):
-        return self.__api_url
+    def enable_alternative_routing(self):
+        """Alternative routing getter."""
+        return self.__allow_alternative_routes
 
-    @api_url.setter
-    def api_url(self, newvalue):
-        self.__api_url = newvalue
-        if self.__tls_pinning_enabled:
-            self.s.mount(newvalue, TLSPinningAdapter())
+    @enable_alternative_routing.setter
+    def enable_alternative_routing(self, newvalue):
+        """Alternative routing setter.
+
+        If you would like to enable/disable alternative routing
+        before making any requests, this should be set to the desired
+        value.
+
+        Args:
+            newvalue (bool)
+        """
+        self.__allow_alternative_routes = bool(newvalue)
 
     @property
-    def tls_verify(self):
-        return self.__tls_verification
+    def force_skip_alternative_routing(self):
+        """Force skip alternative routing getter."""
+        return self.__force_skip_alternative_routing
 
-    @tls_verify.setter
-    def tls_verify(self, newvalue):
-        self.__tls_verification = newvalue
+    @force_skip_alternative_routing.setter
+    def force_skip_alternative_routing(self, newvalue):
+        """Force skip alternative routing setter.
+
+        Alternative routing is normally used when the usual API is not
+        reacheable. In certain cases, such as when connected to the VPN,
+        the usual API should be reacheable as the connection is tunneled,
+        thus there is not need to reach for the alternative routes and the
+        usual API is preffered to be used, for security and reliability.
+
+        Args:
+            newvalue (bool)
+        """
+        self.__force_skip_alternative_routing = bool(newvalue)
 
     @property
     def UID(self):
