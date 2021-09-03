@@ -3,14 +3,9 @@ import json
 import os
 import time
 
-# from .... import exceptions
-# from ....constants import API_METADATA_FILEPATH, API_URL
-# from ....enums import MetadataActionEnum, MetadataEnum, APIMetadataEnum, UserSettingStatusEnum
-# from ....logger import logger
 from .metadata import MetadataBackend
 from ..logger import logger
 from ..constants import API_METADATA_FILE_PATH
-# from ...environment import ExecutionEnvironment
 
 
 class JSONMetadata(MetadataBackend):
