@@ -1,5 +1,5 @@
-from . import textfile_backend # noqa
+from . import textfile_metadata # noqa
 
-from .metadata import MetadataBackend
+from ._base import MetadataBackend
 
-__all__ = ['MetadataBackend']
+__all__ = ["MetadataBackend"]

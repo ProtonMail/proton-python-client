@@ -158,7 +158,14 @@ class TestPYSRPClass(SRPTestCases.SRPTestBase):
 
 class TestModulus(unittest.TestCase):
     def test_modulus_verification(self):
-        session = Session('dummy')
+        import os
+        cwd = os.getcwd()
+        session = Session(
+            'dummy',
+            os.path.join(cwd, "logs"),
+            os.path.join(cwd, "cache")
+        )
+
         for instance in modulus_instances:
             if instance["Exception"] is not None:
                 with self.assertRaises(instance['Exception']):

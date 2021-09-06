@@ -1,9 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from ..utils import SubclassesMixin
-from ..logger import logger
+from ..logger import CustomLogger
 
 
 class MetadataBackend(SubclassesMixin, metaclass=ABCMeta):
+    logger = CustomLogger().logger
 
     @classmethod
     def get_backend(cls, metadata_backend="default"):
@@ -12,9 +13,6 @@ class MetadataBackend(SubclassesMixin, metaclass=ABCMeta):
             raise NotImplementedError(
                 "API Metadata Backend not implemented"
             )
-        logger.info("API metadata backend: {}".format(
-            subclasses_dict[metadata_backend]
-        ))
 
         return subclasses_dict[metadata_backend]()
 

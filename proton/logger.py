@@ -7,11 +7,19 @@ from .utils import Singleton
 import time
 
 
-class CustomLogger(metaclass=Singleton):
-    def __init__(self, log_dir_path):
-        self.__log_dir_path = log_dir_path
+class CustomLogger(Singleton):
+    def __init__(self):
+        self.__log_dir_path = None
         self.__logger = None
-        self.__create_logger()
+
+    @property
+    def logger(self):
+        return self.__logger
+
+    def set_log_path(self, log_dir_path):
+        if self.__log_dir_path is None:
+            self.__log_dir_path = log_dir_path
+            self.__create_logger()
 
     def __create_logger(self):
         """Create the logger."""
@@ -39,7 +47,3 @@ class CustomLogger(metaclass=Singleton):
         )
         file_handler.setFormatter(FORMATTER)
         self.__logger.addHandler(file_handler)
-
-    @property
-    def logger(self):
-        return self.__logger

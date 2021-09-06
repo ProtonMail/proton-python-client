@@ -148,7 +148,9 @@ class Session:
         self.__clientsecret = ClientSecret
         self.__timeout = timeout
         self.__tls_pinning_enabled = TLSPinning
-        self._logger = CustomLogger(log_dir_path).logger
+        self._logger = CustomLogger()
+        self._logger.set_log_path(log_dir_path)
+        self._logger = self._logger.logger
         self.__metadata = MetadataBackend.get_backend()
         self.__metadata.cache_dir_path = cache_dir_path
 

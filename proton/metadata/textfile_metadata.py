@@ -3,13 +3,12 @@ import json
 import os
 import time
 
-from .metadata import MetadataBackend
-from ..logger import logger
+from ._base import MetadataBackend
 
 
 class TextfileMetdataHandler(MetadataBackend):
     """
-    TextfileMetdataHandler. Stores
+    Textfile Metdata Handler. Stores
     metadata for Alternative Routing purposes.
     """
     metadata_backend = "default"
@@ -25,7 +24,7 @@ class TextfileMetdataHandler(MetadataBackend):
         metadata["url"] = url
 
         self.__write_metadata_to_file(metadata)
-        logger.info("Saved last API attempt with original URL")
+        self.logger.info("Saved last API attempt with original URL")
 
     def try_original_url(self, is_alt_routing_enabled, force_skip_alt_routing):
         """Determine if next api call should use the original URL or not.
@@ -77,14 +76,14 @@ class TextfileMetdataHandler(MetadataBackend):
         Returns:
             json/dict
         """
-        logger.debug("Getting metadata")
+        self.logger.debug("Getting metadata")
         try:
             with open(self.METADATA_FILEPATH) as f:
                 metadata = json.load(f)
-                logger.debug("Successfully fetched metadata from file")
+                self.logger.debug("Successfully fetched metadata from file")
                 return metadata
         except Exception as e:
-            logger.exception(e)
+            self.logger.exception(e)
             return {}
 
     def __write_metadata_to_file(self, metadata):
@@ -92,9 +91,9 @@ class TextfileMetdataHandler(MetadataBackend):
         try:
             with open(self.METADATA_FILEPATH, "w") as f:
                 json.dump(metadata, f)
-                logger.debug("Successfully saved metadata")
+                self.logger.debug("Successfully saved metadata")
         except Exception as e:
-            logger.exception(e)
+            self.logger.exception(e)
             return {}
 
     def __remove_metadata_file(self):
@@ -104,13 +103,13 @@ class TextfileMetdataHandler(MetadataBackend):
 
     def __check_metadata_exists(self):
         """Check if metadata file exists."""
-        logger.debug("Checking if metadata exists.")
+        self.logger.debug("Checking if metadata exists.")
 
         found_metadata_file = False
         if os.path.isfile(self.METADATA_FILEPATH):
             found_metadata_file = True
 
-        logger.debug(
+        self.logger.debug(
             "Metadata \"{}\"".format(
                 ("exists" if found_metadata_file else "does not exist")
             )
