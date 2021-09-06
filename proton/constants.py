@@ -1,4 +1,4 @@
-from appdirs import AppDirs
+from .appdirs import AppDirs
 import os
 
 dirs = AppDirs("proton-client", appauthor=False)
