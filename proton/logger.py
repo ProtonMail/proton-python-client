@@ -2,42 +2,42 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-from .constants import LOG_DIR_PATH, CACHE_DIR_PATH
-
 import time
 
 
-def get_logger():
-    """Create the logger."""
-    FORMATTER = logging.Formatter(
-        "%(asctime)s — %(filename)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s" # noqa
-    )
-    FORMATTER.converter = time.gmtime
+class CustomLogger():
+    def __init__(self, log_dir_path):
+        self.__log_dir_path = log_dir_path
+        self.__logger = None
+        self.__create_logger()
 
-    if not os.path.isdir(LOG_DIR_PATH):
-        os.makedirs(LOG_DIR_PATH)
+    def __create_logger(self):
+        """Create the logger."""
+        FORMATTER = logging.Formatter(
+            "%(asctime)s — %(filename)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s" # noqa
+        )
+        FORMATTER.converter = time.gmtime
 
-    if not os.path.isdir(CACHE_DIR_PATH):
-        os.makedirs(CACHE_DIR_PATH)
+        if not os.path.isdir(self.__log_dir_path):
+            os.makedirs(self.__log_dir_path)
 
-    LOGFILE = os.path.join(LOG_DIR_PATH, "proton-client.log")
+        LOGFILE = os.path.join(self.__log_dir_path, "proton-client.log")
 
-    logger = logging.getLogger("proton-client")
+        self.__logger = logging.getLogger("proton-client")
 
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(FORMATTER)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(FORMATTER)
 
-    logging_level = logging.INFO
+        logging_level = logging.INFO
 
-    logger.setLevel(logging_level)
-    # Starts a new file at 3MB size limit
-    file_handler = RotatingFileHandler(
-        LOGFILE, maxBytes=3145728, backupCount=3
-    )
-    file_handler.setFormatter(FORMATTER)
-    logger.addHandler(file_handler)
+        self.__logger.setLevel(logging_level)
+        # Starts a new file at 3MB size limit
+        file_handler = RotatingFileHandler(
+            LOGFILE, maxBytes=3145728, backupCount=3
+        )
+        file_handler.setFormatter(FORMATTER)
+        self.__logger.addHandler(file_handler)
 
-    return logger
-
-
-logger = get_logger()
+    @property
+    def logger(self):
+        return self.__logger

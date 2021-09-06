@@ -38,3 +38,15 @@ class MetadataBackend(SubclassesMixin, metaclass=ABCMeta):
     def get_alternative_url():
         """Get stored URL."""
         pass
+
+    @property
+    @abstractmethod
+    def cache_dir_path():
+        """Getter for cache directory path."""
+        pass
+
+    @cache_dir_path.setter
+    @abstractmethod
+    def cache_dir_path():
+        """Setter for cache directory path."""
+        pass

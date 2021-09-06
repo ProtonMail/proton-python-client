@@ -5,18 +5,15 @@ import time
 
 from .metadata import MetadataBackend
 from ..logger import logger
-from ..constants import API_METADATA_FILE_PATH
 
 
-class JSONMetadata(MetadataBackend):
+class TextfileMetdataHandler(MetadataBackend):
     """
-    JSON type metadata. Stores
-    metadata about the current connection
-    for displaying connection status and also
-    stores for metadata for future reconnections.
+    TextfileMetdataHandler. Stores
+    metadata for Alternative Routing purposes.
     """
     metadata_backend = "default"
-    FILEPATH = API_METADATA_FILE_PATH
+    METADATA_FILEPATH = None
     ONE_DAY_IN_SECONDS = 86400
 
     def store_alternative_route(self, url):
@@ -55,11 +52,24 @@ class JSONMetadata(MetadataBackend):
         return True
 
     def get_alternative_url(self):
-        """Get alternative URL form metadata file."""
+        """Get alternative URL from metadata file."""
         try:
             return self.__get_metadata_from_file()["url"]
         except KeyError:
             return ""
+
+    @property
+    def cache_dir_path(self):
+        """Getter for cache directory path."""
+        return self.METADATA_FILEPATH
+
+    @cache_dir_path.setter
+    def cache_dir_path(self, newvalue):
+        """Setter for cache directory path."""
+        import os
+        self.METADATA_FILEPATH = os.path.join(
+            newvalue, "metadata.json"
+        )
 
     def __get_metadata_from_file(self):
         """Get metadata.
@@ -69,30 +79,35 @@ class JSONMetadata(MetadataBackend):
         """
         logger.debug("Getting metadata")
         try:
-            with open(self.FILEPATH) as f:
+            with open(self.METADATA_FILEPATH) as f:
                 metadata = json.load(f)
                 logger.debug("Successfully fetched metadata from file")
                 return metadata
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             return {}
 
     def __write_metadata_to_file(self, metadata):
         """Save metadata to file."""
-        with open(self.FILEPATH, "w") as f:
-            json.dump(metadata, f)
-            logger.debug("Successfully saved metadata")
+        try:
+            with open(self.METADATA_FILEPATH, "w") as f:
+                json.dump(metadata, f)
+                logger.debug("Successfully saved metadata")
+        except Exception as e:
+            logger.exception(e)
+            return {}
 
     def __remove_metadata_file(self):
         """Remove metadata file."""
-        if os.path.isfile(self.FILEPATH):
-            os.remove(self.FILEPATH)
+        if os.path.isfile(self.METADATA_FILEPATH):
+            os.remove(self.METADATA_FILEPATH)
 
     def __check_metadata_exists(self):
         """Check if metadata file exists."""
         logger.debug("Checking if metadata exists.")
 
         found_metadata_file = False
-        if os.path.isfile(self.FILEPATH):
+        if os.path.isfile(self.METADATA_FILEPATH):
             found_metadata_file = True
 
         logger.debug(
