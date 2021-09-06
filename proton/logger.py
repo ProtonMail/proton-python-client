@@ -1,11 +1,13 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from .utils import Singleton
+
 
 import time
 
 
-class CustomLogger():
+class CustomLogger(metaclass=Singleton):
     def __init__(self, log_dir_path):
         self.__log_dir_path = log_dir_path
         self.__logger = None
