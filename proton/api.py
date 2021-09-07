@@ -284,7 +284,7 @@ class Session:
         return json_response
 
     def __try_with_alt_routing(self, fct, **request_params):
-        alternative_routes = self.get_alternative_routes()
+        alternative_routes = self.get_alternative_routes_from_dns()
 
         request_params["verify"] = False
         response = None
@@ -459,7 +459,7 @@ class Session:
         self._session_data['RefreshToken'] = refresh_response["RefreshToken"]
         self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
 
-    def get_alternative_routes(self, callback=None):
+    def get_alternative_routes_from_dns(self, callback=None):
         """Get alternative routes to circumvent firewalls and API restrictions.
 
         Args:

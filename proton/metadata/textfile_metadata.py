@@ -18,7 +18,7 @@ class TextfileMetdataHandler(MetadataBackend):
 
     def store_alternative_route(self, url):
         """Save connected time metadata."""
-        metadata = self.__get_metadata_from_file()
+        metadata = {}
         metadata["last_api_call_time"] = str(
             int(time.time())
         )
@@ -78,14 +78,10 @@ class TextfileMetdataHandler(MetadataBackend):
             json/dict
         """
         self.logger.debug("Getting metadata")
-        try:
-            with open(self.METADATA_FILEPATH) as f:
-                metadata = json.load(f)
-                self.logger.debug("Successfully fetched metadata from file")
-                return metadata
-        except Exception as e:
-            self.logger.exception(e)
-            return {}
+        with open(self.METADATA_FILEPATH) as f:
+            metadata = json.load(f)
+            self.logger.debug("Successfully fetched metadata from file")
+            return metadata
 
     def __write_metadata_to_file(self, metadata):
         """Save metadata to file."""
