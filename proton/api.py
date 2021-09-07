@@ -62,7 +62,7 @@ class Session:
     @staticmethod
     def load(
         dump, log_dir_path, cache_dir_path,
-        TLSPinning=True, timeout=DEFAULT_TIMEOUT,
+        tls_pinning=True, timeout=DEFAULT_TIMEOUT,
         proxies=None
     ):
         """Load session from file/keyring.
@@ -72,7 +72,7 @@ class Session:
         Args:
             log_dir_path (str): path to desired logging directory
             cache_dir_path (str): path to desired cache directory
-            TLSPinning (bool): tls pinning
+            tls_pinning (bool): tls pinning
             timeout (tuple|int|float): How long to wait for the server to send
             data before giving up.
             proxies (dict): desired proxies
@@ -90,7 +90,7 @@ class Session:
             cache_dir_path=cache_dir_path,
             appversion=appversion,
             user_agent=user_agent,
-            TLSPinning=TLSPinning,
+            tls_pinning=tls_pinning,
             timeout=timeout,
             proxies=proxies
         )
@@ -121,7 +121,7 @@ class Session:
     def __init__(
         self, api_url, log_dir_path, cache_dir_path,
         appversion="Other", user_agent="None",
-        TLSPinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT,
+        tls_pinning=True, ClientSecret=None, timeout=DEFAULT_TIMEOUT,
         proxies=None
     ):
         """Constructs a new Session object.
@@ -133,21 +133,21 @@ class Session:
             should be in the following syntax:
                 - Linux based -> ClientName/client.version (Linux; Distro/distro_version)
                 - Non-linux based -> ClientName/client.version (OS)
-            TLSPinning (bool): wether tls pinning should be enabled for the new
+            tls_pinning (bool): wether tls pinning should be enabled for the new
                 Session object.
             ClientSecret (string): secret token for the new Session object that
                 is added to the payload with key `ClientSecret`. [OPTIONAL]
             timeout (int|float|tuple): How long to wait for the server to send
                 data before giving up. [OPTIONAL]
             proxies (dict): proxies to be used by the new Session object.
-                This is mutually exclusive with `TLSPinning`. [OPTIONAL]
+                This is mutually exclusive with `tls_pinning`. [OPTIONAL]
         """
         self.__api_url = api_url
         self.__appversion = appversion
         self.__user_agent = user_agent
         self.__clientsecret = ClientSecret
         self.__timeout = timeout
-        self.__tls_pinning_enabled = TLSPinning
+        self.__tls_pinning_enabled = tls_pinning
         self._logger = CustomLogger()
         self._logger.set_log_path(log_dir_path)
         self._logger = self._logger.logger
@@ -162,7 +162,7 @@ class Session:
 
         self.s = requests.Session()
 
-        if proxies and TLSPinning:
+        if proxies and self.__tls_pinning_enabled:
             raise RuntimeError("Not allowed to add proxies while TLS Pinning is enabled")
 
         self.s.proxies = proxies
