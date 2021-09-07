@@ -1,10 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from ..utils import SubclassesMixin
-from ..logger import CustomLogger
 
 
 class MetadataBackend(SubclassesMixin, metaclass=ABCMeta):
-    logger = CustomLogger().logger
 
     @classmethod
     def get_backend(cls, metadata_backend="default"):

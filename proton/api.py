@@ -153,6 +153,7 @@ class Session:
         self._logger = self._logger.logger
         self.__metadata = MetadataBackend.get_backend()
         self.__metadata.cache_dir_path = cache_dir_path
+        self.__metadata.logger = self._logger
 
         # Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -289,11 +290,11 @@ class Session:
         response = None
 
         for route in alternative_routes:
-            if self.__tls_pinning_enabled:
-                self.s.mount(route, TLSPinningAdapter(ALT_HASH_DICT))
-
             _alt_url = "https://{}".format(route)
             request_params["url"] = _alt_url
+
+            if self.__tls_pinning_enabled:
+                self.s.mount(_alt_url, TLSPinningAdapter(ALT_HASH_DICT))
 
             self._logger.info("Trying {}".format(_alt_url))
             try:
@@ -582,7 +583,8 @@ class Session:
         Args:
             newvalue (bool)
         """
-        self.__allow_alternative_routes = bool(newvalue)
+        if self.__allow_alternative_routes != bool(newvalue):
+            self.__allow_alternative_routes = bool(newvalue)
 
     @property
     def force_skip_alternative_routing(self):

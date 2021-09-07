@@ -120,14 +120,19 @@ class TLSPinningHTTPSConnectionPool(HTTPSConnectionPool):
         """
         # host is passed in __init__
         try:
-            if self.host in self.hash_dict:
-                self.hash_dict[self.host].index(cert_hash)
-            else:
-                self.hash_dict["backup"].index(cert_hash)
+            self.hash_dict[self.host].index(cert_hash)
+        except (ValueError, KeyError, TypeError):
+            pass
+        else:
+            return True
+
+        # try alt routing
+        try:
+            self.hash_dict["backup"].index(cert_hash)
         except (ValueError, KeyError, TypeError):
             return False
-
-        return True
+        else:
+            return True
 
     def __get_certificate(self, sock):
         """Extract and convert certificate to PEM format"""

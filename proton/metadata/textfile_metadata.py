@@ -14,6 +14,7 @@ class TextfileMetdataHandler(MetadataBackend):
     metadata_backend = "default"
     METADATA_FILEPATH = None
     ONE_DAY_IN_SECONDS = 86400
+    logger = None
 
     def store_alternative_route(self, url):
         """Save connected time metadata."""
@@ -67,7 +68,7 @@ class TextfileMetdataHandler(MetadataBackend):
         """Setter for cache directory path."""
         import os
         self.METADATA_FILEPATH = os.path.join(
-            newvalue, "metadata.json"
+            newvalue, "api_metadata.json"
         )
 
     def __get_metadata_from_file(self):
