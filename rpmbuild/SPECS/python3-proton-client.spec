@@ -1,6 +1,6 @@
 %define unmangled_name proton-client
 %define version 0.6.1
-%define release 1
+%define release 2
 
 Prefix: %{_prefix}
 
@@ -49,7 +49,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Thu Jul 08 2021 Proton Technologies AG <opensource@proton.me> 0.6.1-1
+* Thu Jul 08 2021 Proton Technologies AG <opensource@proton.me> 0.6.1-2
 - Feature: Alternative Routing
 
 * Mon May 24 2021 Proton Technologies AG <opensource@proton.me> 0.5.1-3

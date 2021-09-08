@@ -36,7 +36,7 @@ class TextfileMetdataHandler(MetadataBackend):
             time_since_last_original_api = int(
                 self.__get_metadata_from_file()["last_api_call_time"]
             )
-        except KeyError:
+        except (KeyError, FileNotFoundError):
             time_since_last_original_api = (self.ONE_DAY_IN_SECONDS * 2) - int(time.time())
 
         if (
