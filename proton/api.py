@@ -247,14 +247,15 @@ class Session:
         try:
             response = self.__make_request(fct, **request_params)
         except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout, TLSPinningError
+            NewConnectionError,
+            ConnectionTimeOutError,
+            TLSPinningError,
         ) as e:
+            self._logger.exception(e)
             exc_type, *_ = sys.exc_info()
             exception_class = exc_type
             exception_msg = e
         except (Exception, requests.exceptions.BaseHTTPError) as e:
-            self._logger.exception(e)
             raise UnknownConnectionError(e)
 
         if exception_class and (not self.__allow_alternative_routes or _skip_alt_routing_for_api_check or self.__force_skip_alternative_routing): # noqa
