@@ -17,12 +17,10 @@ urllib3.disable_warnings()
 
 from concurrent.futures import ThreadPoolExecutor
 
-try:
-    from dns import message
-    from dns.rdatatype import TXT
-except ModuleNotFoundError:
-    from .dns import message
-    from .dns.rdatatype import TXT
+
+from dns import message
+from dns.rdatatype import TXT
+
 
 from .cert_pinning import TLSPinningAdapter
 from .constants import (ALT_HASH_DICT, DEFAULT_TIMEOUT, DNS_HOSTS,
@@ -56,7 +54,6 @@ class Session:
         "x-pm-apiversion": "3",
         "Accept": "application/vnd.protonmail.v1+json"
     }
-    __allow_alternative_routes = None
     __force_skip_alternative_routing = False
 
     @staticmethod
