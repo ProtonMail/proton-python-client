@@ -40,3 +40,7 @@ class ConnectionTimeOutError(ProtonError):
 
 class UnknownConnectionError(ProtonError):
     """UnknownConnectionError"""
+
+
+class MissingDepedencyError(ProtonError):
+    """Missing dependency error"""

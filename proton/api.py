@@ -18,17 +18,13 @@ urllib3.disable_warnings()
 from concurrent.futures import ThreadPoolExecutor
 
 
-from dns import message
-from dns.rdatatype import TXT
-
-
 from .cert_pinning import TLSPinningAdapter
 from .constants import (ALT_HASH_DICT, DEFAULT_TIMEOUT, DNS_HOSTS,
                         ENCODED_URLS, SRP_MODULUS_KEY,
                         SRP_MODULUS_KEY_FINGERPRINT)
 from .exceptions import (ConnectionTimeOutError, NetworkError,
                          NewConnectionError, ProtonAPIError, TLSPinningError,
-                         UnknownConnectionError)
+                         UnknownConnectionError, MissingDepedencyError)
 from .logger import CustomLogger
 from .metadata import MetadataBackend
 from .srp import User as PmsrpUser
@@ -151,6 +147,7 @@ class Session:
         self.__metadata = MetadataBackend.get_backend()
         self.__metadata.cache_dir_path = cache_dir_path
         self.__metadata.logger = self._logger
+        self.__allow_alternative_routes = None
 
         # Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -473,6 +470,18 @@ class Session:
         If callback is passed then the method does not return any value, otherwise it
         returns a set().
         """
+
+        try:
+            from dns import message
+            from dns.rdatatype import TXT
+        except ImportError as e:
+            self._logger.exception(e)
+            raise MissingDepedencyError(
+                "Could not find dnspython package. "
+                "Please either install the missing package or disable "
+                "alternative routing."
+            )
+
         routes = set()
 
         for encoded_url in ENCODED_URLS:
@@ -511,6 +520,9 @@ class Session:
                 dns_query (dns.message.Message): output of dns.message.make_query
                 base64_dns_message (base64): encode bytes
         """
+        from dns import message
+        from dns.rdatatype import TXT
+
         dns_query = message.make_query(encoded_url, TXT)
         dns_wire = dns_query.to_wire()
         base64_dns_message = base64.urlsafe_b64encode(dns_wire).rstrip(b"=")
@@ -552,6 +564,7 @@ class Session:
         Returns:
             set(): alternative routes for API
         """
+        from dns import message
         r = message.from_wire(
             query_content,
             keyring=dns_query.keyring,
