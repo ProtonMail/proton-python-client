@@ -11,7 +11,7 @@ Architecture: all
 Homepage: https://github.com/ProtonMail/proton-python-client
 Section: net
 Depends: ${python3:Depends}, ${misc:Depends}, python3-bcrypt, python3-gnupg, python3-openssl, python3-dnspython, python3-requests (>= 2.16.0)
-Breaks: python3-protonvpn-nm-lib  (<< 3.4.1)
+Breaks: python3-protonvpn-nm-lib  (<< 3.5.0)
 Description: Proton SRP (Python 3)
  Safely login with ProtonVPN credentials to connect to Proton.
  .

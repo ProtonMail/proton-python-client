@@ -1,6 +1,6 @@
 %define unmangled_name proton-client
-%define version 0.6.1
-%define release 4
+%define version 0.7.0
+%define release 1
 
 Prefix: %{_prefix}
 
@@ -23,7 +23,7 @@ Requires: python3-requests
 Requires: python3-pyOpenSSL
 Requires: python3-bcrypt
 Requires: python3-gnupg
-Conflicts: python3-protonvpn-nm-lib < 3.4.1
+Conflicts: python3-protonvpn-nm-lib < 3.5.0
 
 %{?python_disable_dependency_generator}
 
@@ -49,6 +49,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.0-1
+- Feature: Request human verification
+
 * Thu Jul 08 2021 Proton Technologies AG <opensource@proton.me> 0.6.1-4
 - Feature: Alternative Routing
 
