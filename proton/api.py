@@ -43,7 +43,7 @@ class Session:
       >>> import proton
       >>> s = proton.Session("https://url-to-api.ch")
       >>> s.enable_alternative_routing = True
-      >>> s.api_request('/api/endpoint')
+      >>> s.api_request("/api/endpoint")
       <Response [200]>
     """
     _base_headers = {
@@ -73,10 +73,10 @@ class Session:
         Returns:
             proton.Session
         """
-        api_url = dump['api_url']
-        appversion = dump['appversion']
-        user_agent = dump['User-Agent']
-        cookies = dump.get('cookies', {})
+        api_url = dump["api_url"]
+        appversion = dump["appversion"]
+        user_agent = dump["User-Agent"]
+        cookies = dump.get("cookies", {})
         s = Session(
             api_url=api_url,
             log_dir_path=log_dir_path,
@@ -88,10 +88,10 @@ class Session:
             proxies=proxies
         )
         requests.utils.add_dict_to_cookiejar(s.s.cookies, cookies)
-        s._session_data = dump['session_data']
+        s._session_data = dump["session_data"]
         if s.UID is not None:
-            s.s.headers['x-pm-uid'] = s.UID
-            s.s.headers['Authorization'] = 'Bearer ' + s.AccessToken
+            s.s.headers["x-pm-uid"] = s.UID
+            s.s.headers["Authorization"] = "Bearer " + s.AccessToken
         return s
 
     def dump(self):
@@ -104,11 +104,11 @@ class Session:
             dict
         """
         return {
-            'api_url': self.__api_url,
-            'appversion': self.__appversion,
-            'User-Agent': self.__user_agent,
-            'cookies': self.s.cookies.get_dict(),
-            'session_data': self._session_data
+            "api_url": self.__api_url,
+            "appversion": self.__appversion,
+            "User-Agent": self.__user_agent,
+            "cookies": self.s.cookies.get_dict(),
+            "session_data": self._session_data
         }
 
     def __init__(
@@ -165,8 +165,8 @@ class Session:
         if self.__tls_pinning_enabled:
             self.s.mount(self.__api_url, TLSPinningAdapter())
 
-        self.s.headers['x-pm-appversion'] = appversion
-        self.s.headers['User-Agent'] = user_agent
+        self.s.headers["x-pm-appversion"] = appversion
+        self.s.headers["User-Agent"] = user_agent
 
     def api_request(
         self, endpoint,
@@ -205,11 +205,11 @@ class Session:
                 fct = self.s.post
         else:
             fct = {
-                'get': self.s.get,
-                'post': self.s.post,
-                'put': self.s.put,
-                'delete': self.s.delete,
-                'patch': self.s.patch
+                "get": self.s.get,
+                "post": self.s.post,
+                "put": self.s.put,
+                "delete": self.s.delete,
+                "patch": self.s.patch
             }.get(method.lower())
 
         if fct is None:
@@ -273,8 +273,8 @@ class Session:
                 }
             )
 
-        if response['Code'] not in [1000, 1001]:
-            if response['Code'] == 9001:
+        if response["Code"] not in [1000, 1001]:
+            if response["Code"] == 9001:
                 self.__captcha_token = response["Details"]["HumanVerificationToken"]
 
             raise ProtonAPIError(response)
@@ -344,7 +344,7 @@ class Session:
         verified = self.__gnupg.decrypt(armored_modulus)
 
         if not (verified.valid and verified.fingerprint.lower() == SRP_MODULUS_KEY_FINGERPRINT):
-            raise ValueError('Invalid modulus')
+            raise ValueError("Invalid modulus")
 
         return base64.b64decode(verified.data.strip())
 
@@ -365,7 +365,7 @@ class Session:
 
         payload = {"Username": username}
         if self.__clientsecret:
-            payload['ClientSecret'] = self.__clientsecret
+            payload["ClientSecret"] = self.__clientsecret
 
         additional_headers = {}
 
@@ -381,7 +381,7 @@ class Session:
             additional_headers=additional_headers
         )
 
-        modulus = self.verify_modulus(info_response['Modulus'])
+        modulus = self.verify_modulus(info_response["Modulus"])
         server_challenge = base64.b64decode(info_response["ServerEphemeral"])
         salt = base64.b64decode(info_response["Salt"])
         version = info_response["Version"]
@@ -391,19 +391,19 @@ class Session:
         client_proof = usr.process_challenge(salt, server_challenge, version)
 
         if client_proof is None:
-            raise ValueError('Invalid challenge')
+            raise ValueError("Invalid challenge")
 
         # Send response
         payload = {
             "Username": username,
             "ClientEphemeral": base64.b64encode(client_challenge).decode(
-                'utf8'
+                "utf8"
             ),
-            "ClientProof": base64.b64encode(client_proof).decode('utf8'),
+            "ClientProof": base64.b64encode(client_proof).decode("utf8"),
             "SRPSession": info_response["SRPSession"],
         }
         if self.__clientsecret:
-            payload['ClientSecret'] = self.__clientsecret
+            payload["ClientSecret"] = self.__clientsecret
         auth_response = self.api_request("/auth", payload)
 
         if "ServerProof" not in auth_response:
@@ -411,18 +411,19 @@ class Session:
 
         usr.verify_session(base64.b64decode(auth_response["ServerProof"]))
         if not usr.authenticated():
-            raise ValueError('Invalid server proof')
+            raise ValueError("Invalid server proof")
 
         self._session_data = {
-            'UID': auth_response["UID"],
-            'AccessToken': auth_response["AccessToken"],
-            'RefreshToken': auth_response["RefreshToken"],
-            'Scope': auth_response["Scope"].split(),
+            "UID": auth_response["UID"],
+            "AccessToken": auth_response["AccessToken"],
+            "RefreshToken": auth_response["RefreshToken"],
+            "PasswordMode": auth_response["PasswordMode"],
+            "Scope": auth_response["Scope"].split(),
         }
 
         if self.UID is not None:
-            self.s.headers['x-pm-uid'] = self.UID
-            self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
+            self.s.headers["x-pm-uid"] = self.UID
+            self.s.headers["Authorization"] = "Bearer " + self.AccessToken
 
         return self.Scope
 
@@ -438,17 +439,17 @@ class Session:
         The returning dict contains the Scope of the account. This allows
         to identify if the account is locked, has unpaid invoices, etc.
         """
-        ret = self.api_request('/auth/2fa', {"TwoFactorCode": code})
-        self._session_data['Scope'] = ret['Scope']
+        ret = self.api_request("/auth/2fa", {"TwoFactorCode": code})
+        self._session_data["Scope"] = ret["Scope"]
 
         return self.Scope
 
     def logout(self):
         """Logout from API."""
         if self._session_data:
-            self.api_request('/auth', method='DELETE')
-            del self.s.headers['Authorization']
-            del self.s.headers['x-pm-uid']
+            self.api_request("/auth", method="DELETE")
+            del self.s.headers["Authorization"]
+            del self.s.headers["x-pm-uid"]
             self._session_data = {}
 
     def refresh(self):
@@ -459,7 +460,7 @@ class Session:
         re-authenticate.
         """
         refresh_response = self.api_request(
-            '/auth/refresh',
+            "/auth/refresh",
             {
                 "ResponseType": "token",
                 "GrantType": "refresh_token",
@@ -467,9 +468,9 @@ class Session:
                 "RedirectURI": "http://protonmail.ch"
             }
         )
-        self._session_data['AccessToken'] = refresh_response["AccessToken"]
-        self._session_data['RefreshToken'] = refresh_response["RefreshToken"]
-        self.s.headers['Authorization'] = 'Bearer ' + self.AccessToken
+        self._session_data["AccessToken"] = refresh_response["AccessToken"]
+        self._session_data["RefreshToken"] = refresh_response["RefreshToken"]
+        self.s.headers["Authorization"] = "Bearer " + self.AccessToken
 
     def get_alternative_routes_from_dns(self, callback=None):
         """Get alternative routes to circumvent firewalls and API restrictions.
@@ -642,16 +643,20 @@ class Session:
 
     @property
     def UID(self):
-        return self._session_data.get('UID', None)
+        return self._session_data.get("UID", None)
 
     @property
     def AccessToken(self):
-        return self._session_data.get('AccessToken', None)
+        return self._session_data.get("AccessToken", None)
 
     @property
     def RefreshToken(self):
-        return self._session_data.get('RefreshToken', None)
+        return self._session_data.get("RefreshToken", None)
+
+    @property
+    def PasswordMode(self):
+        return self._session_data.get("PasswordMode", None)
 
     @property
     def Scope(self):
-        return self._session_data.get('Scope', [])
+        return self._session_data.get("Scope", [])
