@@ -367,14 +367,18 @@ class Session:
         if self.__clientsecret:
             payload['ClientSecret'] = self.__clientsecret
 
+        additional_headers = {}
+
         if human_verification:
             human_verification_header = {
                 "X-PM-Human-Verification-Token-Type": human_verification[0],
                 "X-PM-Human-Verification-Token": human_verification[1]
             }
+            additional_headers.update(human_verification_header)
+
         info_response = self.api_request(
             "/auth/info", payload,
-            additional_headers=human_verification_header
+            additional_headers=additional_headers
         )
 
         modulus = self.verify_modulus(info_response['Modulus'])
