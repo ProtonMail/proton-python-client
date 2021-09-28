@@ -51,6 +51,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.0-1
 - Feature: Request human verification
+- Fix: Allow to make and retrieve non-json responses from API
 
 * Thu Jul 08 2021 Proton Technologies AG <opensource@proton.me> 0.6.1-4
 - Feature: Alternative Routing

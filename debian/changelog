@@ -1,6 +1,7 @@
 proton-python-client (0.7.0-1) unstable; urgency=medium
 
   * Feature: Request human verification
+  * Fix: Allow to make and retrieve non-json responses from API
 
  -- Proton Technologies AG <opensource@proton.me>  Fri, 24 Sep 2021 11:30:00 +0100
  

@@ -176,16 +176,14 @@ class Session:
         """Make API request.
 
         Args:
-            endpoint (string): API endpoint
-            jsondata (json): json for the body to attach to the request
-                (if files or data is not specified)
-            additional_headers (dict): additional (dictionary of) headers to send
-            method (string): get|post|put|delete|patch
+            endpoint (string): API endpoint.
+            jsondata (json): json to send in the body.
+            additional_headers (dict): additional (dictionary of) headers to send.
+            method (string): get|post|put|delete|patch.
             params (dict|tuple): URL parameters to append to the URL. If a dictionary or
                 list of tuples ``[(key, value)]`` is provided, form-encoding will
                 take place.
-            _skip_alt_routing_for_api_check (bool): used to temporarly skip alt routing
-                since the goal is to ensure if the API is reacheable or not.
+            _skip_alt_routing_for_api_check (bool): used to temporarly skip alt routing.
 
         Returns:
             requests.Response
@@ -262,9 +260,18 @@ class Session:
             response = self.__try_with_alt_routing(fct, **request_params)
 
         try:
+            status_code = response.status_code
+        except: # noqa
+            status_code = False
+
+        try:
+            json_error = False
             response = response.json()
         except json.decoder.JSONDecodeError as e:
-            self._logger.exception(e)
+            json_error = e
+
+        if json_error and status_code != 200:
+            self._logger.exception(json_error)
             raise ProtonAPIError(
                 {
                     "Code": response.status_code,
@@ -273,11 +280,18 @@ class Session:
                 }
             )
 
-        if response["Code"] not in [1000, 1001]:
-            if response["Code"] == 9001:
-                self.__captcha_token = response["Details"]["HumanVerificationToken"]
+        # This check is needed for routers or any other clients that will ask for other
+        # data that is not provided in json format, such as when asking /vpn/config for
+        # a .ovpn template
+        try:
+            if response["Code"] not in [1000, 1001]:
+                if response["Code"] == 9001:
+                    self.__captcha_token = response["Details"]["HumanVerificationToken"]
 
-            raise ProtonAPIError(response)
+                raise ProtonAPIError(response)
+        except TypeError as e:
+            if status_code != 200:
+                raise TypeError(e)
 
         return response
 
