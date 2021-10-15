@@ -1,6 +1,7 @@
 proton-python-client (0.7.1-1) unstable; urgency=medium
 
   * Improve: Logging
+  * Improve: Alternative routing logic
 
  -- Proton Technologies AG <opensource@proton.me>  Fri, 15 Oct 2021 12:45:00 +0100
 

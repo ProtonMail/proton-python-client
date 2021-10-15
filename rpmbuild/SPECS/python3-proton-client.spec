@@ -51,6 +51,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.1-1
 - Improve: Logging
+- Improve: Alternative routing logic
 
 * Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.0-1
 - Feature: Request human verification
