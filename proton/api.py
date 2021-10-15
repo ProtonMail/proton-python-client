@@ -527,6 +527,7 @@ class Session:
                 dns_hosts_response = list(
                     executor.map(self.__query_for_dns_data, host_and_dns, timeout=20)
                 )
+                dns_hosts_response = [dns_url for dns_url in dns_hosts_response if dns_url]
 
             if len(dns_hosts_response) == 0:
                 continue
@@ -578,12 +579,18 @@ class Session:
             bytes: content of the response
         """
         dns_host, dns_encoded_data = dns_settings[0], dns_settings[1]
-        response = requests.get(
-            dns_host,
-            headers={"accept": "application/dns-message"},
-            timeout=(3.05, 16.95),
-            params={"dns": dns_encoded_data}
-        )
+        try:
+            response = requests.get(
+                dns_host,
+                headers={"accept": "application/dns-message"},
+                timeout=(3.05, 16.95),
+                params={"dns": dns_encoded_data}
+            )
+
+            if response.status_code == 404:
+                return
+        except Exception as e: # noqa
+            return
 
         return response.content
 
