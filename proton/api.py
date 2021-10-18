@@ -288,6 +288,8 @@ class Session:
             if response["Code"] not in [1000, 1001]:
                 if response["Code"] == 9001:
                     self.__captcha_token = response["Details"]["HumanVerificationToken"]
+                elif response["Code"] == 12087:
+                    del self.human_verification_token
 
                 raise ProtonAPIError(response)
         except TypeError as e:
@@ -363,7 +365,7 @@ class Session:
 
         return base64.b64decode(verified.data.strip())
 
-    def authenticate(self, username, password, human_verification=None):
+    def authenticate(self, username, password):
         """Authenticate user against API.
 
         Args:
@@ -382,19 +384,7 @@ class Session:
         if self.__clientsecret:
             payload["ClientSecret"] = self.__clientsecret
 
-        additional_headers = {}
-
-        if human_verification:
-            human_verification_header = {
-                "X-PM-Human-Verification-Token-Type": human_verification[0],
-                "X-PM-Human-Verification-Token": human_verification[1]
-            }
-            additional_headers.update(human_verification_header)
-
-        info_response = self.api_request(
-            "/auth/info", payload,
-            additional_headers=additional_headers
-        )
+        info_response = self.api_request("/auth/info", payload)
 
         modulus = self.verify_modulus(info_response["Modulus"])
         server_challenge = base64.b64decode(info_response["ServerEphemeral"])
@@ -419,6 +409,7 @@ class Session:
         }
         if self.__clientsecret:
             payload["ClientSecret"] = self.__clientsecret
+
         auth_response = self.api_request("/auth", payload)
 
         if "ServerProof" not in auth_response:
@@ -662,6 +653,39 @@ class Session:
             newvalue (bool)
         """
         self.__force_skip_alternative_routing = bool(newvalue)
+
+    @property
+    def human_verification_token(self):
+        return (
+            self.s.headers.get("X-PM-Human-Verification-Token-Type", None),
+            self.s.headers.get("X-PM-Human-Verification-Token", None)
+        )
+
+    @human_verification_token.setter
+    def human_verification_token(self, newtuplevalue):
+        """Set human verification token:
+
+        Args:
+            newtuplevalue (tuple): (token_type, token_value)
+        """
+        self.s.headers["X-PM-Human-Verification-Token-Type"] = newtuplevalue[0]
+        self.s.headers["X-PM-Human-Verification-Token"] = newtuplevalue[1]
+
+    @human_verification_token.deleter
+    def human_verification_token(self):
+        # Safest to use .pop() as it will onyl attempt to remove the key by name
+        # while del can also remove the whole dict (in case of code/programming error)
+        # Thus to prevent this, pop() is used.
+
+        try:
+            self.s.headers.pop("X-PM-Human-Verification-Token-Type")
+        except (KeyError, IndexError):
+            pass
+
+        try:
+            self.s.headers.pop("X-PM-Human-Verification-Token")
+        except (KeyError, IndexError):
+            pass
 
     @property
     def UID(self):
