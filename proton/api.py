@@ -147,7 +147,7 @@ class Session:
         self.__metadata = MetadataBackend.get_backend()
         self.__metadata.cache_dir_path = cache_dir_path
         self.__metadata.logger = self._logger
-        self.__allow_alternative_routes = None
+        self.__allow_alternative_routing = None
 
         # Verify modulus
         self.__gnupg = gnupg.GPG()
@@ -188,7 +188,7 @@ class Session:
         Returns:
             requests.Response
         """
-        if self.__allow_alternative_routes is None:
+        if self.__allow_alternative_routing is None:
             msg = "Alternative routing has not been configured before making API requests. " \
                 "Please either enable or disable it before making any requests."
             self._logger.info(msg)
@@ -217,7 +217,7 @@ class Session:
         _verify = True
 
         if not self.__metadata.try_original_url(
-            self.__allow_alternative_routes,
+            self.__allow_alternative_routing,
             self.__force_skip_alternative_routing
         ):
             _url = self.__metadata.get_alternative_url()
@@ -251,7 +251,7 @@ class Session:
             self._logger.exception(e)
             raise UnknownConnectionError(e)
 
-        if exception_class and (not self.__allow_alternative_routes or _skip_alt_routing_for_api_check or self.__force_skip_alternative_routing): # noqa
+        if exception_class and (not self.__allow_alternative_routing or _skip_alt_routing_for_api_check or self.__force_skip_alternative_routing): # noqa
             self._logger.info("{}: {}".format(exception_class, exception_msg))
             raise exception_class(exception_msg)
         elif (
@@ -618,7 +618,7 @@ class Session:
     @property
     def enable_alternative_routing(self):
         """Alternative routing getter."""
-        return self.__allow_alternative_routes
+        return self.__allow_alternative_routing
 
     @enable_alternative_routing.setter
     def enable_alternative_routing(self, newvalue):
@@ -631,8 +631,8 @@ class Session:
         Args:
             newvalue (bool)
         """
-        if self.__allow_alternative_routes != bool(newvalue):
-            self.__allow_alternative_routes = bool(newvalue)
+        if self.__allow_alternative_routing != bool(newvalue):
+            self.__allow_alternative_routing = bool(newvalue)
 
     @property
     def force_skip_alternative_routing(self):

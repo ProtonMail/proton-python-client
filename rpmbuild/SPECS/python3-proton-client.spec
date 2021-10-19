@@ -1,6 +1,6 @@
 %define unmangled_name proton-client
 %define version 0.7.1
-%define release 1
+%define release 2
 
 Prefix: %{_prefix}
 
@@ -49,7 +49,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.1-1
+* Fri Sep 24 2021 Proton Technologies AG <opensource@proton.me> 0.7.1-2
 - Improve: Logging
 - Improve: Alternative routing logic
 - Improve: Human verification logic

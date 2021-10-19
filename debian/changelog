@@ -1,4 +1,4 @@
-proton-python-client (0.7.1-1) unstable; urgency=medium
+proton-python-client (0.7.1-2) unstable; urgency=medium
 
   * Improve: Logging
   * Improve: Alternative routing logic
