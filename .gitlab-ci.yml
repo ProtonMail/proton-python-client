@@ -104,6 +104,12 @@ test-arch:
    - job: make-image-arch
  image: $CI_REGISTRY_IMAGE/archlinux:branch-$CI_COMMIT_REF_SLUG
 
+ test-opensuse-leap-153:
+ extends: test-deb
+ needs:
+   - job: make-image-arch
+ image: $CI_REGISTRY_IMAGE/opensuse-leap-153:branch-$CI_COMMIT_REF_SLUG
+
 test-fed33:
  extends: test-deb
  needs:

@@ -17,8 +17,9 @@ IMAGE_URL_FED33 = fedora:33
 IMAGE_URL_FED34 = fedora:34
 IMAGE_URL_FED35 = fedora:35
 IMAGE_URL_ARCH = archlinux:latest
+IMAGE_URL_OPENSUSE_LEAP_153 = opensuse/leap:15.3
 
-base: image-deb image-fed33 image-fed34 image-fed35  image-arch
+base: image-deb image-fed33 image-fed34 image-fed35 image-arch image-opensuse-leap-153
 
 # Create the image based on ubuntu
 image-deb: image
@@ -29,6 +30,11 @@ image-deb: src = ubuntu
 image-arch: image
 image-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
 image-arch: src = archlinux
+
+# Create the image based on opensuse leap 15.3
+image-arch: image
+image-arch: DOCKER_FILE_SOURCE = Dockerfile.opensuse-leap-153
+image-arch: src = opensuse-leap-153
 
 # Create the image based on fedora 33
 image-fed33: image
@@ -53,7 +59,7 @@ image: requirements.txt docker-source
 
 ## We host our own copy of the image ubuntu:latest
 docker-source:
-	sed "s|IMAGE_URL_FED33|$(IMAGE_URL_FED33)|; s|IMAGE_URL_FED34|$(IMAGE_URL_FED34)|; s|IMAGE_URL_FED35|$(IMAGE_URL_FED35)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
+	sed "s|IMAGE_URL_FED33|$(IMAGE_URL_FED33)|; s|IMAGE_URL_FED34|$(IMAGE_URL_FED34)|; s|IMAGE_URL_FED35|$(IMAGE_URL_FED35)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_OPENSUSE_LEAP_153|$(IMAGE_URL_OPENSUSE_LEAP_153)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
 
 requirements.txt:
 	@ touch requirements.txt
@@ -71,7 +77,7 @@ local: docker-source
 	@ rm -rf __SOURCE_APP || true
 local: NAME_IMAGE = proton-python-client:latest
 
-local-base: local-deb local-fed33 local-fed34 local-fed35 local-arch
+local-base: local-deb local-fed33 local-fed34 local-fed35 local-arch image-opensuse-leap-153
 
 local-deb: local
 local-deb: DOCKER_FILE_SOURCE = Dockerfile.deb
@@ -84,6 +90,9 @@ local-fed34: DOCKER_FILE_SOURCE = Dockerfile.fed34
 
 local-fed35: local
 local-fed35: DOCKER_FILE_SOURCE = Dockerfile.fed35
+
+local-opensuse-leap-153: local
+local-opensuse-leap-153: DOCKER_FILE_SOURCE = Dockerfile.opensuse-leap-153
 
 local-arch: local
 local-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
@@ -119,7 +128,7 @@ test-fed33: local-fed33
 			--volume $(PWD)/.env:/home/user/proton-python-client.env \
 			proton-python-client:latest \
 			python3 -m pytest
-			
+
 test-fed34: local-fed34
 	# Keep -it because with colors it's better
 	@ docker run \
@@ -129,7 +138,7 @@ test-fed34: local-fed34
 			--volume $(PWD)/.env:/home/user/proton-python-client.env \
 			proton-python-client:latest \
 			python3 -m pytest
-		
+
 test-fed35: local-fed35
 	# Keep -it because with colors it's better
 	@ docker run \
@@ -139,9 +148,20 @@ test-fed35: local-fed35
 			--volume $(PWD)/.env:/home/user/proton-python-client.env \
 			proton-python-client:latest \
 			python3 -m pytest
-			
+
 ## Run tests against the latest version of the image from your code
 test-arch: local-arch
+	# Keep -it because with colors it's better
+	@ docker run \
+			--rm \
+			-it \
+			--privileged \
+			--volume $(PWD)/.env:/home/user/proton-python-client.env \
+			proton-python-client:latest \
+			python3 -m pytest
+
+## Run tests against the latest version of the image from your code
+test-opensuse-leap-15-3: local-arch
 	# Keep -it because with colors it's better
 	@ docker run \
 			--rm \
