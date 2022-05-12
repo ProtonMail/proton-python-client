@@ -1,4 +1,4 @@
-FROM IMAGE_URL_FED33
+FROM IMAGE_URL_FED36
 RUN dnf update -y
 
 # RUN yum -y install epel-release && yum repolist
