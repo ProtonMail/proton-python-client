@@ -1,6 +1,7 @@
 FROM IMAGE_URL_ARCH
 ARG pkgname
 ENV pkgname=${pkgname:-python-proton-client}
+RUN pacman -Syu --noconfirm
 RUN pacman -Syu --noconfirm \
     pacman-contrib \
     base-devel \

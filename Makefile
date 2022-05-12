@@ -16,7 +16,7 @@ IMAGE_URL_DEB = ubuntu:latest
 IMAGE_URL_FED34 = fedora:34
 IMAGE_URL_FED35 = fedora:35
 IMAGE_URL_FED36 = fedora:36
-IMAGE_URL_ARCH = archlinux:latest
+IMAGE_URL_ARCH = archlinux:base
 
 base: image-deb image-fed36 image-fed34 image-fed35  image-arch
 
