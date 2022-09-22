@@ -74,17 +74,11 @@ make-image-fed36:
  script:
    - make image-fed36 branch=$CI_COMMIT_REF_SLUG src=fedora36
    
-make-image-fed34:
+make-image-fed37:
  stage: image
  extends: make-image-deb
  script:
-   - make image-fed34 branch=$CI_COMMIT_REF_SLUG src=fedora34
-
-make-image-fed35:
- stage: image
- extends: make-image-deb
- script:
-   - make image-fed35 branch=$CI_COMMIT_REF_SLUG src=fedora35
+   - make image-fed37 branch=$CI_COMMIT_REF_SLUG src=fedora37
 
 ######## CI Test Jobs ##########
 test-deb:
@@ -111,18 +105,12 @@ test-fed36:
    - job: make-image-fed36
  image: $CI_REGISTRY_IMAGE/fedora36:branch-$CI_COMMIT_REF_SLUG
  
-test-fed34:
+test-fed37:
  extends: test-deb
  needs:
-   - job: make-image-fed34
- image: $CI_REGISTRY_IMAGE/fedora34:branch-$CI_COMMIT_REF_SLUG
+   - job: make-image-fed37
+ image: $CI_REGISTRY_IMAGE/fedora37:branch-$CI_COMMIT_REF_SLUG
  
-test-fed35:
- extends: test-deb
- needs:
-   - job: make-image-fed35
- image: $CI_REGISTRY_IMAGE/fedora35:branch-$CI_COMMIT_REF_SLUG
-
 
 ## Jobs to publish commits + tags from master to github
 release-publish-github:
@@ -130,8 +118,7 @@ release-publish-github:
  needs:
    - job: build-deb
    - job: build-fed36
-   - job: build-fed34
-   - job: build-fed35
+   - job: build-fed37
  when: manual
  variables:
    RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
@@ -144,8 +131,7 @@ release-publish-github-tags:
  needs:
    - job: build-deb
    - job: build-fed36
-   - job: build-fed34
-   - job: build-fed35
+   - job: build-fed37
  when: manual
  variables:
    RELEASE_SYNC_PUBLIC_URL: git@github.com:ProtonMail/proton-python-client.git
