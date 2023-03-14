@@ -13,11 +13,10 @@ ifeq ($(branch), latest)
 endif
 
 IMAGE_URL_DEB = ubuntu:latest
-IMAGE_URL_FED36 = fedora:36
 IMAGE_URL_FED37 = fedora:37
 IMAGE_URL_ARCH = archlinux:base
 
-base: image-deb image-fed36image-fed37  image-arch
+base: image-deb image-fed37  image-arch
 
 # Create the image based on ubuntu
 image-deb: image
@@ -34,11 +33,6 @@ image-fed37: image
 image-fed37: DOCKER_FILE_SOURCE = Dockerfile.fed37
 image-fed37: src = fedora37
 
-# Create the image based on fedora 36
-image-fed36: image
-image-fed36: DOCKER_FILE_SOURCE = Dockerfile.fed36
-image-fed36: src = fedora36
-
 ## Make remote image form a branch make image branch=<branchName> (master default)
 image: requirements.txt docker-source
 	docker build -t $(NAME_IMAGE):$(TAG_IMAGE) -f "$(DOCKERFILE_BUILD)" .
@@ -47,7 +41,7 @@ image: requirements.txt docker-source
 
 ## We host our own copy of the image ubuntu:latest
 docker-source:
-	sed "s|IMAGE_URL_FED36|$(IMAGE_URL_FED36)|; s|IMAGE_URL_FED37|$(IMAGE_URL_FED37)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
+	sed "s|IMAGE_URL_FED37|$(IMAGE_URL_FED37)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
 
 requirements.txt:
 	@ touch requirements.txt
@@ -65,16 +59,13 @@ local: docker-source
 	@ rm -rf __SOURCE_APP || true
 local: NAME_IMAGE = proton-python-client:latest
 
-local-base: local-deb local-fed36 local-fed37 local-arch
+local-base: local-deb local-fed37 local-arch
 
 local-deb: local
 local-deb: DOCKER_FILE_SOURCE = Dockerfile.deb
 
 local-fed37: local
 local-fed37: DOCKER_FILE_SOURCE = Dockerfile.fed37
-
-local-fed36: local
-local-fed36: DOCKER_FILE_SOURCE = Dockerfile.fed36
 
 local-arch: local
 local-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
@@ -102,16 +93,6 @@ test-deb: local-deb
 ## Run tests against the latest version of the image from your code
 
 test-fed37: local-fed37
-	# Keep -it because with colors it's better
-	@ docker run \
-			--rm \
-			-it \
-			--privileged \
-			--volume $(PWD)/.env:/home/user/proton-python-client.env \
-			proton-python-client:latest \
-			python3 -m pytest
-
-test-fed36: local-fed36
 	# Keep -it because with colors it's better
 	@ docker run \
 			--rm \
