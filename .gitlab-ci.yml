@@ -1,15 +1,15 @@
 ## Jobs to build and publish deb, rpm and arch based packages
 include:
- - project: 'ProtonVPN/Linux/_gitlab-ci'
+ - project: 'ProtonVPN/Linux/v3/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'message-deploy.yml'
- - project: 'ProtonVPN/Linux/_gitlab-ci'
+ - project: 'ProtonVPN/Linux/v3/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'gitlab-ci-build-publish-debian.yml'
- - project: 'ProtonVPN/Linux/_gitlab-ci'
+ - project: 'ProtonVPN/Linux/v3/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'gitlab-ci-build-publish-rpm.yml'
- - project: 'ProtonVPN/Linux/_gitlab-ci'
+ - project: 'ProtonVPN/Linux/v3/_gitlab-ci'
    ref: public-protonvpn-repo
    file: 'gitlab-ci-build-publish-arch.yml'
  - project: 'agarroux/publish-github'
