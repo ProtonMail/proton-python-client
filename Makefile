@@ -13,10 +13,10 @@ ifeq ($(branch), latest)
 endif
 
 IMAGE_URL_DEB = ubuntu:latest
-IMAGE_URL_FED37 = fedora:37
+IMAGE_URL_FED38 = fedora:38
 IMAGE_URL_ARCH = archlinux:base
 
-base: image-deb image-fed37  image-arch
+base: image-deb image-fed38  image-arch
 
 # Create the image based on ubuntu
 image-deb: image
@@ -28,10 +28,10 @@ image-arch: image
 image-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
 image-arch: src = archlinux
 
-# Create the image based on fedora 37
-image-fed37: image
-image-fed37: DOCKER_FILE_SOURCE = Dockerfile.fed37
-image-fed37: src = fedora37
+# Create the image based on fedora 38
+image-fed38: image
+image-fed38: DOCKER_FILE_SOURCE = Dockerfile.fed38
+image-fed38: src = fedora38
 
 ## Make remote image form a branch make image branch=<branchName> (master default)
 image: requirements.txt docker-source
@@ -41,7 +41,7 @@ image: requirements.txt docker-source
 
 ## We host our own copy of the image ubuntu:latest
 docker-source:
-	sed "s|IMAGE_URL_FED37|$(IMAGE_URL_FED37)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
+	sed "s|IMAGE_URL_FED38|$(IMAGE_URL_FED38)|; s|IMAGE_URL_DEB|$(IMAGE_URL_DEB)|; s|IMAGE_URL_ARCH|$(IMAGE_URL_ARCH)|" $(DOCKER_FILE_SOURCE) > /tmp/Dockerfile.image
 
 requirements.txt:
 	@ touch requirements.txt
@@ -59,13 +59,13 @@ local: docker-source
 	@ rm -rf __SOURCE_APP || true
 local: NAME_IMAGE = proton-python-client:latest
 
-local-base: local-deb local-fed37 local-arch
+local-base: local-deb local-fed38 local-arch
 
 local-deb: local
 local-deb: DOCKER_FILE_SOURCE = Dockerfile.deb
 
-local-fed37: local
-local-fed37: DOCKER_FILE_SOURCE = Dockerfile.fed37
+local-fed38: local
+local-fed38: DOCKER_FILE_SOURCE = Dockerfile.fed38
 
 local-arch: local
 local-arch: DOCKER_FILE_SOURCE = Dockerfile.arch
@@ -92,7 +92,7 @@ test-deb: local-deb
 
 ## Run tests against the latest version of the image from your code
 
-test-fed37: local-fed37
+test-fed38: local-fed38
 	# Keep -it because with colors it's better
 	@ docker run \
 			--rm \
