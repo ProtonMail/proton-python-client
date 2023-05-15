@@ -39,6 +39,8 @@ The recommended way to install the client is via OS-respective packages (.deb/.r
 
 # Usage
 
+Sadly, there is no documenattion of API but this repository may make easier to reverse enginner automatic interaction with Proton.
+
 ## Import
 `from proton.api import Session, ProtonError`
 
