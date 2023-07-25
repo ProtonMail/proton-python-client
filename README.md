@@ -142,6 +142,9 @@ proton_session.api_request(endpoint="custom_api_endpoint")
   - `/addresses/{{address_id}}/enable  PUT`: Enable address
   - `/addresses/{{address_id}}/disable  PUT`: Disable address
   - `/addresses/{{address_id}}  DELETE`: Delete address
+- `/mail/v4`
+  - `/attachments  POST`: Upload attachment
+  - `/attachments/{{attachment_id}}  GET`: Get attachment
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
