@@ -145,23 +145,7 @@ proton_session.api_request(endpoint="custom_api_endpoint")
 - `/mail/v4`
   - `/attachments  POST`: Upload attachment
   - `/attachments/{{attachment_id}}  GET`: Get attachment
-- `/auth/v4`
-  - `/2fa  POST`: Auth 2FA
-  - `/  DELETE`: Auth delete
-  - `/sessions  GET`: Auth sessions
-  - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
-  - `/sessions  DELETE`: Auth revoke all
-  - `/refresh  POST`: Auth refresh
-- `/calendar/v1`
-  - `/{{calendar_id}}/events  GET`: Calendar events
-  - `/  GET`: Get calendars
-  - `/{{calendar_id}}  GET`: Get calendar
-- `/contacts/v4`
-- `/data/v1`
-- `/drive`
-- `/mail/v4`
   - `/settings  GET`: Get mail settings
-  - `/settings/display  PUT`: Set display name
   - `/messages/import  POST`: Import messages
   - `/messages  POST`: Create draft
   - `/messages/{{draft_id}}  PUT`: Update draft
@@ -171,6 +155,24 @@ proton_session.api_request(endpoint="custom_api_endpoint")
   - `/messages/read  PUT`: Mark message as read
   - `/messages/unread  PUT`: Mark message as unread
   - `/messages/ids  GET`: Get message IDs
+- `/auth/v4`
+  - `/  POST`:  Post auth
+  - `/info  POST`: Post auth info
+  - `/refresh  POST`: Post auth refresh
+  - `/  DELETE`: Auth delete
+  - `/sessions  GET`: Auth sessions
+  - `/sessions  DELETE`: Auth revoke all
+  - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
+- `/calendar/v1`
+  - `/{{calendar_id}}/events  GET`: Calendar events
+  - `/  GET`: Get calendars
+  - `/{{calendar_id}}  GET`: Get calendar
+- `/contacts/v4`
+  - `/emails  GET`: Get contacts emails
+- `/data/v1`
+  - `/stats  POST`: Post data stats
+  - `/stats/multiple  POST`: Post multiple data stats
+
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
