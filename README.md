@@ -145,6 +145,12 @@ proton_session.api_request(endpoint="custom_api_endpoint")
 - `/mail/v4`
   - `/attachments  POST`: Upload attachment
   - `/attachments/{{attachment_id}}  GET`: Get attachment
+- `/auth/v4`
+  - `/2fa  POST`: Auth 2FA
+  - `/  DELETE`: Auth delete
+  - `/sessions  GET`: Auth sessions
+  - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
+  - `/sessions  DELETE`: Auth revoke all
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
