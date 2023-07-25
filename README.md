@@ -151,6 +151,10 @@ proton_session.api_request(endpoint="custom_api_endpoint")
   - `/sessions  GET`: Auth sessions
   - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
   - `/sessions  DELETE`: Auth revoke all
+- `/calendar/v1`
+  - `/{{calendar_id}}/events  GET`: Calendar events
+  - `/  GET`: Get calendars
+  - `/{{calendar_id}}  GET`: Get calendar
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
