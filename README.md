@@ -151,10 +151,21 @@ proton_session.api_request(endpoint="custom_api_endpoint")
   - `/sessions  GET`: Auth sessions
   - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
   - `/sessions  DELETE`: Auth revoke all
+  - `/refresh  POST`: Auth refresh
 - `/calendar/v1`
   - `/{{calendar_id}}/events  GET`: Calendar events
   - `/  GET`: Get calendars
   - `/{{calendar_id}}  GET`: Get calendar
+- `/contacts/v4`
+- `/data/v1`
+- `/drive`
+- `/mail/v4`
+  - `/settings  GET`: Get mail settings
+  - `/settings/display  PUT`: Set display name
+  - `/messages/import  POST`: Import messages
+  - `/messages  POST`: Create draft
+  - `/messages/{{draft_id}}  PUT`: Update draft
+  - `/messages/{{draft_id}} POST`: Send draft
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
