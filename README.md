@@ -132,6 +132,17 @@ Once we're authenticated and our tokens are valid, we can make api calls to vari
 proton_session.api_request(endpoint="custom_api_endpoint")
 ```
 
+### List of endpoints  
+
+- `https://mail.proton.me/api`: the current base URL for APIs _this may change in future_  
+- `/core/v4`
+  - `/addresses  GET`: Get addresses
+  - `/addresses/{{address_id}}  GET`: Get address
+  - `/addresses/order  PUT`: Order addresses
+  - `/addresses/{{address_id}}/enable  PUT`: Enable address
+  - `/addresses/{{address_id}}/disable  PUT`: Disable address
+  - `/addresses/{{address_id}}  DELETE`: Delete address
+
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
 - `401`: Invalid `AccessToken`, client should refresh tokens ([Refresh Session](#refresh-session))
