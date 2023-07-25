@@ -166,6 +166,11 @@ proton_session.api_request(endpoint="custom_api_endpoint")
   - `/messages  POST`: Create draft
   - `/messages/{{draft_id}}  PUT`: Update draft
   - `/messages/{{draft_id}} POST`: Send draft
+  - `/messages/{{message_id}}  GET`: Get message
+  - `/messages/delete  PUT`: Delete message
+  - `/messages/read  PUT`: Mark message as read
+  - `/messages/unread  PUT`: Mark message as unread
+  - `/messages/ids  GET`: Get message IDs
 
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
