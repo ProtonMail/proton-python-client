@@ -132,6 +132,48 @@ Once we're authenticated and our tokens are valid, we can make api calls to vari
 proton_session.api_request(endpoint="custom_api_endpoint")
 ```
 
+### List of endpoints  
+
+- `https://mail.proton.me/api`: the current base URL for APIs _this may change in future_  
+- `/core/v4`
+  - `/addresses  GET`: Get addresses
+  - `/addresses/{{address_id}}  GET`: Get address
+  - `/addresses/order  PUT`: Order addresses
+  - `/addresses/{{address_id}}/enable  PUT`: Enable address
+  - `/addresses/{{address_id}}/disable  PUT`: Disable address
+  - `/addresses/{{address_id}}  DELETE`: Delete address
+- `/mail/v4`
+  - `/attachments  POST`: Upload attachment
+  - `/attachments/{{attachment_id}}  GET`: Get attachment
+  - `/settings  GET`: Get mail settings
+  - `/messages/import  POST`: Import messages
+  - `/messages  POST`: Create draft
+  - `/messages/{{draft_id}}  PUT`: Update draft
+  - `/messages/{{draft_id}} POST`: Send draft
+  - `/messages/{{message_id}}  GET`: Get message
+  - `/messages/delete  PUT`: Delete message
+  - `/messages/read  PUT`: Mark message as read
+  - `/messages/unread  PUT`: Mark message as unread
+  - `/messages/ids  GET`: Get message IDs
+- `/auth/v4`
+  - `/  POST`:  Post auth
+  - `/info  POST`: Post auth info
+  - `/refresh  POST`: Post auth refresh
+  - `/  DELETE`: Auth delete
+  - `/sessions  GET`: Auth sessions
+  - `/sessions  DELETE`: Auth revoke all
+  - `/sessions/{{auth_uid}}  DELETE`: Auth revoke
+- `/calendar/v1`
+  - `/{{calendar_id}}/events  GET`: Calendar events
+  - `/  GET`: Get calendars
+  - `/{{calendar_id}}  GET`: Get calendar
+- `/contacts/v4`
+  - `/emails  GET`: Get contacts emails
+- `/data/v1`
+  - `/stats  POST`: Post data stats
+  - `/stats/multiple  POST`: Post multiple data stats
+
+
 ## Error handling
 For all of commands presented in the previous chapters, it is recommended to use them within try/except blocks. Some common errors that might come up:
 - `401`: Invalid `AccessToken`, client should refresh tokens ([Refresh Session](#refresh-session))
