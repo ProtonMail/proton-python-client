@@ -8,7 +8,7 @@ from ._base import MetadataBackend
 
 class TextfileMetdataHandler(MetadataBackend):
     """
-    Textfile Metdata Handler. Stores
+    Textfile Metadata Handler. Stores
     metadata for Alternative Routing purposes.
     """
     metadata_backend = "default"
